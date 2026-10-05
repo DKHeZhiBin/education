@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.vite/
+*.tsbuildinfo
+.env
+.venv/
+__pycache__/
+*.egg-info/
+*.db

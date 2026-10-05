@@ -1,0 +1,42 @@
+{
+  "schema_version": "1.0",
+  "name": "high_difficulty_v1",
+  "evaluation_only": true,
+  "case_count": 16,
+  "source_commit": "fe9e83df06111728e1b06ddaee0a60837c07d6c9",
+  "source_file_url": "https://raw.githubusercontent.com/protagolabs/odyssey-math/fe9e83df06111728e1b06ddaee0a60837c07d6c9/final-odyssey-math-with-levels.jsonl",
+  "selected_upstream_ids": [
+    "Problem_2",
+    "Problem_29",
+    "Problem_32",
+    "Problem_34",
+    "Problem_45",
+    "Problem_46",
+    "Problem_51",
+    "Problem_94",
+    "Problem_101",
+    "Problem_107",
+    "Problem_108",
+    "Problem_125",
+    "Problem_126",
+    "Problem_135",
+    "Problem_136",
+    "Problem_137"
+  ],
+  "label_counts": {
+    "Algebra": 4,
+    "Combinatorics": 5,
+    "Geometry": 4,
+    "NumberTheory": 3
+  },
+  "dataset_sha256": "04b679d45bf0ecbf096845e6cac85fec646e4743f31faefb7c5b880c0a738786",
+  "review_status": "source_committee_reviewed",
+  "local_integrity_screening": "completed",
+  "excluded_after_integrity_screening": {
+    "Problem_44": "The statement switches from coefficient a to undefined alpha.",
+    "Problem_47": "The counted integer variable and its domain are not fully specified.",
+    "Problem_113": "The statement uses n^2 after fixing a 2023 by 2023 board without defining n.",
+    "Problem_129": "The optimization target is ambiguous in the published English wording."
+  },
+  "local_translation_status": "not_translated"
+}

@@ -1,0 +1,27 @@
+{
+  "schema_version": "1.0",
+  "name": "question_generation_quadratic_v1",
+  "evaluation_only": true,
+  "immutable": true,
+  "production_index_forbidden": true,
+  "topic_code": "MS.QE",
+  "scope": "初中一元二次方程变式生成",
+  "source": "project-authored",
+  "split": "generation_holdout",
+  "dataset_file": "question_generation_quadratic_v1.jsonl",
+  "case_count": 10,
+  "dataset_sha256": "817eea20773b520a4d7ec755009e6a45287f3196f749e55bca4fafa579e328c1",
+  "case_ids": [
+    "qg_qe_001",
+    "qg_qe_002",
+    "qg_qe_003",
+    "qg_qe_004",
+    "qg_qe_005",
+    "qg_qe_006",
+    "qg_qe_007",
+    "qg_qe_008",
+    "qg_qe_009",
+    "qg_qe_010"
+  ],
+  "freeze_policy": "任何题面、Oracle、评分权重或案例增删都必须创建新版本；不得原地修改 v1。"
+}

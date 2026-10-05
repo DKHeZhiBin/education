@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "math-tutor-agent"
+version = "0.1.0"
+description = "A modular tutoring agent for guided math learning"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi>=0.115,<1.0",
+  "uvicorn[standard]>=0.30,<1.0",
+  "pydantic-settings>=2.4,<3.0",
+  "httpx>=0.27,<1.0",
+  "sqlalchemy>=2.0,<3.0",
+  "pymysql>=1.1,<2.0",
+  "pyjwt>=2.10,<3.0",
+  "pwdlib[argon2]>=0.2,<1.0",
+  "python-multipart>=0.0.20,<1.0",
+  "email-validator>=2.2,<3.0",
+  "redis>=6.0,<9.0",
+  "alembic>=1.13,<2.0",
+  "mcp>=2.0,<3.0",
+  "sympy>=1.13,<2.0",
+  "qdrant-client>=1.15,<2.0",
+]
+
+[project.scripts]
+math-tutor-harness = "app.cli:main"
+math-tutor-mcp = "app.mcp_tools.server:main"
+math-tutor-catalog = "app.catalogs.cli:main"
+math-tutor-problem-bank = "app.problem_bank.cli:main"
+math-tutor-ingest = "app.ingestion.cli:main"
+math-tutor-vector-store = "app.vector_store.cli:main"
+math-tutor-index = "app.search_index.cli:main"
+math-tutor-evals = "app.evaluation.cli:main"
+math-tutor-quality-report = "app.evaluation.quality_cli:main"
+math-tutor-release-gate = "app.evaluation.release_gate_cli:main"
+math-tutor-rag-quality = "app.evaluation.retrieval_quality_cli:main"
+math-tutor-revalidate = "app.evaluation.revalidation_cli:main"
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+
+[tool.setuptools.package-data]
+"app.catalogs" = ["data/*.json"]
+"app.problem_bank" = ["data/*.json"]

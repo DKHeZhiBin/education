@@ -1,0 +1,92 @@
+#!/bin/bash
+set -euo pipefail
+
+project_dir="$(cd "$(dirname "$0")/.." && pwd)"
+service_dir="$project_dir/.local-services"
+mysql_bin="$service_dir/runtime/mysql/bin"
+mysql_config="$service_dir/config/mysql.cnf"
+mysql_socket="$service_dir/run/mysql.sock"
+mysql_root_client="$service_dir/config/mysql-root-client.cnf"
+mysql_app_client="$service_dir/config/mysql-app-client.cnf"
+mysql_root_secret="$service_dir/secrets/mysql-root-password"
+mysql_app_secret="$service_dir/secrets/mysql-app-password"
+
+chmod 755 "$project_dir/scripts/local-services"
+mkdir -p "$service_dir/data/mysql" "$service_dir/logs" "$service_dir/run" "$service_dir/secrets"
+
+if [ ! -d "$service_dir/data/mysql/mysql" ]; then
+  "$mysql_bin/mysqld" --defaults-file="$mysql_config" --initialize-insecure
+fi
+
+if [ ! -f "$mysql_root_client" ]; then
+  /usr/bin/nohup "$mysql_bin/mysqld" --defaults-file="$mysql_config" \
+    >"$service_dir/logs/mysql-stdout.log" 2>&1 &
+  for _ in {1..60}; do
+    "$mysql_bin/mysqladmin" --socket="$mysql_socket" -u root ping --silent \
+      >/dev/null 2>&1 && break
+    sleep 1
+  done
+  "$mysql_bin/mysqladmin" --socket="$mysql_socket" -u root ping --silent \
+    >/dev/null 2>&1 || {
+      echo "MySQL initialization failed; inspect $service_dir/logs/mysql-error.log" >&2
+      exit 1
+    }
+
+  umask 077
+  local_mysql_root_password="$(/usr/bin/openssl rand -hex 24)"
+  local_mysql_app_password="$(/usr/bin/openssl rand -hex 24)"
+  printf '%s\n' "$local_mysql_root_password" >"$mysql_root_secret"
+  printf '%s\n' "$local_mysql_app_password" >"$mysql_app_secret"
+
+  bootstrap_sql="$service_dir/run/mysql-bootstrap.sql"
+  cat >"$bootstrap_sql" <<SQL
+ALTER USER 'root'@'localhost' IDENTIFIED BY '$local_mysql_root_password';
+CREATE DATABASE IF NOT EXISTS math_tutor CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+CREATE USER IF NOT EXISTS 'math_tutor'@'localhost' IDENTIFIED BY '$local_mysql_app_password';
+CREATE USER IF NOT EXISTS 'math_tutor'@'127.0.0.1' IDENTIFIED BY '$local_mysql_app_password';
+ALTER USER 'math_tutor'@'localhost' IDENTIFIED BY '$local_mysql_app_password';
+ALTER USER 'math_tutor'@'127.0.0.1' IDENTIFIED BY '$local_mysql_app_password';
+GRANT ALL PRIVILEGES ON math_tutor.* TO 'math_tutor'@'localhost';
+GRANT ALL PRIVILEGES ON math_tutor.* TO 'math_tutor'@'127.0.0.1';
+FLUSH PRIVILEGES;
+SQL
+  "$mysql_bin/mysql" --socket="$mysql_socket" -u root <"$bootstrap_sql"
+
+  cat >"$mysql_root_client" <<CNF
+[client]
+user=root
+password=$local_mysql_root_password
+socket=$mysql_socket
+CNF
+  cat >"$mysql_app_client" <<CNF
+[client]
+user=math_tutor
+password=$local_mysql_app_password
+host=127.0.0.1
+port=3306
+database=math_tutor
+default-character-set=utf8mb4
+CNF
+  chmod 600 "$mysql_root_client" "$mysql_app_client" "$mysql_root_secret" "$mysql_app_secret"
+  : >"$bootstrap_sql"
+fi
+
+if [ ! -f "$project_dir/.env" ]; then
+  cp "$project_dir/.env.example" "$project_dir/.env"
+fi
+
+local_mysql_app_password="$(cat "$mysql_app_secret")"
+database_url="mysql+pymysql://math_tutor:$local_mysql_app_password@127.0.0.1:3306/math_tutor?charset=utf8mb4"
+env_temp="$service_dir/run/env.updated"
+/usr/bin/awk -v database_url="$database_url" '
+  BEGIN { updated = 0 }
+  /^DATABASE_URL=/ { print "DATABASE_URL=" database_url; updated = 1; next }
+  { print }
+  END { if (!updated) print "DATABASE_URL=" database_url }
+' "$project_dir/.env" >"$env_temp"
+mv "$env_temp" "$project_dir/.env"
+chmod 600 "$project_dir/.env"
+
+"$project_dir/scripts/local-services" start
+"$project_dir/scripts/local-services" status
+

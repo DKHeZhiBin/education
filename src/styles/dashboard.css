@@ -1,0 +1,23 @@
+.home-grid{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(260px,.9fr);gap:18px}
+.home-main,.home-side{display:flex;flex-direction:column;gap:16px}
+.plan-card{background:var(--pale-blue);border-color:var(--pale-blue);padding:22px}
+.plan-card h2{font-size:21px;margin:17px 0 7px}
+.plan-card>p{color:#4f5e69}
+.plan-card .progress-track{margin:20px 0 15px}
+.plan-foot .button{min-height:42px}
+.continue-row{justify-content:flex-start;border-top:1px solid #eff2f3;padding-top:16px}
+.continue-copy{flex:1}
+.continue-copy strong{font-size:13px}
+.continue-copy p{margin-top:4px;font-size:11px}
+.two-cards{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.mini-card{min-height:154px;display:flex;flex-direction:column;align-items:flex-start;gap:7px}
+.mini-icon{width:28px;height:28px;display:grid;place-items:center;border-radius:9px;font-size:15px;margin-bottom:4px}
+.teal-icon{background:var(--pale-green);color:var(--teal)}
+.blue-icon{background:var(--pale-blue);color:var(--blue)}
+.weekly-card{position:relative;overflow:hidden;background:var(--deep);border-color:var(--deep);color:white;min-height:270px;padding:22px}
+.weekly-card h3{font-size:22px;line-height:1.35;margin:18px 0 12px;position:relative;z-index:1}
+.weekly-card p{color:#c7d8de;font-size:12px;position:relative;z-index:1}
+.weekly-card p b{color:white}
+.weekly-decoration{position:absolute;right:-10px;bottom:4px;color:#ffffff12;font-size:130px}
+.focus-card{flex:1}
+.focus-card .button{width:100%;margin-top:20px}

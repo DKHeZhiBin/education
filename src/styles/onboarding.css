@@ -1,0 +1,21 @@
+.onboarding-wrap{min-height:100vh;display:grid;grid-template-columns:minmax(340px,.85fr) minmax(420px,1.15fr);align-items:stretch;background:white}
+.welcome-card{position:sticky;top:0;height:100vh;min-height:640px;overflow:hidden;display:flex;flex-direction:column;justify-content:center;padding:8vw;background:var(--deep);color:white}
+.welcome-brand{position:absolute;top:48px;left:8vw;font-weight:700;font-size:18px}
+.welcome-card h1{font-size:clamp(38px,5vw,62px);line-height:1.22;letter-spacing:-.06em;z-index:1}
+.welcome-card p{margin-top:22px;color:#c7d8de;max-width:350px;font-size:14px;line-height:1.7;z-index:1}
+.welcome-orbit{position:absolute;border:1px solid #ffffff1c;border-radius:50%;width:440px;height:440px;right:-160px;bottom:-90px}
+.welcome-star{position:absolute;right:18%;bottom:21%;color:#66cab4;font-size:44px}
+.onboarding-form{max-width:580px;width:100%;padding:64px 54px;margin:auto}
+.onboarding-form h2{font-size:26px;margin:14px 0 26px}
+.onboarding-form .card{margin-bottom:14px;padding:18px}
+.onboarding-form .card h3{margin-bottom:12px}
+.onboarding-form>.button{width:100%;margin-top:6px}
+.onboarding-form .field-label{display:block;margin:13px 0 7px}
+.onboarding-form .text-input{margin-bottom:4px}
+.auth-mode-button{display:block;margin:14px auto 0;border:0;background:transparent;color:var(--blue);cursor:pointer;font-size:13px}
+.choice-grid{display:grid;gap:8px}
+.choice-grid.three{grid-template-columns:repeat(3,1fr)}
+.choice{height:42px;border:1px solid var(--line);border-radius:9px;background:white;cursor:pointer}
+.choice.selected{background:var(--blue);border-color:var(--blue);color:white}
+.selectable{border:1px solid transparent;cursor:pointer}
+.selectable.selected-chip{box-shadow:inset 0 0 0 1px var(--teal)}

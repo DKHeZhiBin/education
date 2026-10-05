@@ -1,0 +1,216 @@
+{
+  "schema_version": "1.0",
+  "registry_version": "2026-09-30",
+  "purpose": "First-party source allowlist and denylist for the math tutor RAG pipeline",
+  "default_policy": "blocked_until_reviewed",
+  "sources": [
+    {
+      "id": "cn_moe_compulsory_math_standard_2022",
+      "title": "义务教育数学课程标准（2022年版）",
+      "publisher": "中华人民共和国教育部",
+      "source_type": "curriculum_standard",
+      "canonical_url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+      "content_url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/W020220420582346895190.pdf",
+      "license": "No explicit open-content license confirmed",
+      "rights_status": "metadata_and_taxonomy_only",
+      "commercial_candidate": false,
+      "allowed_scope": [
+        "source metadata",
+        "version identity",
+        "manually authored knowledge-point codes",
+        "short locators and links to the official publication"
+      ],
+      "excluded_scope": [
+        "verbatim full-text chunking",
+        "bulk redistribution",
+        "embedding the complete publication"
+      ],
+      "quality_basis": "Official Ministry of Education curriculum standard",
+      "review_before_ingestion": "Written permission or a documented rights review is required for full-text ingestion."
+    },
+    {
+      "id": "cn_moe_high_school_math_standard_2017_2020",
+      "title": "普通高中数学课程标准（2017年版2020年修订）",
+      "publisher": "中华人民共和国教育部",
+      "source_type": "curriculum_standard",
+      "canonical_url": "https://www.moe.gov.cn/srcsite/A26/s8001/202006/t20200603_462199.html",
+      "content_url": "https://jyj.changdu.gov.cn/cdsjyj/c101476/202205/764ee1914e3c45aaba8e372f1b628a34/files/75676dfa9af0442db1457404a884a69f.pdf",
+      "license": "No explicit open-content license confirmed",
+      "rights_status": "metadata_and_taxonomy_only",
+      "commercial_candidate": false,
+      "allowed_scope": [
+        "source metadata",
+        "version identity",
+        "manually authored topic mappings",
+        "short locators and links to the official publication"
+      ],
+      "excluded_scope": [
+        "verbatim full-text chunking",
+        "bulk redistribution",
+        "embedding the complete publication"
+      ],
+      "quality_basis": "Official Ministry of Education curriculum standard reviewed through the national curriculum process",
+      "review_before_ingestion": "Written permission or a documented rights review is required for full-text ingestion."
+    },
+    {
+      "id": "orcca_algebra",
+      "title": "Open Resources for Community College Algebra",
+      "publisher": "Portland Community College",
+      "source_type": "textbook",
+      "canonical_url": "https://www.pcc.edu/math-resources/orcca/",
+      "license_evidence_url": "https://www.pcc.edu/math-resources/orcca/#licensing",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "approved_content_urls": [
+        "https://spot.pcc.edu/math/orcca/ed2/html/section-the-quadratic-formula.html"
+      ],
+      "license": "CC BY 4.0",
+      "rights_status": "approved_with_obligations",
+      "commercial_candidate": true,
+      "allowed_scope": [
+        "narrative text",
+        "definitions and formulas",
+        "worked examples",
+        "public exercises",
+        "public checkpoint solutions and answer material covered by the book license"
+      ],
+      "excluded_scope": [
+        "PCC and ORCCA names used as product branding",
+        "logos and cover designs",
+        "external media without a compatible file-level license"
+      ],
+      "quality_basis": "Written by Portland Community College mathematics faculty, class-tested, and approved by the AIM Open Textbook Initiative",
+      "attribution_template": "Original source material, products with readable and accessible math content, and other information are freely available at pcc.edu/orcca.",
+      "version_rule": "Register each imported edition and part separately and compute a content checksum before parsing."
+    },
+    {
+      "id": "active_prelude_to_calculus",
+      "title": "Active Prelude to Calculus",
+      "publisher": "Active Calculus / Matthew Boelkins",
+      "source_type": "textbook",
+      "canonical_url": "https://activecalculus.org/prelude/frontmatter.html",
+      "license_evidence_url": "https://activecalculus.org/prelude/colophon-1.html",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "license": "CC BY-SA 4.0",
+      "rights_status": "approved_with_obligations",
+      "commercial_candidate": true,
+      "allowed_scope": [
+        "textbook narrative",
+        "definitions and formulas",
+        "activities",
+        "exercises and answers included in the licensed text"
+      ],
+      "excluded_scope": [
+        "externally hosted WeBWorK or Doenet content without separate license verification",
+        "third-party images without compatible attribution",
+        "trademarks and cover branding"
+      ],
+      "quality_basis": "Open active-learning precalculus text maintained by experienced mathematics faculty",
+      "version_rule": "Pin the HTML snapshot date and checksum because the online edition receives corrections.",
+      "share_alike_required": true
+    },
+    {
+      "id": "active_calculus_single_variable_2e",
+      "title": "Active Calculus Single Variable, Second Edition",
+      "publisher": "Active Calculus / Matthew Boelkins",
+      "source_type": "textbook",
+      "canonical_url": "https://activecalculus.org/acs2e/",
+      "license_evidence_url": "https://activecalculus.org/single/frontmatter-3.html",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "license": "CC BY-SA 4.0",
+      "rights_status": "approved_with_obligations",
+      "commercial_candidate": true,
+      "allowed_scope": [
+        "textbook narrative",
+        "definitions and formulas",
+        "activities",
+        "selected exercises and answers included in the licensed text"
+      ],
+      "excluded_scope": [
+        "external WeBWorK or Doenet components without separate license verification",
+        "third-party images without compatible attribution",
+        "trademarks and cover branding"
+      ],
+      "quality_basis": "AIM-approved, class-tested active-learning calculus textbook",
+      "version_rule": "Use the explicit second edition and record the published snapshot checksum.",
+      "share_alike_required": true
+    },
+    {
+      "id": "openintro_advanced_high_school_statistics",
+      "title": "Advanced High School Statistics",
+      "publisher": "OpenIntro",
+      "source_type": "textbook",
+      "canonical_url": "https://www.openintro.org/book/ahss/",
+      "source_repository": "https://github.com/OpenIntroOrg/advanced-high-school-statistics",
+      "license_evidence_url": "https://www.openintro.org/license/",
+      "license_url": "https://creativecommons.org/licenses/by-sa/3.0/",
+      "license": "CC BY-SA 3.0 for the textbook, subject to file-level exceptions",
+      "rights_status": "approved_with_file_audit",
+      "commercial_candidate": true,
+      "allowed_scope": [
+        "textbook source files covered by the repository license",
+        "public worked examples",
+        "public exercises and in-book answers covered by the same license"
+      ],
+      "excluded_scope": [
+        "verified-teacher-only solutions and exam banks",
+        "OpenIntro trademarks, logos and cover art",
+        "third-party photographs or datasets without compatible reuse terms",
+        "partner resources not owned by OpenIntro"
+      ],
+      "quality_basis": "High-school statistics text with public source files, classroom adoption and maintained errata",
+      "version_rule": "Pin a repository commit and retain its LICENSE file; audit every image and dataset before ingestion.",
+      "share_alike_required": true
+    },
+    {
+      "id": "discrete_mathematics_open_introduction_3e",
+      "title": "Discrete Mathematics: An Open Introduction, Third Edition",
+      "publisher": "Oscar Levin / Open Math Books",
+      "source_type": "textbook",
+      "canonical_url": "https://discrete.openmathbooks.org/dmoi3.html",
+      "source_repository": "https://github.com/oscarlevin/discrete-book",
+      "license_evidence_url": "https://math.oscarlevin.com/discrete-book/frontmatter-2.html",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "license": "CC BY-SA 4.0",
+      "rights_status": "approved_with_obligations",
+      "commercial_candidate": true,
+      "allowed_scope": [
+        "third-edition narrative",
+        "logic and proof material",
+        "combinatorics, sequences and introductory number theory",
+        "public exercises, hints and selected solutions"
+      ],
+      "excluded_scope": [
+        "fourth-edition content licensed CC BY-NC-SA 4.0",
+        "Open Problem Library exercises without separate provenance verification",
+        "instructor-only resources"
+      ],
+      "quality_basis": "AIM-approved textbook adopted by many institutions, with exercises, hints and solutions",
+      "version_rule": "Pin the third-edition tag or commit; never follow an unversioned URL into the noncommercial fourth edition.",
+      "share_alike_required": true
+    }
+  ],
+  "blocked_sources": [
+    {
+      "id": "openstax_math_textbooks",
+      "status": "blocked_without_written_permission",
+      "reason": "Current OpenStax terms use a noncommercial license and explicitly require prior written permission for ingestion into large language models or generative AI offerings.",
+      "reference_url": "https://help.openstax.org/s/article/Licensing-information-of-OpenStax-textbooks"
+    },
+    {
+      "id": "mathodyssey_evaluation_set",
+      "status": "evaluation_only",
+      "reason": "The project already marks this dataset as evaluation-only; adding it to RAG would invalidate the held-out evaluation and violate the upstream training restriction.",
+      "reference_url": "https://github.com/protagolabs/odyssey-math"
+    },
+    {
+      "id": "teacher_only_answer_guides",
+      "status": "blocked",
+      "reason": "Authenticated instructor resources are not public ingestion sources even when the related textbook is openly licensed."
+    },
+    {
+      "id": "unversioned_web_math_content",
+      "status": "blocked",
+      "reason": "Public accessibility alone does not establish reuse rights, quality review, or reproducible provenance."
+    }
+  ]
+}

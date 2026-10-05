@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0",
+  "source_registry_id": "orcca_algebra",
+  "captured_at": "2026-10-03",
+  "evidence_url": "https://www.pcc.edu/math-resources/orcca/#licensing",
+  "license": "CC BY 4.0",
+  "rights_holder": "Portland Community College",
+  "verified_facts": [
+    "The official ORCCA page identifies the textbook and its contents as licensed under CC BY 4.0.",
+    "Redistribution requires the attribution text supplied by Portland Community College.",
+    "Redistributed mathematical content must remain readable and be offered in at least one web-accessible form.",
+    "PCC and ORCCA names, logos, and print cover designs are excluded from the Creative Commons license.",
+    "The official page publishes odd-numbered answers for edition 2 and states that even-numbered answers are not published."
+  ],
+  "selected_scope": "Edition 2 odd-numbered public algebra exercises and project-derived deterministic solutions only.",
+  "excluded_scope": [
+    "logos and cover designs",
+    "external videos and media",
+    "WeBWorK packages",
+    "even-numbered unpublished answers",
+    "teacher-only resources"
+  ]
+}

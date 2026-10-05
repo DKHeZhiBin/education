@@ -1,0 +1,157 @@
+#!/bin/bash
+set -euo pipefail
+
+project_dir="$(cd "$(dirname "$0")/.." && pwd)"
+service_dir="$project_dir/.local-services"
+mysql_bin="$service_dir/runtime/mysql/bin"
+mysql_config="$service_dir/config/mysql.cnf"
+mysql_root_client="$service_dir/config/mysql-root-client.cnf"
+mysql_pid="$service_dir/run/mysql.pid"
+qdrant_bin="$service_dir/runtime/qdrant-bin/qdrant"
+qdrant_config="$service_dir/config/qdrant.yaml"
+qdrant_pid="$service_dir/run/qdrant.pid"
+launch_agent_dir="/Users/kittle/Library/LaunchAgents"
+launch_domain="gui/501"
+mysql_label="ai.math-tutor.mysql"
+qdrant_label="ai.math-tutor.qdrant"
+
+agent_loaded() {
+  /bin/launchctl print "$launch_domain/$1" >/dev/null 2>&1
+}
+
+start_agent() {
+  local label="$1"
+  local plist="$launch_agent_dir/$label.plist"
+  if agent_loaded "$label"; then
+    /bin/launchctl kickstart -k "$launch_domain/$label"
+  elif [ -f "$plist" ]; then
+    /bin/launchctl bootstrap "$launch_domain" "$plist"
+  else
+    return 1
+  fi
+}
+
+mysql_ready() {
+  if [ -f "$mysql_root_client" ]; then
+    "$mysql_bin/mysqladmin" --defaults-extra-file="$mysql_root_client" ping --silent >/dev/null 2>&1
+  else
+    "$mysql_bin/mysqladmin" --socket="$service_dir/run/mysql.sock" -u root ping --silent >/dev/null 2>&1
+  fi
+}
+
+qdrant_ready() {
+  /usr/bin/curl -fsS --max-time 2 http://127.0.0.1:6333/readyz >/dev/null 2>&1
+}
+
+start_mysql() {
+  if mysql_ready; then
+    echo "MySQL is already running on 127.0.0.1:3306"
+    return
+  fi
+  start_agent "$mysql_label" || {
+    /usr/bin/nohup "$mysql_bin/mysqld" --defaults-file="$mysql_config" \
+      >"$service_dir/logs/mysql-stdout.log" 2>&1 &
+  }
+  for _ in {1..60}; do
+    mysql_ready && {
+      echo "MySQL started on 127.0.0.1:3306"
+      return
+    }
+    sleep 1
+  done
+  echo "MySQL failed to become ready; inspect $service_dir/logs/mysql-error.log" >&2
+  return 1
+}
+
+start_qdrant() {
+  if qdrant_ready; then
+    echo "Qdrant is already running on 127.0.0.1:6333"
+    return
+  fi
+  start_agent "$qdrant_label" || {
+    /usr/bin/nohup "$qdrant_bin" --config-path "$qdrant_config" --disable-telemetry \
+      >"$service_dir/logs/qdrant.log" 2>&1 &
+    echo $! >"$qdrant_pid"
+  }
+  for _ in {1..60}; do
+    qdrant_ready && {
+      echo "Qdrant started on 127.0.0.1:6333"
+      return
+    }
+    sleep 1
+  done
+  echo "Qdrant failed to become ready; inspect $service_dir/logs/qdrant.log" >&2
+  return 1
+}
+
+stop_mysql() {
+  if ! mysql_ready; then
+    echo "MySQL is not running"
+    return
+  fi
+  if agent_loaded "$mysql_label"; then
+    /bin/launchctl bootout "$launch_domain/$mysql_label"
+  else
+    "$mysql_bin/mysqladmin" --defaults-extra-file="$mysql_root_client" shutdown
+  fi
+  echo "MySQL stopped"
+}
+
+stop_qdrant() {
+  if ! qdrant_ready; then
+    echo "Qdrant is not running"
+    return
+  fi
+  if agent_loaded "$qdrant_label"; then
+    /bin/launchctl bootout "$launch_domain/$qdrant_label"
+    echo "Qdrant stopped"
+    return
+  fi
+  if [ -f "$qdrant_pid" ]; then
+    kill "$(cat "$qdrant_pid")"
+    for _ in {1..30}; do
+      qdrant_ready || {
+        echo "Qdrant stopped"
+        return
+      }
+      sleep 1
+    done
+  fi
+  echo "Qdrant did not stop cleanly; inspect $qdrant_pid" >&2
+  return 1
+}
+
+show_status() {
+  if mysql_ready; then
+    echo "MySQL:  ready  mysql://127.0.0.1:3306"
+  else
+    echo "MySQL:  stopped"
+  fi
+  if qdrant_ready; then
+    echo "Qdrant: ready  http://127.0.0.1:6333/dashboard"
+  else
+    echo "Qdrant: stopped"
+  fi
+}
+
+case "${1:-status}" in
+  start)
+    start_mysql
+    start_qdrant
+    ;;
+  stop)
+    stop_qdrant
+    stop_mysql
+    ;;
+  restart)
+    "$0" stop
+    "$0" start
+    ;;
+  status)
+    show_status
+    ;;
+  *)
+    echo "Usage: $0 {start|stop|restart|status}" >&2
+    exit 2
+    ;;
+esac

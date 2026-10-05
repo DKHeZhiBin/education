@@ -1,0 +1,53 @@
+.avatar{width:34px;height:34px;display:grid;place-items:center;border-radius:50%;background:var(--pale-green);color:var(--teal);font-weight:700;font-size:12px}
+.page{max-width:1120px;margin:0 auto}
+.page.narrow{max-width:760px}
+.page-title{margin-bottom:28px}
+.page-title h1{font-size:30px;line-height:1.2;font-weight:700}
+.page-title>p{margin-top:8px;color:var(--muted);font-size:13px}
+.title-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.title-avatar{display:none}
+.eyebrow{display:block;margin-bottom:8px}
+.card{padding:20px;background:white;border:1px solid var(--line);border-radius:var(--radius);box-shadow:0 3px 14px rgba(16,47,59,.025)}
+.card h3{font-size:15px;font-weight:700;margin-bottom:14px}
+.card p{color:var(--muted);font-size:13px;line-height:1.65}
+.button{min-height:46px;padding:0 17px;display:inline-flex;align-items:center;justify-content:center;gap:10px;border:1px solid var(--blue);border-radius:12px;background:var(--blue);color:white;font-size:13px;font-weight:700;cursor:pointer;transition:transform .15s,box-shadow .15s}
+.button:hover{transform:translateY(-1px);box-shadow:0 7px 18px #315eed33}
+.button-secondary{background:white;color:var(--ink);border-color:var(--line)}
+.chip{display:inline-flex;align-items:center;justify-content:center;padding:6px 10px;border-radius:999px;font-size:11px;line-height:1.2;white-space:nowrap}
+.chip.blue{background:var(--pale-blue);color:var(--blue)}
+.chip.green{background:var(--pale-green);color:var(--teal)}
+.chip.amber{background:var(--pale-amber);color:var(--amber)}
+.chip-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.progress-track{height:7px;border-radius:99px;background:var(--line);overflow:hidden}
+.progress-fill{height:100%;border-radius:inherit;background:var(--teal);transition:width .3s}
+.progress-fill.blue{background:var(--blue)}
+.subtle,.tiny-muted{color:var(--muted);font-size:11px}
+.card-topline,.section-heading,.plan-foot,.continue-row,.mistake-title,.mastery-row,.form-foot,.chart-caption{display:flex;align-items:center;justify-content:space-between;gap:14px}
+.tiny-muted b{color:var(--ink);margin-left:5px}
+.section-heading{align-items:flex-end;margin-bottom:16px}
+.section-heading h3,.section-heading h2{font-size:17px}
+.section-heading .eyebrow{font-size:9px}
+.text-link{font-size:11px;color:var(--blue);font-weight:600}
+.subject-icon{width:43px;height:43px;display:grid;place-items:center;border-radius:13px;background:#f3f0ff;color:#6852bf;font-size:18px;font-weight:700}
+.metric{font-family:Inter,'Noto Sans SC',sans-serif;font-size:30px;line-height:1.2;letter-spacing:-.05em;font-weight:700;margin:2px 0}
+.metric small{font-family:Inter,'Noto Sans SC',sans-serif;font-size:14px;letter-spacing:0;font-weight:500;color:#74828a}
+.dark-link{position:absolute;left:22px;bottom:22px;color:#fff;font-size:11px;font-weight:700;z-index:2}
+.dark-link span{padding-left:6px}
+.habit{display:flex;gap:11px;align-items:flex-start;padding:13px 0;border-bottom:1px solid #eff2f3}
+.habit-check{flex:none;width:20px;height:20px;display:grid;place-items:center;border-radius:50%;background:var(--pale-green);color:var(--teal);font-size:11px;font-weight:700}
+.habit strong{font-size:12px}
+.habit p{font-size:11px;margin-top:3px}
+.orbit-two{width:330px;height:330px;right:-105px;bottom:-35px}
+.card textarea,.text-input{width:100%;border:1px solid var(--line);border-radius:10px;padding:13px 14px;background:#fcfdfd;font-size:14px;resize:vertical}
+.form-foot{margin-top:15px}
+.small-equation{font-size:23px}
+.list-heading{align-items:flex-end}
+.mastery-row{font-size:11px;color:var(--muted);margin-bottom:7px}
+.mastery-row strong{color:var(--ink)}
+.metric-note{font-size:10px;color:var(--muted)}
+.metric-note.positive{color:var(--teal)}
+.feedback-list{display:flex;flex-direction:column;gap:12px}
+.feedback-list p{display:flex;gap:10px;color:var(--ink)}
+.feedback-list p span{color:var(--teal);font-weight:700}
+.feedback-list p.needs-work span{color:var(--amber)}
+.arrow-light{font-size:21px;color:var(--teal)}

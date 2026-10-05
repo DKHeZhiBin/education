@@ -1,0 +1,7 @@
+.profile-row{display:flex;align-items:center;gap:14px}
+.profile-avatar{width:48px;height:48px;font-size:17px}
+.profile-row strong{font-size:15px}
+.profile-row p{margin-top:4px}
+.profile-link-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 0;border-top:1px solid var(--line)}
+.profile-link-row:first-of-type{margin-top:14px}
+.profile-link-row p{margin-top:4px}
