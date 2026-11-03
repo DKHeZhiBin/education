@@ -17,6 +17,9 @@ export function AuthPage() {
   const [searchParams] = useSearchParams()
   const resetToken = searchParams.get('reset_token')
   const verifyToken = searchParams.get('verify_token')
+  const returnToValue = searchParams.get('return_to')
+  const returnTo = returnToValue?.startsWith('/') && !returnToValue.startsWith('//') ? returnToValue : null
+  const sessionExpired = searchParams.get('reason') === 'session_expired'
   const [mode, setMode] = useState<AuthMode>(resetToken ? 'reset' : 'login')
   const [role, setRole] = useState<'student' | 'guardian'>('student')
   const [email, setEmail] = useState('')
@@ -46,10 +49,10 @@ export function AuthPage() {
     }
     if (!resetToken) {
       void refreshAccessToken()
-        .then(() => navigate('/home', { replace: true }))
+        .then(() => navigate(returnTo ?? '/home', { replace: true }))
         .catch(() => undefined)
     }
-  }, [navigate, resetToken, verifyToken])
+  }, [navigate, resetToken, returnTo, verifyToken])
 
   const submit = async (event: FormEvent) => {
     event.preventDefault()
@@ -64,7 +67,6 @@ export function AuthPage() {
           password,
           role,
           display_name: displayName,
-          grade_band: role === 'student' ? 'middle' : undefined,
         })
         setMessage(result.message)
         setDevelopmentUrl(result.development_verification_url)
@@ -84,7 +86,7 @@ export function AuthPage() {
         navigate('/auth', { replace: true })
       } else {
         const result = await login(email, password)
-        navigate(result.user.role === 'student' ? '/onboarding' : '/home', { replace: true })
+        navigate(returnTo ?? (result.user.role === 'student' ? '/onboarding' : '/home'), { replace: true })
       }
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : '账号服务暂时不可用')
@@ -127,6 +129,7 @@ export function AuthPage() {
     <form className="onboarding-form" onSubmit={submit}>
       <Chip tone="green">账号与学习记录安全关联</Chip>
       <h2>{title}</h2>
+      {sessionExpired && mode === 'login' && <p className="form-error" role="status">登录已过期。重新登录后会回到刚才的按需提示页面，题目和草稿仍会保留。</p>}
       <Card>
         {mode === 'register' && <>
           <label className="field-label" htmlFor="display-name">怎么称呼你</label>

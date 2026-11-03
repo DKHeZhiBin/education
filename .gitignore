@@ -3,6 +3,7 @@ dist/
 .vite/
 *.tsbuildinfo
 .env
+.local-uploads/
 .venv/
 __pycache__/
 *.egg-info/

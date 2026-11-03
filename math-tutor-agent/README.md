@@ -1,6 +1,6 @@
 # 数学引导 Agent
 
-面向教育产品的数学辅导 Agent 独立工程。当前阶段先明确系统边界与模块接口，默认从文字题目开始；图片识别、语音和学习记录通过可替换适配器接入。
+面向大学生高等数学指导的多 Agent 工程。MVP 固定为 `math + university`，从文字与图片题目开始；模型、OCR、语音、检索和学习记录通过可替换适配器接入。
 
 ## 设计目标
 
@@ -10,77 +10,28 @@
 
 ## 目录
 
-- `docs/architecture.md`：参考 MindBridge 文档风格整理的运行架构、组件职责、数据流、存储与部署边界。
-- `docs/SYSTEM_DESIGN.md`：多 Agent 教学流程、各 Agent 输入输出、接口草案和迭代路径。
-- `docs/REFERENCE_MAPPING.md`：`homework-companion` Skill 及其引用在产品中的映射与调整。
-- `docs/HARNESS.md`：Harness 运行入口、结果合约、预算、trace 与适配方式。
-- `docs/DATA_MODEL.md`：API、领域、Harness 数据对象及 MySQL 8.0 表模型。
-- `docs/REDIS_DESIGN.md`：采用 Redis 的原因、锁/幂等/缓存键、TTL 与故障降级策略。
-- `docs/REDIS_FAILURE_POLICY.md`：生产环境 Redis 快速失败与 MySQL 回源的分级决策矩阵。
-- `docs/HEALTH_CHECKS.md`：进程存活检查，以及 MySQL、Redis、LLM Provider 就绪检查。
-- `docs/PROBLEM_UNDERSTANDING.md`：题型、条件、目标、歧义识别及交互式澄清流程。
-- `docs/SOLUTION_ANALYSIS.md`：多解法、推荐路线、关键突破口和解法一致性规则。
-- `docs/SOLUTION_VERIFICATION.md`：SymPy 确定性校验、混合复核和覆盖边界。
-- `docs/PROOF_VERIFICATION.md`：非程序化证明题的六维审查、阻断规则和置信度上限。
-- `docs/SOLUTION_REVISION.md`：校验失败后的定向修订、停止条件、最大次数和预算关系。
-- `docs/HINT_STRATEGY.md`：方向、关键关系、局部步骤、完整讲解的四级策略和答案展示门槛。
-- `docs/LEARNER_STATE.md`：本轮证据、有效尝试、掌握点、误区假设和固定标签过滤规则。
-- `docs/EVALUATION.md`：高难题评估集的来源、审核边界、防泄漏、评分维度和版本规则。
-- `docs/FIXED_EVALUATION_SUITES.md`：固定题目生成评估、隔离 RAG 检索评估、指标和版本规则。
-- `docs/GENERATION_QUALITY_METRICS.md`：题意、答案、确定性覆盖、重复拦截和自动准入统计口径。
-- `docs/RAG_QUALITY_METRICS.md`：检索召回、重排、答案依据和引用正确性评估口径。
-- `docs/PERIODIC_REVALIDATION.md`：已批准题目的定期 AI 交叉复核、工具批量重验和失败隔离流程。
-- `docs/RAG_DESIGN.md`：可关闭、可替换的知识检索 Provider、领域合约、装配和故障策略。
-- `docs/QDRANT_VECTOR_STORE.md`：Qdrant 集合、Embedding Provider、payload 合约、过滤和就绪检查。
-- `docs/PRODUCTION_INDEXING.md`：MySQL 关键词生产索引和 `approved` 内容的 Qdrant 同步流程。
-- `docs/INDEX_LIFECYCLE.md`：题目退役、重新验证和版本更新后的索引删除与重建流程。
-- `docs/LOCAL_SERVICES.md`：本地 MySQL、Qdrant 的版本、地址与启停命令。
-- `docs/RAG_DATA_MODEL.md`：来源引用、教材版本、知识文档、切片、题目和题解的数据对象与 MySQL 映射。
-- `docs/RAG_SOURCES.md`：RAG 首批允许来源、许可边界、题解准入和禁止导入清单。
-- `docs/TRUSTED_SEED_IMPORT.md`：ORCCA 首批可信母题、SymPy 校验与幂等导入流程。
-- `docs/DOCUMENT_INGESTION.md`：RAG 文档解析、公式规范化、切片、去重与版本管理流程。
-- `docs/QUESTION_GENERATION_JOB.md`：候选题生成 Job 的输入输出、预算、幂等与批次状态机。
-- `docs/QUESTION_VARIATION_AGENT.md`：可信母题变式生成、禁答规则和只写 candidate 的持久化边界。
-- `docs/PROBLEM_CONDITION_CHECK.md`：候选题歧义、条件、定义域、解数量语义和学段适配检查。
-- `docs/INDEPENDENT_SOLVING.md`：隔离输入、独立题解、输入指纹和 `solution_independence` 证据。
-- `docs/QUADRATIC_SYMPY_VERIFICATION.md`：一元二次方程求解、代回、根完整性、定义域和边界条件验证。
-- `docs/NUMERIC_VERIFICATION.md`：独立 Decimal 数值抽样、有限整数域穷举和第二类准入证据。
-- `docs/DUPLICATE_DETECTION.md`：文本、公式 AST、条件结构和解法结构四层重复检测。
-- `docs/EVALUATION_LEAKAGE_DETECTION.md`：冻结评估集完整性校验、题面相似度与生产隔离规则。
-- `docs/INDEPENDENT_AI_REVIEW.md`：候选答案、独立答案、工具证据和教学标签的独立 AI 复核规则。
-- `docs/AUTOMATIC_ADMISSION_GATE.md`：确定性证据优先的自动批准、修订、隔离和等待规则。
-- `docs/CANDIDATE_REVISION.md`：候选题基于明确失败证据的两次修订上限、版本链和完整重验规则。
-- `docs/VERIFICATION_SCOPE_POLICY.md`：证明题与开放题的 partial 覆盖上限、权威证据和隔离规则。
-- `docs/GENERATION_AUDIT.md`：生成、检查、验证、复核、修订和状态变化的不可变审计时间线。
-- `docs/GENERATION_BATCH_MANAGEMENT.md`：生成批次暂停、恢复、取消、重试和批准内容撤回。
-- `docs/CONTENT_TAGGING.md`：年级、知识点、题型、难度来源、教材版本和内容类型标签。
-- `docs/KNOWLEDGE_ADMIN.md`：题库管理查询、状态写入、审计详情和并发约定。
-- `docs/MIGRATIONS.md`：Alembic 升级、回滚、版本生成和生产发布流程。
-- `docs/AUTHORIZATION.md`：JWT 登录、角色权限、家长授权和会话归属规则。
-- `docs/RATE_LIMITING.md`：登录、注册和家长关联接口的 Redis/IP/账号组合限流策略。
-- `docs/TODO.md`：按优先级维护 MySQL、Redis、RAG、教学能力和部署工作。
+- [`docs/README.md`](./docs/README.md)：文档总入口、主题关系、推荐阅读顺序和维护规则。
+- `docs/00-overview/`：项目总览、当前待办和首版验收。
+- `docs/agent/`：12 个专职 Agent 的职责、输入输出和协作架构。
+- `docs/module/`：系统架构、平台、教学、题库、RAG、知识内容、API、多模态、隐私和评估模块。
+- `tests/README.md`：领域状态、MySQL Repository、Redis 幂等与锁的自动化测试及隔离配置。
 - `evals/`：冻结的高难题、题目生成及隔离 RAG 检索评估数据和 manifest。
 - `app/mcp_tools/README.md`：数学验证、相似题与复习计划工具说明。
 - `app/`：Python 服务端骨架，按 API、领域逻辑、模型适配器和配置拆分。
 
 ## 启动
 
-建议 Python 3.11+。复制 `.env.example` 为 `.env`，配置模型地址和密钥后：
+建议 Python 3.11+。完成 `docs/module/运行基础设施模块/LOCAL_SERVICES.md` 的首次准备后，从仓库根目录使用统一命令：
 
 ```bash
-cd math-tutor-agent
-python -m venv .venv
-source .venv/bin/activate
-pip install -e .
-alembic upgrade head
-uvicorn app.main:app --reload
+./math-tutor-agent/scripts/dev-stack start
 ```
 
-`alembic upgrade head` 会使用 `.env` 中的 `DATABASE_URL` 创建或升级 MySQL 表。生产发布前请先阅读 `docs/MIGRATIONS.md`，尤其是备份、迁移审核和回滚限制。
+该入口检查必要配置，按 MySQL、Redis、Qdrant、Embedding、迁移、API、前端的固定顺序启动，并等待每一项就绪。`alembic upgrade head` 会使用 `.env` 中的 `DATABASE_URL` 创建或升级 MySQL 表。生产发布前请先阅读 `docs/module/运行基础设施模块/MIGRATIONS.md`，尤其是备份、迁移审核和回滚限制。
 
-首次使用先调用 `POST /v1/auth/register` 注册账号，完成邮件中的邮箱验证后，再通过 `POST /v1/auth/token` 登录。所有辅导接口都要求 Bearer Token。生产环境必须替换 `AUTH_JWT_SECRET`、启用 Secure Refresh Cookie、配置 SMTP 并保持 Redis 限流开启，身份、授权与限流规则见 `docs/AUTHORIZATION.md` 和 `docs/RATE_LIMITING.md`。
+首次使用先调用 `POST /v1/auth/register` 注册账号，完成邮件中的邮箱验证后，再通过 `POST /v1/auth/token` 登录。所有辅导接口都要求 Bearer Token。生产环境必须替换 `AUTH_JWT_SECRET`、启用 Secure Refresh Cookie、配置 SMTP 并保持 Redis 限流开启，身份、授权与限流规则见 `docs/module/身份认证与权限模块/AUTHORIZATION.md` 和 `docs/module/身份认证与权限模块/RATE_LIMITING.md`。
 
-当前原型提供文字辅导闭环：创建会话、题目确认、卡点诊断、三级提示、完整讲解、完成总结、MySQL 错题记录与家长报告。MySQL Repository 将会话、消息、Agent 产物和学习记录写入规范化表；Redis 用于同一会话的分布式锁、每轮请求幂等和热点会话缓存。内置规则覆盖演示题 `3(x − 2) = 2x + 5`；配置 OpenAI-compatible 模型后可处理开放题目。模型或校验不可用时会明确降级，不会编造答案。
+当前原型提供大学高数辅导闭环：创建会话、题目确认、卡点诊断、三级提示、完整讲解、完成总结、MySQL 错题记录与家长报告。MySQL Repository 将会话、消息、Agent 产物和学习记录写入规范化表；Redis 用于同一会话的分布式锁、每轮请求幂等和热点会话缓存。知识目录默认从“函数、极限与连续”开始；配置可用的 DeepSeek 或 Gemini 后处理高数题。模型或校验不可用时会明确降级，不会编造答案。
 
 ## API
 
@@ -95,24 +46,40 @@ uvicorn app.main:app --reload
 - `GET /v1/auth/me`：读取当前账号。
 - `POST /v1/auth/guardian-links`：家长发起学生关联申请。
 - `POST /v1/tutoring/sessions`：创建辅导会话。
+- `GET /v1/tutoring/sessions`：按更新时间读取当前学生的会话历史，供首页恢复未完成学习。
+- `POST /v1/tutoring/problem-images`：上传 JPEG、PNG 或 WebP 题目图片并建立处理状态。
+- `GET /v1/tutoring/problem-images/{asset_id}`：查询当前学生题目图片的处理状态。
+- `GET /v1/llm/models`：读取用户可选择的 DeepSeek、Gemini 及其他已注册模型。
 - `GET /v1/tutoring/sessions/{session_id}`：恢复会话。
 - `GET /v1/tutoring/sessions/{session_id}/trace`：读取 Harness 的 Agent 运行轨迹。
 - `POST /v1/tutoring/sessions/{session_id}/turns`：提交学生作答、提示或完整讲解请求。
+- `POST /v1/tutoring/sessions/{session_id}/turns/stream`：使用 SSE 接收处理进度、增量回复和完整 `TurnResponse`。
+- `POST /v1/tutoring/sessions/{session_id}/content-issues`：学生报告题目、答案、提示或歧义问题，并触发内容重新验证。
+- `POST /v1/admin/generation/jobs`：从一批可信母题幂等创建并执行候选变式题生成批次。
+- `POST /v1/admin/generation/jobs/{job_id}/run`：执行或恢复已有候选题生成任务。
+- `GET /v1/admin/generation/jobs/{job_id}`：查看批次逐位置结果、失败原因和累计用量。
 - `GET /v1/admin/generation/quality-report`：按批次、知识点或时间范围统计题库生成质量。
+- `GET /v1/curriculum/knowledge-graph`：读取大学高数知识点目录及递归先修关系，默认返回 `UC.C1`。
 - `GET /v1/admin/generation/release-gate`：检查错误自动准入率和最小样本门槛，决定是否阻断上线。
 - `PUT /v1/admin/revalidation/policies/{policy_key}`：配置已批准题目的周期复核范围与版本。
 - `POST /v1/admin/revalidation/runs/run-due`：执行到期的 AI 交叉复核和工具批量重验。
 - `GET /v1/admin/revalidation/runs/{run_id}`：查看复核批次、逐题结果和证据引用。
+- `POST /v1/admin/human-reviews/queue/refresh`：为隔离内容和高价值内容建立人工抽检队列。
+- `GET /v1/admin/human-reviews/tasks`：教师查看待领取或本人已领取的抽检任务。
 - `GET /v1/tutoring/learning-records`：读取真实完成的学习记录。
+- `GET /v1/tutoring/review-tasks`：读取已到期、未来或全部间隔复习任务。
+- `POST /v1/tutoring/review-tasks/{learning_record_id}/attempts`：记录复习结果并生成下一次复习时间。
 - `GET /v1/tutoring/parent-report`：按实际记录生成家长报告数据。
 
-HTTP API 和 CLI 都通过 `MathTutorAgentHarness` 运行。可信 CLI 入口需要显式指定已经存在的学生账号，例如 `math-tutor-harness "3(x - 2) = 2x + 5" --student-id <student_uuid>`。
+HTTP API 和 CLI 都通过 `MathTutorAgentHarness` 运行。可信 CLI 入口需要显式指定已经存在的学生账号，例如 `math-tutor-harness "求 x→0 时 (e^x-1-x)/x^2 的极限" --student-id <student_uuid>`。
 
-首批可信母题可先运行 `math-tutor-problem-bank --validate-only` 做离线检查，再运行 `math-tutor-problem-bank` 事务导入 MySQL；完整边界见 `docs/TRUSTED_SEED_IMPORT.md`。
+首批可信母题可先运行 `math-tutor-problem-bank --validate-only` 做离线检查，再运行 `math-tutor-problem-bank` 事务导入 MySQL；完整边界见 `docs/module/题库生产与治理模块/TRUSTED_SEED_IMPORT.md`。
 
-知识文档通过带原文件哈希的摄取清单导入。可先运行 `math-tutor-ingest --manifest <清单路径> --validate-only` 查看确定性解析与切片摘要，再去掉 `--validate-only` 事务写入 MySQL；版本和去重规则见 `docs/DOCUMENT_INGESTION.md`。
+可信母题和生成版本准备好后，可用 `math-tutor-generate create --file generation-request.json` 执行批量变式生成，并用 `math-tutor-generate show <job_id>` 查询完整批次输出；请求格式见 [`可信母题批量变式生成`](./docs/module/题库生产与治理模块/可信母题批量变式生成/README.md)。
 
-启用 Qdrant 前先配置独立的 Embedding Provider，再运行 `math-tutor-vector-store ensure-collection` 创建或校验集合和 payload indexes。该命令不自动同步 MySQL 内容，完整说明见 `docs/QDRANT_VECTOR_STORE.md`。
+知识文档通过带原文件哈希的摄取清单导入。可先运行 `math-tutor-ingest --manifest <清单路径> --validate-only` 查看确定性解析与切片摘要，再去掉 `--validate-only` 事务写入 MySQL；版本和去重规则见 `docs/module/RAG与检索模块/DOCUMENT_INGESTION.md`。
+
+启用 Qdrant 前先配置独立的 Embedding Provider，再运行 `math-tutor-vector-store ensure-collection` 创建或校验集合和 payload indexes。该命令不自动同步 MySQL 内容，完整说明见 `docs/module/RAG与检索模块/QDRANT_VECTOR_STORE.md`。
 
 生产检索推荐启用混合 Provider：
 
@@ -123,7 +90,7 @@ RAG_PROVIDER=hybrid
 
 它会合并 MySQL 中文关键词召回和 Qdrant 语义向量召回，再按题目条件、求解目标和解法结构重排；任一路暂时不可用时，另一条链路仍可降级返回结果。
 
-数据库升级到 `20261004_0017` 后，可以查看并同步生产索引：
+数据库结构升级到当前 head 后，可以查看并同步生产索引：
 
 ```bash
 math-tutor-index status

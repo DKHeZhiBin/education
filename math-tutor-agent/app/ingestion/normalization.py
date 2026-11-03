@@ -17,11 +17,17 @@ CONTROL_PATTERN = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
 
 @dataclass(frozen=True)
 class NormalizedDocument:
+    """中文：定义“normalized·文档”类，封装该职责相关的数据与行为。
+    English: Defines the normalized document class and encapsulates data and behavior for that responsibility.
+    """
     blocks: list[ParsedBlock]
     formulae: list[FormulaRecord]
 
 
 def normalize_formula(value: str) -> str:
+    """中文：处理“规范化·formula”相关操作。
+    English: Handles the normalize formula operation.
+    """
     normalized = unicodedata.normalize("NFC", value).strip()
     normalized = normalized.replace("−", "-").replace("–", "-")
     normalized = normalized.replace("\u00a0", " ")
@@ -33,6 +39,9 @@ def normalize_formula(value: str) -> str:
 
 
 def clean_text(value: str) -> str:
+    """中文：处理“clean·text”相关操作。
+    English: Handles the clean text operation.
+    """
     cleaned = unicodedata.normalize("NFC", value)
     cleaned = cleaned.replace("\r\n", "\n").replace("\r", "\n")
     cleaned = cleaned.replace("\u200b", "").replace("\ufeff", "")
@@ -45,6 +54,9 @@ def clean_text(value: str) -> str:
 
 
 def normalize_blocks(blocks: list[ParsedBlock]) -> NormalizedDocument:
+    """中文：处理“规范化·blocks”相关操作。
+    English: Handles the normalize blocks operation.
+    """
     normalized_blocks: list[ParsedBlock] = []
     formulae: list[FormulaRecord] = []
     for block in blocks:
@@ -58,6 +70,9 @@ def normalize_blocks(blocks: list[ParsedBlock]) -> NormalizedDocument:
             continue
 
         def replace_formula(match: re.Match[str]) -> str:
+            """中文：处理“replace·formula”相关操作。
+            English: Handles the replace formula operation.
+            """
             original = match.group(0)
             if match.group("display"):
                 inner = match.group(2) or match.group(3)

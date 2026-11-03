@@ -3,11 +3,16 @@ from __future__ import annotations
 import argparse
 import json
 
+from app.core.logging import configure_cli_logging
 from app.core.config import settings
 from app.vector_store.qdrant import QdrantVectorStore
 
 
 def main() -> None:
+    """中文：处理“main”相关操作。
+    English: Handles the main operation.
+    """
+    configure_cli_logging()
     parser = argparse.ArgumentParser(description="Manage the configured Qdrant collection")
     parser.add_argument("action", choices=("status", "ensure-collection"))
     args = parser.parse_args()

@@ -4,11 +4,16 @@ import argparse
 import json
 from pathlib import Path
 
+from app.core.logging import configure_cli_logging
 from app.domain.periodic_revalidation import RevalidationPolicyInput, RevalidationScope
 from app.services.periodic_revalidation import periodic_revalidation_service
 
 
 def main() -> None:
+    """中文：处理“main”相关操作。
+    English: Handles the main operation.
+    """
+    configure_cli_logging()
     parser = argparse.ArgumentParser(
         description="Schedule and run approved-content AI cross review and tool revalidation"
     )

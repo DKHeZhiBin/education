@@ -35,12 +35,18 @@ FILTER_FIELDS: dict[str, models.PayloadSchemaType] = {
 
 
 class QdrantVectorStore:
+    """中文：定义“Qdrant·向量·store”类，封装该职责相关的数据与行为。
+    English: Defines the qdrant vector store class and encapsulates data and behavior for that responsibility.
+    """
     def __init__(
         self,
         config: Settings = settings,
         *,
         timeout_seconds: float | None = None,
     ) -> None:
+        """中文：初始化当前对象及其依赖。
+        English: Initializes the current object and its dependencies.
+        """
         self.config = config
         self.client = QdrantClient(
             url=config.qdrant_url,
@@ -49,6 +55,9 @@ class QdrantVectorStore:
         )
 
     def ensure_collection(self) -> CollectionProvisionResult:
+        """中文：处理“ensure·collection”相关操作。
+        English: Handles the ensure collection operation.
+        """
         created = False
         if not self.client.collection_exists(self.config.qdrant_collection):
             self.client.create_collection(
@@ -79,6 +88,9 @@ class QdrantVectorStore:
         )
 
     def _validate_collection(self) -> None:
+        """中文：处理“验证·collection”相关操作。
+        English: Handles the validate collection operation.
+        """
         info = self.client.get_collection(self.config.qdrant_collection)
         vectors = info.config.params.vectors
         if not isinstance(vectors, dict):
@@ -92,6 +104,9 @@ class QdrantVectorStore:
             raise ValueError("Qdrant collection must use cosine distance")
 
     def upsert(self, points: list[VectorPoint]) -> int:
+        """中文：处理“upsert”相关操作。
+        English: Handles the upsert operation.
+        """
         if not points:
             return 0
         for point in points:
@@ -117,6 +132,9 @@ class QdrantVectorStore:
         return len(points)
 
     def delete(self, query_filter: models.Filter) -> None:
+        """中文：处理“删除”相关操作。
+        English: Handles the delete operation.
+        """
         self.client.delete(
             collection_name=self.config.qdrant_collection,
             points_selector=models.FilterSelector(filter=query_filter),
@@ -124,6 +142,9 @@ class QdrantVectorStore:
         )
 
     def delete_points(self, point_ids: list[str]) -> int:
+        """中文：处理“删除·points”相关操作。
+        English: Handles the delete points operation.
+        """
         if not point_ids:
             return 0
         self.client.delete(
@@ -134,6 +155,9 @@ class QdrantVectorStore:
         return len(point_ids)
 
     def check_readiness(self) -> tuple[bool, str]:
+        """中文：处理“检查·就绪状态”相关操作。
+        English: Handles the check readiness operation.
+        """
         try:
             if not self.client.collection_exists(self.config.qdrant_collection):
                 return False, "collection_missing"
@@ -143,4 +167,7 @@ class QdrantVectorStore:
             return False, "connection_failed"
 
     def close(self) -> None:
+        """中文：处理“关闭”相关操作。
+        English: Handles the close operation.
+        """
         self.client.close()

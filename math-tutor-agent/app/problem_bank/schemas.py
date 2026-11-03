@@ -4,6 +4,9 @@ from pydantic import BaseModel, Field, HttpUrl, model_validator
 
 
 class TrustedSeedSource(BaseModel):
+    """中文：定义“trusted·seed·source”类，封装该职责相关的数据与行为。
+    English: Defines the trusted seed source class and encapsulates data and behavior for that responsibility.
+    """
     registry_id: str = Field(min_length=1, max_length=100)
     title: str = Field(min_length=1, max_length=500)
     publisher: str = Field(min_length=1, max_length=255)
@@ -18,6 +21,9 @@ class TrustedSeedSource(BaseModel):
 
 
 class TrustedMotherProblemSeed(BaseModel):
+    """中文：定义“trusted·mother·题目·seed”类，封装该职责相关的数据与行为。
+    English: Defines the trusted mother problem seed class and encapsulates data and behavior for that responsibility.
+    """
     external_id: str = Field(min_length=1, max_length=255)
     source_locator: str = Field(min_length=1, max_length=255)
     original_statement: str = Field(min_length=1, max_length=2000)
@@ -32,6 +38,9 @@ class TrustedMotherProblemSeed(BaseModel):
 
 
 class TrustedMotherProblemDataset(BaseModel):
+    """中文：定义“trusted·mother·题目·dataset”类，封装该职责相关的数据与行为。
+    English: Defines the trusted mother problem dataset class and encapsulates data and behavior for that responsibility.
+    """
     schema_version: str = "1.0"
     dataset_id: str = Field(min_length=1, max_length=100)
     version: str = Field(min_length=1, max_length=32)
@@ -44,6 +53,9 @@ class TrustedMotherProblemDataset(BaseModel):
 
     @model_validator(mode="after")
     def validate_unique_problems(self) -> TrustedMotherProblemDataset:
+        """中文：处理“验证·unique·problems”相关操作。
+        English: Handles the validate unique problems operation.
+        """
         external_ids = [problem.external_id for problem in self.problems]
         if len(external_ids) != len(set(external_ids)):
             raise ValueError("trusted mother problem external ids must be unique")

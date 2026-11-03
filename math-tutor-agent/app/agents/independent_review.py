@@ -12,21 +12,35 @@ from app.domain.independent_review import (
     ReviewFindingStatus,
 )
 from app.prompts.independent_review import INDEPENDENT_REVIEW_PROMPT
-from app.providers.llm import OpenAICompatibleProvider
+from app.providers.llm import LLMProvider
 
 
 class IndependentReviewError(RuntimeError):
+    """中文：定义“independent·复核·error”类，封装该职责相关的数据与行为。
+    English: Defines the independent review error class and encapsulates data and behavior for that responsibility.
+    """
     def __init__(self, code: str, message: str) -> None:
+        """中文：初始化当前对象及其依赖。
+        English: Initializes the current object and its dependencies.
+        """
         super().__init__(message)
         self.code = code
 
 
 class IndependentReviewAgent:
-    """Compare candidate, independently computed answers, tools and teaching labels."""
+    """中文：定义“independent·复核·智能体”类，封装该职责相关的数据与行为。
+    English: Defines the independent review agent class and encapsulates data and behavior for that responsibility.
+
+    原有说明 / Existing notes:
+    Compare candidate, independently computed answers, tools and teaching labels.
+    """
 
     name = "independent_review"
 
-    def __init__(self, provider: OpenAICompatibleProvider) -> None:
+    def __init__(self, provider: LLMProvider) -> None:
+        """中文：初始化当前对象及其依赖。
+        English: Initializes the current object and its dependencies.
+        """
         self.provider = provider
 
     def run(
@@ -36,6 +50,9 @@ class IndependentReviewAgent:
         expected_model_name: str,
         versioned_prompt: str,
     ) -> IndependentReviewReport:
+        """中文：处理“执行”相关操作。
+        English: Handles the run operation.
+        """
         if not self.provider.available:
             raise IndependentReviewError(
                 "provider_unavailable", "LLM provider is unavailable"
@@ -69,6 +86,9 @@ class IndependentReviewAgent:
 
     @staticmethod
     def _system_prompt(versioned_prompt: str) -> str:
+        """中文：处理“system·提示词”相关操作。
+        English: Handles the system prompt operation.
+        """
         bounded = versioned_prompt.strip()
         if not bounded:
             raise IndependentReviewError("prompt_empty", "versioned prompt cannot be empty")
@@ -83,6 +103,9 @@ class IndependentReviewAgent:
         report: IndependentReviewReport,
         context: IndependentReviewContext,
     ) -> None:
+        """中文：处理“验证·binding”相关操作。
+        English: Handles the validate binding operation.
+        """
         if (
             report.problem_id != context.problem_id
             or report.solution_id != context.candidate_answer.solution_id
@@ -122,6 +145,9 @@ class IndependentReviewAgent:
         report: IndependentReviewReport,
         context: IndependentReviewContext,
     ) -> None:
+        """中文：处理“enforce·deterministic·ceiling”相关操作。
+        English: Handles the enforce deterministic ceiling operation.
+        """
         statuses = {item.status for item in context.tool_evidence}
         if AdmissionEvidenceStatus.FAILED in statuses:
             if report.decision != ReviewDecision.FAILED:

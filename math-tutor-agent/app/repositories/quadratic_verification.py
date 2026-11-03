@@ -23,15 +23,24 @@ from app.models.knowledge import KnowledgeProblem, KnowledgeSolution
 
 
 class QuadraticVerificationReferenceInvalid(ValueError):
+    """中文：定义“quadratic·校验·reference·invalid”类，封装该职责相关的数据与行为。
+    English: Defines the quadratic verification reference invalid class and encapsulates data and behavior for that responsibility.
+    """
     pass
 
 
 class QuadraticVerificationVersionConflict(RuntimeError):
+    """中文：定义“quadratic·校验·version·conflict”类，封装该职责相关的数据与行为。
+    English: Defines the quadratic verification version conflict class and encapsulates data and behavior for that responsibility.
+    """
     pass
 
 
 @dataclass(frozen=True)
 class QuadraticVerifierContext:
+    """中文：定义“quadratic·verifier·context”类，封装该职责相关的数据与行为。
+    English: Defines the quadratic verifier context class and encapsulates data and behavior for that responsibility.
+    """
     verification_context: QuadraticVerificationContext
     verifier_version_id: str
     verifier_key: str
@@ -40,13 +49,21 @@ class QuadraticVerifierContext:
 
 @dataclass(frozen=True)
 class PersistedQuadraticVerification:
+    """中文：定义“persisted·quadratic·校验”类，封装该职责相关的数据与行为。
+    English: Defines the persisted quadratic verification class and encapsulates data and behavior for that responsibility.
+    """
     solution: DomainKnowledgeSolution
     symbolic_evidence: DomainAdmissionEvidence
     constraint_evidence: DomainAdmissionEvidence
 
 
 class QuadraticVerificationRepository:
-    """Load isolated verifier input and persist deterministic admission evidence."""
+    """中文：定义“quadratic·校验·仓储”类，封装该职责相关的数据与行为。
+    English: Defines the quadratic verification repository class and encapsulates data and behavior for that responsibility.
+
+    原有说明 / Existing notes:
+    Load isolated verifier input and persist deterministic admission evidence.
+    """
 
     def load_verifier_context(
         self,
@@ -56,6 +73,9 @@ class QuadraticVerificationRepository:
         solution_id: str,
         verifier_version_id: str,
     ) -> QuadraticVerifierContext:
+        """中文：处理“加载·verifier·context”相关操作。
+        English: Handles the load verifier context operation.
+        """
         verifier = self._require_verifier(session, verifier_version_id)
         problem = session.get(KnowledgeProblem, problem_id)
         solution = session.get(KnowledgeSolution, solution_id)
@@ -78,6 +98,9 @@ class QuadraticVerificationRepository:
         context: QuadraticVerifierContext,
         report: QuadraticVerificationReport,
     ) -> PersistedQuadraticVerification:
+        """中文：处理“persist·报告”相关操作。
+        English: Handles the persist report operation.
+        """
         self._require_verifier(session, context.verifier_version_id)
         problem = session.scalar(
             select(KnowledgeProblem)
@@ -188,6 +211,9 @@ class QuadraticVerificationRepository:
         problem: KnowledgeProblem,
         solution: KnowledgeSolution,
     ) -> QuadraticVerificationContext:
+        """中文：处理“构建·context”相关操作。
+        English: Handles the build context operation.
+        """
         return QuadraticVerificationContext(
             problem_id=problem.id,
             solution_id=solution.id,
@@ -209,6 +235,9 @@ class QuadraticVerificationRepository:
 
     @staticmethod
     def _require_scope(problem: KnowledgeProblem, solution: KnowledgeSolution) -> None:
+        """中文：处理“require·范围”相关操作。
+        English: Handles the require scope operation.
+        """
         if problem.generation_batch_id is None:
             raise QuadraticVerificationReferenceInvalid("generated candidate batch is required")
         if problem.problem_type != "quadratic_equation":
@@ -236,6 +265,9 @@ class QuadraticVerificationRepository:
         problem: KnowledgeProblem,
         solution: KnowledgeSolution,
     ) -> None:
+        """中文：处理“require·independent·解答”相关操作。
+        English: Handles the require independent solution operation.
+        """
         evidence = session.scalar(
             select(AdmissionEvidence)
             .where(
@@ -264,6 +296,9 @@ class QuadraticVerificationRepository:
         problem: KnowledgeProblem,
         evidence: AdmissionEvidence,
     ) -> bool:
+        """中文：处理“predates·revalidation”相关操作。
+        English: Handles the predates revalidation operation.
+        """
         required = (problem.metadata_json or {}).get(
             "revalidation_started_status_version"
         )
@@ -274,6 +309,9 @@ class QuadraticVerificationRepository:
 
     @staticmethod
     def _require_verifier(session: Session, verifier_version_id: str) -> VerifierVersion:
+        """中文：处理“require·verifier”相关操作。
+        English: Handles the require verifier operation.
+        """
         verifier = session.get(VerifierVersion, verifier_version_id)
         if (
             verifier is None
@@ -291,6 +329,9 @@ class QuadraticVerificationRepository:
 
     @staticmethod
     def _solution_coverage(report: QuadraticVerificationReport) -> dict:
+        """中文：处理“解答·coverage”相关操作。
+        English: Handles the solution coverage operation.
+        """
         if report.verification_status == "unverified":
             return {
                 "level": "none",
@@ -336,6 +377,9 @@ class QuadraticVerificationRepository:
 
     @staticmethod
     def _coverage_check(check_type: str, value) -> dict:
+        """中文：处理“coverage·检查”相关操作。
+        English: Handles the coverage check operation.
+        """
         items = value if isinstance(value, list) else [value]
         items = [item for item in items if item is not None]
         return {
@@ -350,6 +394,9 @@ class QuadraticVerificationRepository:
 
     @staticmethod
     def _solution_check_status(items: list) -> str:
+        """中文：处理“解答·检查·状态”相关操作。
+        English: Handles the solution check status operation.
+        """
         if any(item.status == QuadraticCheckStatus.FAILED for item in items):
             return "failed"
         if items and all(item.status == QuadraticCheckStatus.PASSED for item in items):
@@ -358,6 +405,9 @@ class QuadraticVerificationRepository:
 
     @staticmethod
     def _group_status(report: QuadraticVerificationReport, check_types: set[str]) -> str:
+        """中文：处理“group·状态”相关操作。
+        English: Handles the group status operation.
+        """
         items = [item for item in report.checks if item.check_type in check_types]
         if any(item.status == QuadraticCheckStatus.FAILED for item in items):
             return "failed"
@@ -382,6 +432,9 @@ class QuadraticVerificationRepository:
         summary: str,
         payload: dict,
     ) -> AdmissionEvidence:
+        """中文：处理“获取·or·创建·evidence”相关操作。
+        English: Handles the get or create evidence operation.
+        """
         evidence_hash = self._hash_json(payload)
         existing = session.scalar(select(AdmissionEvidence).where(
             AdmissionEvidence.generation_batch_id == problem.generation_batch_id,
@@ -412,6 +465,9 @@ class QuadraticVerificationRepository:
 
     @staticmethod
     def _symbolic_summary(report: QuadraticVerificationReport) -> str:
+        """中文：处理“symbolic·summary”相关操作。
+        English: Handles the symbolic summary operation.
+        """
         status = QuadraticVerificationRepository._group_status(
             report, {"solve", "substitution", "root_count", "step_equivalence"}
         )
@@ -423,6 +479,9 @@ class QuadraticVerificationRepository:
 
     @staticmethod
     def _constraint_summary(report: QuadraticVerificationReport) -> str:
+        """中文：处理“constraint·summary”相关操作。
+        English: Handles the constraint summary operation.
+        """
         status = QuadraticVerificationRepository._group_status(report, {"domain", "boundary"})
         return {
             "passed": "实数定义域、二次项非退化和分母边界均通过。",
@@ -432,6 +491,9 @@ class QuadraticVerificationRepository:
 
     @staticmethod
     def _hash_json(payload: dict) -> str:
+        """中文：处理“hash·json”相关操作。
+        English: Handles the hash json operation.
+        """
         serialized = json.dumps(
             payload,
             ensure_ascii=False,
@@ -442,6 +504,9 @@ class QuadraticVerificationRepository:
 
     @staticmethod
     def _solution_to_domain(entity: KnowledgeSolution) -> DomainKnowledgeSolution:
+        """中文：处理“解答·to·domain”相关操作。
+        English: Handles the solution to domain operation.
+        """
         return DomainKnowledgeSolution(
             id=entity.id,
             problem_id=entity.problem_id,
@@ -462,6 +527,9 @@ class QuadraticVerificationRepository:
 
     @staticmethod
     def _evidence_to_domain(entity: AdmissionEvidence) -> DomainAdmissionEvidence:
+        """中文：处理“evidence·to·domain”相关操作。
+        English: Handles the evidence to domain operation.
+        """
         return DomainAdmissionEvidence(
             id=entity.id,
             generation_batch_id=entity.generation_batch_id,

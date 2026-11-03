@@ -13,7 +13,7 @@ from app.domain.question_generation import (
     TrustedMotherProblemContext,
 )
 from app.prompts.question_variation import QUESTION_VARIATION_SAFETY_PROMPT
-from app.providers.llm import OpenAICompatibleProvider
+from app.providers.llm import LLMProvider
 
 
 FORBIDDEN_OUTPUT_KEYS = {
@@ -31,17 +31,31 @@ FORBIDDEN_OUTPUT_KEYS = {
 
 
 class QuestionVariationError(RuntimeError):
+    """中文：定义“问题·variation·error”类，封装该职责相关的数据与行为。
+    English: Defines the question variation error class and encapsulates data and behavior for that responsibility.
+    """
     def __init__(self, code: str, message: str) -> None:
+        """中文：初始化当前对象及其依赖。
+        English: Initializes the current object and its dependencies.
+        """
         super().__init__(message)
         self.code = code
 
 
 class QuestionVariationAgent:
-    """Generate one bounded draft from one repository-verified mother problem."""
+    """中文：定义“问题·variation·智能体”类，封装该职责相关的数据与行为。
+    English: Defines the question variation agent class and encapsulates data and behavior for that responsibility.
+
+    原有说明 / Existing notes:
+    Generate one bounded draft from one repository-verified mother problem.
+    """
 
     name = "question_variation"
 
-    def __init__(self, provider: OpenAICompatibleProvider) -> None:
+    def __init__(self, provider: LLMProvider) -> None:
+        """中文：初始化当前对象及其依赖。
+        English: Initializes the current object and its dependencies.
+        """
         self.provider = provider
 
     def run(
@@ -54,6 +68,9 @@ class QuestionVariationAgent:
         expected_model_name: str,
         versioned_prompt: str,
     ) -> GeneratedQuestionDraft:
+        """中文：处理“执行”相关操作。
+        English: Handles the run operation.
+        """
         self._validate_scope(mother, generation_input)
         if not self.provider.available:
             raise QuestionVariationError("provider_unavailable", "LLM provider is unavailable")
@@ -105,6 +122,9 @@ class QuestionVariationAgent:
 
     @staticmethod
     def _system_prompt(versioned_prompt: str) -> str:
+        """中文：处理“system·提示词”相关操作。
+        English: Handles the system prompt operation.
+        """
         bounded_template = versioned_prompt.strip()
         if not bounded_template:
             raise QuestionVariationError("prompt_empty", "versioned prompt cannot be empty")
@@ -119,6 +139,9 @@ class QuestionVariationAgent:
         mother: TrustedMotherProblemContext,
         generation_input: QuestionGenerationStoredInput,
     ) -> None:
+        """中文：处理“验证·范围”相关操作。
+        English: Handles the validate scope operation.
+        """
         if mother.id not in generation_input.mother_problem_ids:
             raise QuestionVariationError(
                 "mother_not_declared", "mother problem is absent from the registered job"
@@ -152,6 +175,9 @@ class QuestionVariationAgent:
         mother: TrustedMotherProblemContext,
         generation_input: QuestionGenerationStoredInput,
     ) -> GeneratedQuestionDraft:
+        """中文：处理“验证·draft”相关操作。
+        English: Handles the validate draft operation.
+        """
         normalized_statement = cls._normalize_text(
             draft.normalized_statement or draft.statement
         )
@@ -216,6 +242,9 @@ class QuestionVariationAgent:
 
     @classmethod
     def _forbidden_keys(cls, value: Any) -> set[str]:
+        """中文：处理“forbidden·keys”相关操作。
+        English: Handles the forbidden keys operation.
+        """
         if isinstance(value, dict):
             found = {
                 str(key).casefold()
@@ -234,5 +263,8 @@ class QuestionVariationAgent:
 
     @staticmethod
     def _normalize_text(value: str) -> str:
+        """中文：处理“规范化·text”相关操作。
+        English: Handles the normalize text operation.
+        """
         normalized = unicodedata.normalize("NFKC", value)
         return re.sub(r"\s+", " ", normalized).strip()

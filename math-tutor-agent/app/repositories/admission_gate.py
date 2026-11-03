@@ -8,6 +8,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
+from app.core.product_scope import MVP_GRADE_BAND
 from app.domain.admission_gate import (
     AdmissionGateContext,
     AdmissionGateDecision,
@@ -45,15 +46,26 @@ from app.models.knowledge import (
 
 
 class AdmissionGateReferenceInvalid(ValueError):
+    """中文：定义“admission·准入门·reference·invalid”类，封装该职责相关的数据与行为。
+    English: Defines the admission gate reference invalid class and encapsulates data and behavior for that responsibility.
+    """
     pass
 
 
 class AdmissionGateVersionConflict(RuntimeError):
+    """中文：定义“admission·准入门·version·conflict”类，封装该职责相关的数据与行为。
+    English: Defines the admission gate version conflict class and encapsulates data and behavior for that responsibility.
+    """
     pass
 
 
 class AdmissionGateRepository:
-    """Evaluate and persist one automatic admission decision in one transaction."""
+    """中文：定义“admission·准入门·仓储”类，封装该职责相关的数据与行为。
+    English: Defines the admission gate repository class and encapsulates data and behavior for that responsibility.
+
+    原有说明 / Existing notes:
+    Evaluate and persist one automatic admission decision in one transaction.
+    """
 
     PROBLEM_LEVEL_EVIDENCE = frozenset({
         "condition_completeness",
@@ -67,6 +79,7 @@ class AdmissionGateRepository:
         "constraint_verification",
         "duplicate_detection",
         "pedagogical_review",
+        "qualified_human_review",
     })
     VERSIONED_VERIFIER_EVIDENCE = frozenset({
         "symbolic_verification",
@@ -82,6 +95,9 @@ class AdmissionGateRepository:
         gate: RuleBasedAdmissionGate | None = None,
         state_machine: ProblemContentStateMachine | None = None,
     ) -> None:
+        """中文：初始化当前对象及其依赖。
+        English: Initializes the current object and its dependencies.
+        """
         self.gate = gate or RuleBasedAdmissionGate()
         self.state_machine = state_machine or ProblemContentStateMachine()
 
@@ -93,6 +109,9 @@ class AdmissionGateRepository:
         expected_status_version: int,
         actor_id: str | None = None,
     ) -> PersistedAdmissionGateResult:
+        """中文：处理“评估·and·persist”相关操作。
+        English: Handles the evaluate and persist operation.
+        """
         problem = session.scalar(
             select(KnowledgeProblem)
             .where(KnowledgeProblem.id == problem_id)
@@ -186,7 +205,13 @@ class AdmissionGateRepository:
                 selected_solution.content_hash if selected_solution else None
             ),
             has_fully_verified_solution=(
-                self._is_fully_verified(selected_solution)
+                (
+                    self._is_fully_verified(selected_solution)
+                    or (
+                        verification_scope != ProblemVerificationScope.PROGRAMMATIC
+                        and authoritative_full_coverage
+                    )
+                )
                 if selected_solution is not None
                 else False
             ),
@@ -273,6 +298,9 @@ class AdmissionGateRepository:
         solution: KnowledgeSolution | None,
         evidence: list[AdmissionEvidence],
     ) -> list[AdmissionEvidence]:
+        """中文：处理“coherent·latest·evidence”相关操作。
+        English: Handles the coherent latest evidence operation.
+        """
         latest: dict[str, AdmissionEvidence] = {}
         for item in evidence:
             if item.evidence_type == "admission_decision":
@@ -300,6 +328,9 @@ class AdmissionGateRepository:
         solution: KnowledgeSolution | None,
         evidence: AdmissionEvidence,
     ) -> bool:
+        """中文：处理“evidence·is·fresh”相关操作。
+        English: Handles the evidence is fresh operation.
+        """
         payload = evidence.payload_json or {}
         if evidence.evidence_type in self.VERSIONED_VERIFIER_EVIDENCE and (
             evidence.producer_type != "verifier"
@@ -318,6 +349,13 @@ class AdmissionGateRepository:
             or evidence.prompt_version_id is None
         ):
             return False
+        if evidence.evidence_type == "qualified_human_review" and (
+            evidence.producer_type != "system"
+            or not payload.get("reviewer_id")
+            or payload.get("reviewer_kind") != "qualified_human"
+            or not payload.get("reviewed_at")
+        ):
+            return False
         if evidence.evidence_type == "solution_independence" and (
             evidence.producer_type != "system"
             or evidence.model_version_id is not None
@@ -334,7 +372,12 @@ class AdmissionGateRepository:
             return False
         content_bound_types = (
             self.VERSIONED_VERIFIER_EVIDENCE
-            | {"condition_completeness", "solution_independence", "pedagogical_review"}
+            | {
+                "condition_completeness",
+                "solution_independence",
+                "pedagogical_review",
+                "qualified_human_review",
+            }
         )
         if (
             evidence.evidence_type in content_bound_types
@@ -365,6 +408,9 @@ class AdmissionGateRepository:
         solutions: list[KnowledgeSolution],
         evidence: list[AdmissionEvidence],
     ) -> KnowledgeSolution | None:
+        """中文：处理“选择·解答”相关操作。
+        English: Handles the select solution operation.
+        """
         eligible = [
             solution
             for solution in solutions
@@ -401,6 +447,9 @@ class AdmissionGateRepository:
         context: AdmissionGateContext,
         result,
     ) -> AdmissionEvidence:
+        """中文：处理“获取·or·创建·decision·evidence”相关操作。
+        English: Handles the get or create decision evidence operation.
+        """
         payload = {
             "schema_version": "1.0",
             "problem_content_hash": problem.content_hash,
@@ -471,6 +520,9 @@ class AdmissionGateRepository:
         solution: KnowledgeSolution,
         scope: ProblemVerificationScope,
     ) -> None:
+        """中文：处理“cap·restricted·解答·coverage”相关操作。
+        English: Handles the cap restricted solution coverage operation.
+        """
         coverage = dict(solution.verification_coverage_json or {})
         limitation = restricted_coverage_reason(scope)
         limitations = list(coverage.get("limitations") or [])
@@ -529,6 +581,9 @@ class AdmissionGateRepository:
         session: Session,
         problem: KnowledgeProblem,
     ) -> int:
+        """中文：处理“max·revision·attempts”相关操作。
+        English: Handles the max revision attempts operation.
+        """
         maximum = min(
             settings.knowledge_problem_max_revision_attempts,
             MAX_CANDIDATE_REVISION_ATTEMPTS,
@@ -553,6 +608,9 @@ class AdmissionGateRepository:
         transition,
         actor_id: str | None,
     ) -> None:
+        """中文：处理“persist·transition”相关操作。
+        English: Handles the persist transition operation.
+        """
         if not transition.changed:
             return
         changed_at = datetime.now(timezone.utc).replace(tzinfo=None)
@@ -581,6 +639,9 @@ class AdmissionGateRepository:
 
     @staticmethod
     def _refresh_batch_counts(session: Session, batch: GenerationBatch) -> None:
+        """中文：处理“刷新·批次·counts”相关操作。
+        English: Handles the refresh batch counts operation.
+        """
         approved = session.scalar(
             select(func.count(KnowledgeProblem.id)).where(
                 KnowledgeProblem.generation_batch_id == batch.id,
@@ -598,12 +659,15 @@ class AdmissionGateRepository:
 
     @staticmethod
     def _structured_problem_complete(problem: KnowledgeProblem) -> bool:
+        """中文：处理“structured·题目·complete”相关操作。
+        English: Handles the structured problem complete operation.
+        """
         return bool(
             problem.statement.strip()
             and problem.problem_type.strip()
             and problem.content_type.strip()
             and problem.grade_band
-            and problem.grade_codes_json
+            and (problem.grade_band == MVP_GRADE_BAND or problem.grade_codes_json)
             and problem.knowledge_point_codes_json
             and problem.difficulty_factors_json
             and problem.target_json
@@ -612,6 +676,9 @@ class AdmissionGateRepository:
 
     @staticmethod
     def _is_fully_verified(solution: KnowledgeSolution) -> bool:
+        """中文：处理“is·fully·verified”相关操作。
+        English: Handles the is fully verified operation.
+        """
         coverage = solution.verification_coverage_json or {}
         return bool(
             solution.verification_status == "verified"
@@ -625,11 +692,17 @@ class AdmissionGateRepository:
         evidence: list[DomainAdmissionEvidence],
         evidence_type: str,
     ) -> bool:
+        """中文：处理“passed”相关操作。
+        English: Handles the passed operation.
+        """
         matches = [item for item in evidence if item.evidence_type == evidence_type]
         return bool(matches and matches[-1].status == AdmissionEvidenceStatus.PASSED)
 
     @staticmethod
     def _hash_json(payload: dict) -> str:
+        """中文：处理“hash·json”相关操作。
+        English: Handles the hash json operation.
+        """
         serialized = json.dumps(
             payload,
             ensure_ascii=False,
@@ -640,6 +713,9 @@ class AdmissionGateRepository:
 
     @staticmethod
     def _to_domain(entity: AdmissionEvidence) -> DomainAdmissionEvidence:
+        """中文：处理“to·domain”相关操作。
+        English: Handles the to domain operation.
+        """
         created_at = (
             entity.created_at.replace(tzinfo=timezone.utc)
             if entity.created_at.tzinfo is None

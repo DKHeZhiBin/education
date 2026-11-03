@@ -33,15 +33,27 @@ from app.models.teaching import (
 
 
 class TeachingContentNotFound(LookupError):
+    """中文：定义“教学·内容·not·found”类，封装该职责相关的数据与行为。
+    English: Defines the teaching content not found class and encapsulates data and behavior for that responsibility.
+    """
     pass
 
 
 class TeachingContentConflict(ValueError):
+    """中文：定义“教学·内容·conflict”类，封装该职责相关的数据与行为。
+    English: Defines the teaching content conflict class and encapsulates data and behavior for that responsibility.
+    """
     pass
 
 
 class TeachingContentRepository:
+    """中文：定义“教学·内容·仓储”类，封装该职责相关的数据与行为。
+    English: Defines the teaching content repository class and encapsulates data and behavior for that responsibility.
+    """
     def __init__(self, session_factory: sessionmaker[Session] | None = None) -> None:
+        """中文：初始化当前对象及其依赖。
+        English: Initializes the current object and its dependencies.
+        """
         self.session_factory = session_factory or create_session_factory(create_mysql_engine())
 
     @staticmethod
@@ -49,7 +61,12 @@ class TeachingContentRepository:
         session: Session,
         solution: KnowledgeSolution,
     ) -> list[KnowledgeSolutionStep]:
-        """Project validated JSON steps into stable relational rows in the same transaction."""
+        """中文：处理“同步·解答·steps”相关操作。
+        English: Handles the sync solution steps operation.
+
+        原有说明 / Existing notes:
+        Project validated JSON steps into stable relational rows in the same transaction.
+        """
         session.flush()
         try:
             parsed_steps = [
@@ -113,6 +130,9 @@ class TeachingContentRepository:
         return sorted(projected, key=lambda item: item.sequence)
 
     def sync_steps(self, problem_id: str, solution_id: str) -> list[SolutionStepView]:
+        """中文：处理“同步·steps”相关操作。
+        English: Handles the sync steps operation.
+        """
         with self.session_factory.begin() as session:
             solution = self._require_solution(session, problem_id, solution_id)
             rows = self.sync_solution_steps(session, solution)
@@ -123,6 +143,9 @@ class TeachingContentRepository:
         problem_id: str,
         payload: ProblemErrorPatternUpsert,
     ) -> ErrorPatternLinkView:
+        """中文：处理“upsert·error·pattern·link”相关操作。
+        English: Handles the upsert error pattern link operation.
+        """
         with self.session_factory.begin() as session:
             problem = self._require_problem(session, problem_id)
             solution = self._require_solution(session, problem_id, payload.solution_id)
@@ -178,6 +201,9 @@ class TeachingContentRepository:
         problem_id: str,
         payload: HintBlueprintUpsert,
     ) -> HintBlueprintView:
+        """中文：处理“upsert·提示”相关操作。
+        English: Handles the upsert hint operation.
+        """
         with self.session_factory.begin() as session:
             self._require_problem(session, problem_id)
             solution = self._require_solution(session, problem_id, payload.solution_id)
@@ -266,6 +292,9 @@ class TeachingContentRepository:
             return self._hint_view(hint, step)
 
     def get_problem_teaching_map(self, problem_id: str) -> ProblemTeachingMap:
+        """中文：处理“获取·题目·教学·map”相关操作。
+        English: Handles the get problem teaching map operation.
+        """
         with self.session_factory() as session:
             problem = self._require_problem(session, problem_id)
             solutions = session.scalars(
@@ -328,6 +357,9 @@ class TeachingContentRepository:
 
     @staticmethod
     def _require_problem(session: Session, problem_id: str) -> KnowledgeProblem:
+        """中文：处理“require·题目”相关操作。
+        English: Handles the require problem operation.
+        """
         problem = session.get(KnowledgeProblem, problem_id)
         if problem is None:
             raise TeachingContentNotFound("problem not found")
@@ -339,6 +371,9 @@ class TeachingContentRepository:
         problem_id: str,
         solution_id: str,
     ) -> KnowledgeSolution:
+        """中文：处理“require·解答”相关操作。
+        English: Handles the require solution operation.
+        """
         solution = session.get(KnowledgeSolution, solution_id)
         if solution is None or solution.problem_id != problem_id:
             raise TeachingContentNotFound("solution not found for problem")
@@ -350,6 +385,9 @@ class TeachingContentRepository:
         solution_id: str,
         step_key: str,
     ) -> KnowledgeSolutionStep:
+        """中文：处理“require·step”相关操作。
+        English: Handles the require step operation.
+        """
         step = session.scalar(select(KnowledgeSolutionStep).where(
             KnowledgeSolutionStep.solution_id == solution_id,
             KnowledgeSolutionStep.step_key == step_key,
@@ -363,6 +401,9 @@ class TeachingContentRepository:
     def _hint_hash(
         payload: HintBlueprintUpsert,
     ) -> str:
+        """中文：处理“提示·hash”相关操作。
+        English: Handles the hint hash operation.
+        """
         canonical = {
             "hint_level": payload.hint_level,
             "content": payload.content.strip(),
@@ -375,6 +416,9 @@ class TeachingContentRepository:
 
     @staticmethod
     def _validate_step_set(steps: list[StructuredSolutionStep]) -> None:
+        """中文：处理“验证·step·set”相关操作。
+        English: Handles the validate step set operation.
+        """
         step_keys = [step.step_id for step in steps]
         sequences = [step.sequence for step in steps]
         if len(step_keys) != len(set(step_keys)):
@@ -393,6 +437,9 @@ class TeachingContentRepository:
 
     @staticmethod
     def _is_fully_verified(solution: KnowledgeSolution) -> bool:
+        """中文：处理“is·fully·verified”相关操作。
+        English: Handles the is fully verified operation.
+        """
         coverage = solution.verification_coverage_json or {}
         return bool(
             solution.verification_status == "verified"
@@ -403,6 +450,9 @@ class TeachingContentRepository:
 
     @staticmethod
     def _step_view(row: KnowledgeSolutionStep) -> SolutionStepView:
+        """中文：处理“step·view”相关操作。
+        English: Handles the step view operation.
+        """
         return SolutionStepView(
             id=row.id,
             problem_id=row.problem_id,
@@ -426,6 +476,9 @@ class TeachingContentRepository:
         step: KnowledgeSolutionStep,
         pattern: ErrorPattern,
     ) -> ErrorPatternLinkView:
+        """中文：处理“error·link·view”相关操作。
+        English: Handles the error link view operation.
+        """
         return ErrorPatternLinkView(
             id=link.id,
             problem_id=link.problem_id,
@@ -452,6 +505,9 @@ class TeachingContentRepository:
         hint: HintBlueprint,
         step: KnowledgeSolutionStep | None,
     ) -> HintBlueprintView:
+        """中文：处理“提示·view”相关操作。
+        English: Handles the hint view operation.
+        """
         return HintBlueprintView(
             id=hint.id,
             problem_id=hint.problem_id,
@@ -482,6 +538,9 @@ class TeachingContentRepository:
 
     @staticmethod
     def _utc(value: datetime) -> datetime:
+        """中文：处理“utc”相关操作。
+        English: Handles the utc operation.
+        """
         return (
             value.replace(tzinfo=timezone.utc)
             if value.tzinfo is None

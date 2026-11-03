@@ -1,14 +1,17 @@
 import argparse
 import json
 
+from app.core.logging import configure_cli_logging
 from app.harness.factory import build_math_tutor_harness
 
 
 def main() -> None:
+    """中文：处理“main”相关操作。
+    English: Handles the main operation.
+    """
+    configure_cli_logging()
     parser = argparse.ArgumentParser(description="Run the Math Tutor Agent Harness")
     parser.add_argument("question", help="The math question to start with")
-    parser.add_argument("--grade", default="初中")
-    parser.add_argument("--subject", default="数学")
     parser.add_argument("--student-id", required=True, help="Existing authenticated student user ID")
     args = parser.parse_args()
 
@@ -16,8 +19,6 @@ def main() -> None:
     try:
         result = harness.start_session(
             args.question,
-            args.subject,
-            args.grade,
             student_user_id=args.student_id,
         )
         print(json.dumps({

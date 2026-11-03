@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "mathlive": "^0.111.1",
     "react": "latest",
     "react-dom": "latest",
     "react-router-dom": "latest",

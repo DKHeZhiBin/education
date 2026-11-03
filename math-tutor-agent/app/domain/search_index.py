@@ -9,6 +9,9 @@ from app.domain.vector_store import QdrantTeachingPayload
 
 
 class SearchProjection(BaseModel):
+    """中文：定义“搜索·projection”类，封装该职责相关的数据与行为。
+    English: Defines the search projection class and encapsulates data and behavior for that responsibility.
+    """
     point_id: UUID
     problem_id: str | None = None
     document_id: str | None = None
@@ -17,6 +20,9 @@ class SearchProjection(BaseModel):
 
 
 class KeywordSearchQuery(BaseModel):
+    """中文：定义“keyword·搜索·query”类，封装该职责相关的数据与行为。
+    English: Defines the keyword search query class and encapsulates data and behavior for that responsibility.
+    """
     text: str = Field(min_length=1, max_length=4000)
     subject: str = "math"
     grade_band: str | None = None
@@ -37,6 +43,9 @@ class KeywordSearchQuery(BaseModel):
 
 
 class KeywordSearchHit(BaseModel):
+    """中文：定义“keyword·搜索·hit”类，封装该职责相关的数据与行为。
+    English: Defines the keyword search hit class and encapsulates data and behavior for that responsibility.
+    """
     search_document_id: str
     entity_type: str
     entity_id: str
@@ -45,6 +54,9 @@ class KeywordSearchHit(BaseModel):
 
 
 class RankedTeachingCandidate(BaseModel):
+    """中文：定义“ranked·教学·候选内容”类，封装该职责相关的数据与行为。
+    English: Defines the ranked teaching candidate class and encapsulates data and behavior for that responsibility.
+    """
     entity_type: str
     entity_id: str
     payload: QdrantTeachingPayload
@@ -58,6 +70,9 @@ class RankedTeachingCandidate(BaseModel):
 
 
 class IndexSyncSummary(BaseModel):
+    """中文：定义“索引·同步·summary”类，封装该职责相关的数据与行为。
+    English: Defines the index sync summary class and encapsulates data and behavior for that responsibility.
+    """
     outcome: Literal["completed", "partial_failed", "no_candidates"]
     approved_problem_count: int = 0
     approved_document_count: int = 0
@@ -68,6 +83,9 @@ class IndexSyncSummary(BaseModel):
 
 
 class ProductionIndexStatus(BaseModel):
+    """中文：定义“production·索引·状态”类，封装该职责相关的数据与行为。
+    English: Defines the production index status class and encapsulates data and behavior for that responsibility.
+    """
     approved_problems: int = 0
     indexed_problems: int = 0
     approved_documents: int = 0

@@ -36,16 +36,28 @@ FINAL_ADMISSION_DECISIONS = frozenset({"approve", "revise", "quarantine"})
 
 
 class GenerationQualityRepository:
+    """中文：定义“生成·质量·仓储”类，封装该职责相关的数据与行为。
+    English: Defines the generation quality repository class and encapsulates data and behavior for that responsibility.
+    """
     def __init__(self, session_factory: sessionmaker[Session] | None = None) -> None:
+        """中文：初始化当前对象及其依赖。
+        English: Initializes the current object and its dependencies.
+        """
         self.session_factory = session_factory or create_session_factory(create_mysql_engine())
 
     def report(self, scope: GenerationQualityScope) -> GenerationQualityReport:
+        """中文：处理“报告”相关操作。
+        English: Handles the report operation.
+        """
         with self.session_factory() as session:
             return self._report(session, scope)
 
     def _report(
         self, session: Session, scope: GenerationQualityScope
     ) -> GenerationQualityReport:
+        """中文：处理“报告”相关操作。
+        English: Handles the report operation.
+        """
         filters = [KnowledgeProblem.generation_batch_id.is_not(None)]
         if scope.batch_id:
             filters.append(KnowledgeProblem.generation_batch_id == scope.batch_id)
@@ -238,6 +250,9 @@ class GenerationQualityRepository:
         evidence: list[AdmissionEvidence],
         solution_by_id: dict[str, KnowledgeSolution],
     ) -> ErroneousAdmissionFinding | None:
+        """中文：处理“erroneous·admission·finding”相关操作。
+        English: Handles the erroneous admission finding operation.
+        """
         approvals = [
             item for item in evidence
             if item.evidence_type == "admission_decision"
@@ -322,6 +337,9 @@ class GenerationQualityRepository:
     def _has_current_content_approval(
         problem: KnowledgeProblem, evidence: list[AdmissionEvidence]
     ) -> bool:
+        """中文：处理“has·current·内容·approval”相关操作。
+        English: Handles the has current content approval operation.
+        """
         return any(
             item.evidence_type == "admission_decision"
             and item.generation_batch_id == problem.generation_batch_id
@@ -337,6 +355,9 @@ class GenerationQualityRepository:
         selected_solution_id: object,
         solution_by_id: dict[str, KnowledgeSolution],
     ) -> bool:
+        """中文：处理“matches·approved·内容”相关操作。
+        English: Handles the matches approved content operation.
+        """
         payload = evidence.payload_json or {}
         if evidence.evidence_type in PROBLEM_SCOPED_APPROVAL_EVIDENCE:
             if evidence.solution_id is not None:
@@ -362,6 +383,9 @@ class GenerationQualityRepository:
         evidence: list[AdmissionEvidence],
         solution_by_id: dict[str, KnowledgeSolution],
     ) -> dict:
+        """中文：处理“current·evidence”相关操作。
+        English: Handles the current evidence operation.
+        """
         latest: dict = {}
         for item in evidence:
             if item.generation_batch_id != problem.generation_batch_id:
@@ -390,6 +414,9 @@ class GenerationQualityRepository:
 
     @staticmethod
     def _selected_solution_id(current: dict) -> str | None:
+        """中文：处理“selected·解答·id”相关操作。
+        English: Handles the selected solution id operation.
+        """
         decision = current.get("admission_decision")
         if decision is not None:
             selected = (decision.payload_json or {}).get("selected_solution_id")
@@ -416,6 +443,9 @@ class GenerationQualityRepository:
 
     @staticmethod
     def _decision_name(decision: AdmissionEvidence | None) -> str | None:
+        """中文：处理“decision·name”相关操作。
+        English: Handles the decision name operation.
+        """
         if decision is None:
             return None
         value = (decision.payload_json or {}).get("decision")
@@ -423,12 +453,18 @@ class GenerationQualityRepository:
 
     @staticmethod
     def _mysql_datetime(value: datetime) -> datetime:
+        """中文：处理“MySQL·datetime”相关操作。
+        English: Handles the mysql datetime operation.
+        """
         if value.tzinfo is None:
             return value
         return value.astimezone(timezone.utc).replace(tzinfo=None)
 
     @staticmethod
     def _empty_report(scope: GenerationQualityScope) -> GenerationQualityReport:
+        """中文：处理“empty·报告”相关操作。
+        English: Handles the empty report operation.
+        """
         definitions = [
             ("problem_validity_rate", "题意有效率", "有效题意", "已有明确条件检查结论的生成题"),
             ("answer_correctness_rate", "答案正确率", "答案验证全部通过", "三类答案验证均有明确结论的生成题"),

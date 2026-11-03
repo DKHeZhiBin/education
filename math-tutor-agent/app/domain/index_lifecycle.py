@@ -7,13 +7,20 @@ from pydantic import BaseModel, Field, model_validator
 
 
 class IndexMaintenanceRequest(BaseModel):
+    """中文：定义“索引·maintenance·请求”类，封装该职责相关的数据与行为。
+    English: Defines the index maintenance request class and encapsulates data and behavior for that responsibility.
+    """
     problem_id: str = Field(min_length=1, max_length=36)
     trigger_type: Literal["retired", "revalidation", "version_update"]
     reason: str = Field(min_length=1, max_length=1000)
     replacement_problem_id: str | None = Field(default=None, max_length=36)
+    expected_status_version: int | None = Field(default=None, ge=1)
 
     @model_validator(mode="after")
     def validate_replacement(self) -> "IndexMaintenanceRequest":
+        """中文：处理“验证·replacement”相关操作。
+        English: Handles the validate replacement operation.
+        """
         if self.trigger_type == "version_update":
             if not self.replacement_problem_id:
                 raise ValueError(
@@ -29,6 +36,9 @@ class IndexMaintenanceRequest(BaseModel):
 
 
 class IndexMaintenanceJobView(BaseModel):
+    """中文：定义“索引·maintenance·任务·view”类，封装该职责相关的数据与行为。
+    English: Defines the index maintenance job view class and encapsulates data and behavior for that responsibility.
+    """
     id: str
     problem_id: str
     replacement_problem_id: str | None = None
@@ -56,6 +66,9 @@ class IndexMaintenanceJobView(BaseModel):
 
 
 class IndexMaintenanceRunSummary(BaseModel):
+    """中文：定义“索引·maintenance·执行·summary”类，封装该职责相关的数据与行为。
+    English: Defines the index maintenance run summary class and encapsulates data and behavior for that responsibility.
+    """
     selected_count: int = 0
     completed_count: int = 0
     waiting_count: int = 0

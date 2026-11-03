@@ -2,9 +2,13 @@
 @import './base.css';
 @import './layout.css';
 @import './components.css';
+@import './math-input.css';
 @import './onboarding.css';
 @import './dashboard.css';
 @import './learning.css';
+@import './learning-workspace.css';
+@import './knowledge.css';
+@import './thinking-methods.css';
 @import './review.css';
 @import './profile.css';
 @import './responsive.css';

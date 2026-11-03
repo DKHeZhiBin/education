@@ -29,6 +29,9 @@ MATH_TOKEN_PATTERN = re.compile(
 
 @dataclass(frozen=True)
 class LeakageDetectionPolicy:
+    """中文：定义“leakage·detection·策略”类，封装该职责相关的数据与行为。
+    English: Defines the leakage detection policy class and encapsulates data and behavior for that responsibility.
+    """
     near_text_threshold: float = 0.92
     structural_formula_threshold: float = 0.97
     structural_numeric_threshold: float = 0.90
@@ -40,6 +43,9 @@ class LeakageDetectionPolicy:
 
 @dataclass(frozen=True)
 class LeakageFeatures:
+    """中文：定义“leakage·features”类，封装该职责相关的数据与行为。
+    English: Defines the leakage features class and encapsulates data and behavior for that responsibility.
+    """
     normalized_text_hash: str
     text_features: frozenset[str]
     formula_features: frozenset[str]
@@ -48,8 +54,15 @@ class LeakageFeatures:
 
 
 class LeakageFeatureExtractor:
+    """中文：定义“leakage·feature·extractor”类，封装该职责相关的数据与行为。
+    English: Defines the leakage feature extractor class and encapsulates data and behavior for that responsibility.
+    """
+
     @classmethod
     def extract(cls, text: str, extra_formulae: list[str] | None = None) -> LeakageFeatures:
+        """中文：处理“extract”相关操作。
+        English: Handles the extract operation.
+        """
         normalized_text = cls._normalize_text(text)
         text_features = cls._character_ngrams(normalized_text)
         formulae = [
@@ -83,6 +96,9 @@ class LeakageFeatureExtractor:
 
     @staticmethod
     def _normalize_text(value: str) -> str:
+        """中文：处理“规范化·text”相关操作。
+        English: Handles the normalize text operation.
+        """
         normalized = unicodedata.normalize("NFKC", value).lower()
         normalized = (
             normalized.replace("−", "-").replace("–", "-")
@@ -97,12 +113,18 @@ class LeakageFeatureExtractor:
 
     @staticmethod
     def _character_ngrams(value: str, size: int = 4) -> set[str]:
+        """中文：处理“character·ngrams”相关操作。
+        English: Handles the character ngrams operation.
+        """
         if len(value) <= size:
             return {value} if value else set()
         return {value[index:index + size] for index in range(len(value) - size + 1)}
 
     @staticmethod
     def _formula_tokens(value: str) -> list[str]:
+        """中文：处理“formula·tokens”相关操作。
+        English: Handles the formula tokens operation.
+        """
         normalized = unicodedata.normalize("NFKC", value)
         normalized = (
             normalized.replace("−", "-").replace("–", "-")
@@ -136,6 +158,9 @@ class LeakageFeatureExtractor:
 
     @staticmethod
     def _token_ngrams(tokens: list[str], size: int) -> set[str]:
+        """中文：处理“令牌·ngrams”相关操作。
+        English: Handles the token ngrams operation.
+        """
         if len(tokens) <= size:
             return {" ".join(tokens)} if tokens else set()
         return {
@@ -145,7 +170,12 @@ class LeakageFeatureExtractor:
 
 
 class EvaluationDatasetSignatureLoader:
-    """Load only evaluation question features and fail closed on integrity errors."""
+    """中文：定义“evaluation·dataset·signature·loader”类，封装该职责相关的数据与行为。
+    English: Defines the evaluation dataset signature loader class and encapsulates data and behavior for that responsibility.
+
+    原有说明 / Existing notes:
+    Load only evaluation question features and fail closed on integrity errors.
+    """
 
     def __init__(
         self,
@@ -153,10 +183,16 @@ class EvaluationDatasetSignatureLoader:
         dataset_path: str | Path = DEFAULT_DATASET_PATH,
         manifest_path: str | Path = DEFAULT_MANIFEST_PATH,
     ) -> None:
+        """中文：初始化当前对象及其依赖。
+        English: Initializes the current object and its dependencies.
+        """
         self.dataset_path = Path(dataset_path)
         self.manifest_path = Path(manifest_path)
 
     def load(self) -> EvaluationDatasetSignature:
+        """中文：处理“加载”相关操作。
+        English: Handles the load operation.
+        """
         errors: list[str] = []
         manifest: dict = {}
         if not self.manifest_path.is_file():
@@ -306,13 +342,22 @@ class EvaluationDatasetSignatureLoader:
 
 
 class EvaluationLeakageDetector:
+    """中文：定义“evaluation·leakage·detector”类，封装该职责相关的数据与行为。
+    English: Defines the evaluation leakage detector class and encapsulates data and behavior for that responsibility.
+    """
     name = "evaluation_leakage"
     schema_version = "1.0"
 
     def __init__(self, policy: LeakageDetectionPolicy | None = None) -> None:
+        """中文：初始化当前对象及其依赖。
+        English: Initializes the current object and its dependencies.
+        """
         self.policy = policy or LeakageDetectionPolicy()
 
     def detect(self, context: EvaluationLeakageContext) -> EvaluationLeakageReport:
+        """中文：处理“detect”相关操作。
+        English: Handles the detect operation.
+        """
         dataset = context.dataset
         if not dataset.integrity_valid:
             return self._inconclusive(context, dataset.validation_errors)
@@ -407,6 +452,9 @@ class EvaluationLeakageDetector:
         context: EvaluationLeakageContext,
         limitations: list[str],
     ) -> EvaluationLeakageReport:
+        """中文：处理“inconclusive”相关操作。
+        English: Handles the inconclusive operation.
+        """
         return EvaluationLeakageReport(
             problem_id=context.candidate.problem_id,
             context_fingerprint=context.fingerprint(),
@@ -421,6 +469,9 @@ class EvaluationLeakageDetector:
         )
 
     def _thresholds(self) -> dict[str, float]:
+        """中文：处理“thresholds”相关操作。
+        English: Handles the thresholds operation.
+        """
         return {
             "near_text": self.policy.near_text_threshold,
             "structural_formula": self.policy.structural_formula_threshold,
@@ -434,6 +485,9 @@ class EvaluationLeakageDetector:
 
     @staticmethod
     def _jaccard(left: frozenset[str], right: frozenset[str]) -> float:
+        """中文：处理“jaccard”相关操作。
+        English: Handles the jaccard operation.
+        """
         union = left | right
         if not union:
             return 0.0

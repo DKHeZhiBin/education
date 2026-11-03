@@ -8,29 +8,62 @@ from app.domain.knowledge import KnowledgeQuery, RetrievedTeachingContext
 
 
 @runtime_checkable
-class KnowledgeRetriever(Protocol):
-    """RAG boundary returning validated structure rather than raw document text."""
+class TextbookKnowledgeRetriever(Protocol):
+    """中文：定义“textbook·知识·retriever”类，封装该职责相关的数据与行为。
+    English: Defines the textbook knowledge retriever class and encapsulates data and behavior for that responsibility.
+
+    原有说明 / Existing notes:
+    Public textbook RAG boundary; it must never read student-owned records.
+    """
 
     @property
-    def name(self) -> str: ...
+    def name(self) -> str:
+        """中文：处理“name”相关操作。
+        English: Handles the name operation.
+        """
+        ...
 
     @property
-    def available(self) -> bool: ...
+    def available(self) -> bool:
+        """中文：处理“available”相关操作。
+        English: Handles the available operation.
+        """
+        ...
 
-    def retrieve(self, query: KnowledgeQuery) -> RetrievedTeachingContext: ...
+    def retrieve(self, query: KnowledgeQuery) -> RetrievedTeachingContext:
+        """中文：处理“检索”相关操作。
+        English: Handles the retrieve operation.
+        """
+        ...
 
-    def check_readiness(self) -> tuple[bool, str]: ...
+    def check_readiness(self) -> tuple[bool, str]:
+        """中文：处理“检查·就绪状态”相关操作。
+        English: Handles the check readiness operation.
+        """
+        ...
 
-    def close(self) -> None: ...
+    def close(self) -> None:
+        """中文：处理“关闭”相关操作。
+        English: Handles the close operation.
+        """
+        ...
 
 
 class DisabledKnowledgeRetriever:
-    """No-op implementation used when RAG is disabled by configuration."""
+    """中文：定义“disabled·知识·retriever”类，封装该职责相关的数据与行为。
+    English: Defines the disabled knowledge retriever class and encapsulates data and behavior for that responsibility.
+
+    原有说明 / Existing notes:
+    No-op implementation used when RAG is disabled by configuration.
+    """
 
     name = "disabled"
     available = False
 
     def retrieve(self, query: KnowledgeQuery) -> RetrievedTeachingContext:
+        """中文：处理“检索”相关操作。
+        English: Handles the retrieve operation.
+        """
         return RetrievedTeachingContext(
             status="disabled",
             provider=self.name,
@@ -39,13 +72,22 @@ class DisabledKnowledgeRetriever:
         )
 
     def check_readiness(self) -> tuple[bool, str]:
+        """中文：处理“检查·就绪状态”相关操作。
+        English: Handles the check readiness operation.
+        """
         return True, "disabled_by_configuration"
 
     def close(self) -> None:
+        """中文：处理“关闭”相关操作。
+        English: Handles the close operation.
+        """
         return None
 
 
-KnowledgeRetrieverFactory = Callable[[Settings], KnowledgeRetriever]
+KnowledgeRetriever = TextbookKnowledgeRetriever
+
+
+KnowledgeRetrieverFactory = Callable[[Settings], TextbookKnowledgeRetriever]
 _PROVIDER_FACTORIES: dict[str, KnowledgeRetrieverFactory] = {}
 
 
@@ -53,7 +95,12 @@ def register_knowledge_retriever(
     name: str,
     factory: KnowledgeRetrieverFactory,
 ) -> None:
-    """Register a concrete adapter without changing Harness or Agent code."""
+    """中文：处理“register·知识·retriever”相关操作。
+    English: Handles the register knowledge retriever operation.
+
+    原有说明 / Existing notes:
+    Register a concrete adapter without changing Harness or Agent code.
+    """
 
     normalized = name.strip().lower()
     if not normalized or normalized == "disabled":
@@ -62,6 +109,9 @@ def register_knowledge_retriever(
 
 
 def build_knowledge_retriever(config: Settings = settings) -> KnowledgeRetriever:
+    """中文：处理“构建·知识·retriever”相关操作。
+    English: Handles the build knowledge retriever operation.
+    """
     if not config.rag_enabled:
         return DisabledKnowledgeRetriever()
 
@@ -81,7 +131,7 @@ def build_knowledge_retriever(config: Settings = settings) -> KnowledgeRetriever
             f"RAG_ENABLED=true but RAG_PROVIDER={configured} is not registered"
         )
     retriever = factory(config)
-    if not isinstance(retriever, KnowledgeRetriever):
+    if not isinstance(retriever, TextbookKnowledgeRetriever):
         raise TypeError(f"RAG provider {provider_name} does not satisfy KnowledgeRetriever")
     if config.rag_cache_enabled and config.redis_enabled:
         from app.cache.knowledge_retrieval import CachedKnowledgeRetriever

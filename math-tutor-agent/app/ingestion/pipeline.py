@@ -23,15 +23,24 @@ EXTENSION_MEDIA_TYPES = {
 
 
 class DocumentIngestionError(ValueError):
+    """中文：定义“文档·ingestion·error”类，封装该职责相关的数据与行为。
+    English: Defines the document ingestion error class and encapsulates data and behavior for that responsibility.
+    """
     pass
 
 
 class DocumentIngestionPipeline:
+    """中文：定义“文档·ingestion·pipeline”类，封装该职责相关的数据与行为。
+    English: Defines the document ingestion pipeline class and encapsulates data and behavior for that responsibility.
+    """
     def prepare(
         self,
         manifest: DocumentIngestionManifest,
         manifest_path: str | Path,
     ) -> PreparedDocument:
+        """中文：处理“prepare”相关操作。
+        English: Handles the prepare operation.
+        """
         input_path = manifest.resolve_input_path(manifest_path)
         raw = input_path.read_bytes()
         if not raw:
@@ -108,11 +117,17 @@ class DocumentIngestionPipeline:
 
 
 def load_manifest(path: str | Path) -> DocumentIngestionManifest:
+    """中文：处理“加载·manifest”相关操作。
+    English: Handles the load manifest operation.
+    """
     with Path(path).open(encoding="utf-8") as manifest_file:
         return DocumentIngestionManifest.model_validate(json.load(manifest_file))
 
 
 def _pipeline_fingerprint() -> str:
+    """中文：处理“pipeline·fingerprint”相关操作。
+    English: Handles the pipeline fingerprint operation.
+    """
     package_dir = Path(__file__).parent
     implementation = b"".join(
         (package_dir / filename).read_bytes()

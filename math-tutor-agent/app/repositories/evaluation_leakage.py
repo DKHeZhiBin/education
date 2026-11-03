@@ -23,15 +23,24 @@ from app.models.knowledge import KnowledgeProblem
 
 
 class EvaluationLeakageReferenceInvalid(ValueError):
+    """中文：定义“evaluation·leakage·reference·invalid”类，封装该职责相关的数据与行为。
+    English: Defines the evaluation leakage reference invalid class and encapsulates data and behavior for that responsibility.
+    """
     pass
 
 
 class EvaluationLeakageVersionConflict(RuntimeError):
+    """中文：定义“evaluation·leakage·version·conflict”类，封装该职责相关的数据与行为。
+    English: Defines the evaluation leakage version conflict class and encapsulates data and behavior for that responsibility.
+    """
     pass
 
 
 @dataclass(frozen=True)
 class EvaluationLeakageDetectorContext:
+    """中文：定义“evaluation·leakage·detector·context”类，封装该职责相关的数据与行为。
+    English: Defines the evaluation leakage detector context class and encapsulates data and behavior for that responsibility.
+    """
     leakage_context: EvaluationLeakageContext
     verifier_version_id: str
     verifier_key: str
@@ -39,12 +48,20 @@ class EvaluationLeakageDetectorContext:
 
 
 class EvaluationLeakageRepository:
-    """Keep evaluation content on disk and persist only irreversible match evidence."""
+    """中文：定义“evaluation·leakage·仓储”类，封装该职责相关的数据与行为。
+    English: Defines the evaluation leakage repository class and encapsulates data and behavior for that responsibility.
+
+    原有说明 / Existing notes:
+    Keep evaluation content on disk and persist only irreversible match evidence.
+    """
 
     def __init__(
         self,
         dataset_loader: EvaluationDatasetSignatureLoader | None = None,
     ) -> None:
+        """中文：初始化当前对象及其依赖。
+        English: Initializes the current object and its dependencies.
+        """
         self.dataset_loader = dataset_loader or EvaluationDatasetSignatureLoader()
 
     def load_detector_context(
@@ -54,6 +71,9 @@ class EvaluationLeakageRepository:
         problem_id: str,
         verifier_version_id: str,
     ) -> EvaluationLeakageDetectorContext:
+        """中文：处理“加载·detector·context”相关操作。
+        English: Handles the load detector context operation.
+        """
         problem = session.get(KnowledgeProblem, problem_id)
         if problem is None:
             raise EvaluationLeakageReferenceInvalid("candidate problem not found")
@@ -75,6 +95,9 @@ class EvaluationLeakageRepository:
         context: EvaluationLeakageDetectorContext,
         report: EvaluationLeakageReport,
     ) -> DomainAdmissionEvidence:
+        """中文：处理“persist·报告”相关操作。
+        English: Handles the persist report operation.
+        """
         problem = session.scalar(
             select(KnowledgeProblem)
             .where(KnowledgeProblem.id == context.leakage_context.candidate.problem_id)
@@ -145,6 +168,9 @@ class EvaluationLeakageRepository:
         return self._evidence_to_domain(evidence)
 
     def _build_context(self, problem: KnowledgeProblem) -> EvaluationLeakageContext:
+        """中文：处理“构建·context”相关操作。
+        English: Handles the build context operation.
+        """
         return EvaluationLeakageContext(
             candidate=LeakageCandidateSnapshot(
                 problem_id=problem.id,
@@ -162,6 +188,9 @@ class EvaluationLeakageRepository:
 
     @staticmethod
     def _require_scope(problem: KnowledgeProblem) -> None:
+        """中文：处理“require·范围”相关操作。
+        English: Handles the require scope operation.
+        """
         if problem.generation_batch_id is None:
             raise EvaluationLeakageReferenceInvalid("generated candidate batch is required")
         if problem.content_status not in {"candidate", "validating", "revision_required"}:
@@ -177,6 +206,9 @@ class EvaluationLeakageRepository:
         verifier_version_id: str,
         problem_type: str,
     ) -> VerifierVersion:
+        """中文：处理“require·verifier”相关操作。
+        English: Handles the require verifier operation.
+        """
         verifier = session.get(VerifierVersion, verifier_version_id)
         if (
             verifier is None
@@ -194,6 +226,9 @@ class EvaluationLeakageRepository:
 
     @staticmethod
     def _summary(report: EvaluationLeakageReport) -> str:
+        """中文：处理“summary”相关操作。
+        English: Handles the summary operation.
+        """
         if report.status.value == "passed":
             return (
                 f"已对冻结评估集 {report.dataset_name} 的 "
@@ -205,6 +240,9 @@ class EvaluationLeakageRepository:
 
     @staticmethod
     def _hash_json(payload: dict) -> str:
+        """中文：处理“hash·json”相关操作。
+        English: Handles the hash json operation.
+        """
         serialized = json.dumps(
             payload,
             ensure_ascii=False,
@@ -215,6 +253,9 @@ class EvaluationLeakageRepository:
 
     @staticmethod
     def _evidence_to_domain(entity: AdmissionEvidence) -> DomainAdmissionEvidence:
+        """中文：处理“evidence·to·domain”相关操作。
+        English: Handles the evidence to domain operation.
+        """
         return DomainAdmissionEvidence(
             id=entity.id,
             generation_batch_id=entity.generation_batch_id,

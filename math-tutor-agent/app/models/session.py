@@ -8,6 +8,7 @@ from sqlalchemy.dialects.mysql import INTEGER, SMALLINT, TINYINT
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, MYSQL_DATETIME, UuidPrimaryKeyMixin, utc_now
+from app.core.product_scope import MVP_GRADE_BAND, MVP_SUBJECT_CODE
 
 if TYPE_CHECKING:
     from app.models.agent import AgentArtifact, AgentRun
@@ -18,12 +19,20 @@ if TYPE_CHECKING:
 
 
 class LearningSession(UuidPrimaryKeyMixin, Base):
+    """中文：定义“学习·会话”类，封装该职责相关的数据与行为。
+    English: Defines the learning session class and encapsulates data and behavior for that responsibility.
+    """
     __tablename__ = "learning_sessions"
     __table_args__ = (
         CheckConstraint("hint_level BETWEEN 0 AND 4", name="hint_level_range"),
+        CheckConstraint(
+            "subject = 'math' AND grade_band = 'university'",
+            name="learning_session_math_scope",
+        ),
         Index("idx_sessions_student_updated", "student_user_id", "updated_at"),
         Index("idx_sessions_student_status", "student_user_id", "status"),
         Index("idx_sessions_knowledge_problem", "knowledge_problem_id", "updated_at"),
+        Index("idx_sessions_llm_model", "llm_model_id", "updated_at"),
     )
 
     student_user_id: Mapped[str] = mapped_column(
@@ -32,8 +41,13 @@ class LearningSession(UuidPrimaryKeyMixin, Base):
     knowledge_problem_id: Mapped[str | None] = mapped_column(
         ForeignKey("knowledge_problems.id", ondelete="SET NULL"), nullable=True
     )
-    subject: Mapped[str] = mapped_column(String(24), default="math", nullable=False)
-    grade_band: Mapped[str] = mapped_column(String(24), nullable=False)
+    llm_model_id: Mapped[str | None] = mapped_column(String(180), nullable=True)
+    subject: Mapped[str] = mapped_column(
+        String(24), default=MVP_SUBJECT_CODE, nullable=False
+    )
+    grade_band: Mapped[str] = mapped_column(
+        String(24), default=MVP_GRADE_BAND, nullable=False
+    )
     question_text: Mapped[str] = mapped_column(Text, nullable=False)
     normalized_question: Mapped[str | None] = mapped_column(Text, nullable=True)
     status: Mapped[str] = mapped_column(String(24), default="collecting", nullable=False)
@@ -61,6 +75,9 @@ class LearningSession(UuidPrimaryKeyMixin, Base):
 
 
 class SessionMessage(UuidPrimaryKeyMixin, Base):
+    """中文：定义“会话·message”类，封装该职责相关的数据与行为。
+    English: Defines the session message class and encapsulates data and behavior for that responsibility.
+    """
     __tablename__ = "session_messages"
     __table_args__ = (
         UniqueConstraint("session_id", "sequence_no", name="session_sequence"),

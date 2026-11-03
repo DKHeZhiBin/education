@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "architecture",
+  "quality": "showcase",
+  "specification": {
+    "path": "/Users/kittle/code/mvp/education/.archify/architecture-math-tutor-modules-20261102-230611/candidate.json",
+    "sha256": "530cae5ae1f5c9435df397a3a6c5492a724455d162e2383648967a7da003a838",
+    "bytes": 11454
+  },
+  "artifact": {
+    "path": "/Users/kittle/code/mvp/education/.archify/architecture-math-tutor-modules-20261102-230611/math-tutor-module-architecture.html",
+    "sha256": "ed9d54be1cb8ad0e9b420a78305eacde5b15aa33d1a85431af285c55238095ef",
+    "bytes": 866500
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "/Users/kittle/code/mvp/education/.archify/architecture-math-tutor-modules-20261102-230611/review-2/math-tutor-module-architecture.finalize.json",
+    "summaryReceipt": "/Users/kittle/code/mvp/education/.archify/architecture-math-tutor-modules-20261102-230611/review-2/math-tutor-module-architecture.finalize-summary.json",
+    "browserCheckReceipt": "/Users/kittle/code/mvp/education/.archify/architecture-math-tutor-modules-20261102-230611/review-2/math-tutor-module-architecture.browser-check.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-11-02T14:08:50.479Z",
+    "source": "network",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 3461,
+  "browserCheck": {
+    "requested": true,
+    "ran": true
+  },
+  "visualReviewRecommendation": {
+    "action": "inspect-route-readability",
+    "signals": {
+      "resolvedCrossovers": 1,
+      "routesOverSuggestedBends": 1
+    },
+    "reason": "Automated gates passed, but crossings or detours still need perceptual review before claiming visual quality.",
+    "affectedRoutes": {
+      "crossings": [
+        {
+          "left": {
+            "id": "governanceToMysql",
+            "from": "questionGovernance",
+            "to": "mysql",
+            "label": "状态与证据",
+            "collectionIndex": 12,
+            "artifactIndex": 13
+          },
+          "right": {
+            "id": "indexToRedis",
+            "from": "productionIndex",
+            "to": "redis",
+            "label": "版本失效",
+            "collectionIndex": 15,
+            "artifactIndex": 16
+          },
+          "point": [
+            475.00000000000006,
+            358.00000000000006
+          ]
+        }
+      ],
+      "detours": [
+        {
+          "relationship": {
+            "id": "governanceToMysql",
+            "from": "questionGovernance",
+            "to": "mysql",
+            "label": "状态与证据",
+            "collectionIndex": 12,
+            "artifactIndex": 13
+          },
+          "bends": 3,
+          "stretch": 1
+        }
+      ],
+      "truncated": false
+    },
+    "hints": [
+      "questionGovernance → mysql crosses productionIndex → redis: move the node of whichever is a branch, return, or second entrance to the other side of the main path, so that relationship runs through an empty corridor.",
+      "questionGovernance → mysql needs 3 bends: move node questionGovernance or mysql so they share a row or column with matching centers, or sit diagonally with a clear corner."
+    ],
+    "repair": "Trace these relationships at the desktop viewport. For Architecture, use references/architecture-layout-repair.md: reflow a blocked main path or tangled connected scene, and repair an isolated defect locally only when the surrounding composition is accepted. Preserve all semantic content and user-fixed geometry. Rerun finalize once after the edit."
+  }
+}

@@ -3,11 +3,12 @@ from __future__ import annotations
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import ForeignKey, Index, String, UniqueConstraint
-from sqlalchemy.dialects.mysql import INTEGER, TINYINT
+from sqlalchemy import CheckConstraint, ForeignKey, Index, String, UniqueConstraint
+from sqlalchemy.dialects.mysql import INTEGER
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, MYSQL_DATETIME, TimestampMixin, UuidPrimaryKeyMixin, utc_now
+from app.core.product_scope import MVP_GRADE_BAND
 
 if TYPE_CHECKING:
     from app.models.learning import LearningRecord
@@ -16,6 +17,9 @@ if TYPE_CHECKING:
 
 
 class User(UuidPrimaryKeyMixin, TimestampMixin, Base):
+    """中文：定义“用户”类，封装该职责相关的数据与行为。
+    English: Defines the user class and encapsulates data and behavior for that responsibility.
+    """
     __tablename__ = "users"
 
     email: Mapped[str] = mapped_column(String(254), unique=True, nullable=False)
@@ -40,6 +44,9 @@ class User(UuidPrimaryKeyMixin, TimestampMixin, Base):
 
 
 class AccountActionToken(UuidPrimaryKeyMixin, Base):
+    """中文：定义“account·action·令牌”类，封装该职责相关的数据与行为。
+    English: Defines the account action token class and encapsulates data and behavior for that responsibility.
+    """
     __tablename__ = "account_action_tokens"
     __table_args__ = (
         Index("idx_account_tokens_user_purpose", "user_id", "purpose", "created_at"),
@@ -54,6 +61,9 @@ class AccountActionToken(UuidPrimaryKeyMixin, Base):
 
 
 class RefreshSession(UuidPrimaryKeyMixin, Base):
+    """中文：定义“刷新·会话”类，封装该职责相关的数据与行为。
+    English: Defines the refresh session class and encapsulates data and behavior for that responsibility.
+    """
     __tablename__ = "refresh_sessions"
     __table_args__ = (
         Index("idx_refresh_sessions_user", "user_id", "created_at"),
@@ -73,14 +83,24 @@ class RefreshSession(UuidPrimaryKeyMixin, Base):
 
 
 class StudentProfile(Base):
+    """中文：定义“学生·profile”类，封装该职责相关的数据与行为。
+    English: Defines the student profile class and encapsulates data and behavior for that responsibility.
+    """
     __tablename__ = "student_profiles"
+    __table_args__ = (
+        CheckConstraint(
+            "grade_band = 'university'",
+            name="student_profile_university_scope",
+        ),
+    )
 
     user_id: Mapped[str] = mapped_column(
         ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
     )
     display_name: Mapped[str] = mapped_column(String(40), nullable=False)
-    grade_band: Mapped[str] = mapped_column(String(24), nullable=False)
-    current_grade: Mapped[int | None] = mapped_column(TINYINT(unsigned=True), nullable=True)
+    grade_band: Mapped[str] = mapped_column(
+        String(24), default=MVP_GRADE_BAND, nullable=False
+    )
     preferred_explanation_style: Mapped[str] = mapped_column(
         String(24), default="balanced", nullable=False
     )
@@ -97,6 +117,9 @@ class StudentProfile(Base):
 
 
 class GuardianProfile(Base):
+    """中文：定义“家长·profile”类，封装该职责相关的数据与行为。
+    English: Defines the guardian profile class and encapsulates data and behavior for that responsibility.
+    """
     __tablename__ = "guardian_profiles"
 
     user_id: Mapped[str] = mapped_column(
@@ -111,6 +134,9 @@ class GuardianProfile(Base):
 
 
 class GuardianStudentLink(UuidPrimaryKeyMixin, Base):
+    """中文：定义“家长·学生·link”类，封装该职责相关的数据与行为。
+    English: Defines the guardian student link class and encapsulates data and behavior for that responsibility.
+    """
     __tablename__ = "guardian_student_links"
     __table_args__ = (
         UniqueConstraint("guardian_user_id", "student_user_id", name="guardian_student"),

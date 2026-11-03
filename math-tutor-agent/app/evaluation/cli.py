@@ -3,11 +3,16 @@ from __future__ import annotations
 import argparse
 import json
 
+from app.core.logging import configure_cli_logging
 from app.core.config import settings
 from app.evaluation.datasets import validate_all_evaluation_suites
 
 
 def main() -> None:
+    """中文：处理“main”相关操作。
+    English: Handles the main operation.
+    """
+    configure_cli_logging()
     parser = argparse.ArgumentParser(
         description="Validate frozen evaluation data and production-index isolation"
     )

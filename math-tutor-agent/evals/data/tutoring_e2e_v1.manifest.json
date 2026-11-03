@@ -1,0 +1,26 @@
+{
+  "schema_version": "1.0",
+  "name": "tutoring_e2e_v1",
+  "evaluation_only": true,
+  "immutable": true,
+  "production_index_forbidden": true,
+  "source": "project-authored",
+  "split": "tutoring_e2e_holdout",
+  "dataset_file": "tutoring_e2e_v1.jsonl",
+  "case_count": 3,
+  "dataset_sha256": "6bbc597ca97516b6342cbdd304a81abe3e400b13fec956a852632d28332b772b",
+  "case_ids": [
+    "clarification_exponential_full_ladder",
+    "quadratic_verified_full_ladder",
+    "student_ahead_then_complete"
+  ],
+  "thresholds": {
+    "case_pass_rate": 0.8,
+    "stage_pass_rate": 0.9,
+    "answer_correctness_rate": 1.0,
+    "verification_honesty_rate": 1.0,
+    "hint_leakage_rate": 0.0,
+    "timeout_rate": 0.1
+  },
+  "freeze_policy": "Create a new version for any change to inputs, oracle assertions, thresholds, or case order."
+}

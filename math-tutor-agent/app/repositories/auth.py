@@ -7,6 +7,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, selectinload, sessionmaker
 
+from app.core.product_scope import MVP_GRADE_BAND
 from app.domain.auth import AuthenticatedUser, GuardianLinkResponse
 from app.models import (
     AccountActionToken,
@@ -19,10 +20,16 @@ from app.models import (
 
 
 class EmailAlreadyRegistered(Exception):
+    """中文：定义“邮箱·already·registered”类，封装该职责相关的数据与行为。
+    English: Defines the email already registered class and encapsulates data and behavior for that responsibility.
+    """
     pass
 
 
 class GuardianLinkAlreadyExists(Exception):
+    """中文：定义“家长·link·already·exists”类，封装该职责相关的数据与行为。
+    English: Defines the guardian link already exists class and encapsulates data and behavior for that responsibility.
+    """
     pass
 
 
@@ -30,7 +37,13 @@ RefreshRotationStatus = Literal["rotated", "invalid", "reused"]
 
 
 class AuthRepository:
+    """中文：定义“auth·仓储”类，封装该职责相关的数据与行为。
+    English: Defines the auth repository class and encapsulates data and behavior for that responsibility.
+    """
     def __init__(self, engine: Engine, session_factory: sessionmaker[Session]) -> None:
+        """中文：初始化当前对象及其依赖。
+        English: Initializes the current object and its dependencies.
+        """
         self.engine = engine
         self.session_factory = session_factory
 
@@ -40,8 +53,10 @@ class AuthRepository:
         password_hash: str,
         role: str,
         display_name: str,
-        grade_band: str | None,
     ) -> AuthenticatedUser:
+        """中文：处理“创建·用户”相关操作。
+        English: Handles the create user operation.
+        """
         try:
             with self.session_factory.begin() as db:
                 if db.scalar(select(User.id).where(User.email == email)) is not None:
@@ -60,7 +75,7 @@ class AuthRepository:
                     db.add(StudentProfile(
                         user_id=user.id,
                         display_name=display_name,
-                        grade_band=grade_band or "middle",
+                        grade_band=MVP_GRADE_BAND,
                     ))
                 else:
                     db.add(GuardianProfile(
@@ -68,19 +83,28 @@ class AuthRepository:
                         display_name=display_name,
                     ))
                 db.flush()
-                return self._identity(user, display_name, grade_band)
+                return self._identity(user, display_name)
         except IntegrityError as error:
             raise EmailAlreadyRegistered(email) from error
 
     def get_user_by_email(self, email: str) -> User | None:
+        """中文：处理“获取·用户·by·邮箱”相关操作。
+        English: Handles the get user by email operation.
+        """
         with self.session_factory() as db:
             return db.scalar(self._user_query().where(User.email == email))
 
     def get_user_by_id(self, user_id: str) -> User | None:
+        """中文：处理“获取·用户·by·id”相关操作。
+        English: Handles the get user by id operation.
+        """
         with self.session_factory() as db:
             return db.scalar(self._user_query().where(User.id == user_id))
 
     def mark_login(self, user_id: str) -> None:
+        """中文：处理“mark·登录”相关操作。
+        English: Handles the mark login operation.
+        """
         with self.session_factory.begin() as db:
             user = db.get(User, user_id)
             if user is not None:
@@ -93,6 +117,9 @@ class AuthRepository:
         token_hash: str,
         expires_at: datetime,
     ) -> None:
+        """中文：处理“创建·action·令牌”相关操作。
+        English: Handles the create action token operation.
+        """
         now = self._now()
         with self.session_factory.begin() as db:
             previous = db.scalars(select(AccountActionToken).where(
@@ -110,6 +137,9 @@ class AuthRepository:
             ))
 
     def verify_email(self, token_hash: str) -> AuthenticatedUser | None:
+        """中文：处理“校验·邮箱”相关操作。
+        English: Handles the verify email operation.
+        """
         now = self._now()
         with self.session_factory.begin() as db:
             token = db.scalar(select(AccountActionToken).where(
@@ -127,6 +157,9 @@ class AuthRepository:
             return self.to_identity(user)
 
     def reset_password(self, token_hash: str, password_hash: str) -> bool:
+        """中文：处理“重置·密码”相关操作。
+        English: Handles the reset password operation.
+        """
         now = self._now()
         with self.session_factory.begin() as db:
             token = db.scalar(select(AccountActionToken).where(
@@ -145,6 +178,9 @@ class AuthRepository:
             return True
 
     def change_password(self, user_id: str, password_hash: str) -> bool:
+        """中文：处理“change·密码”相关操作。
+        English: Handles the change password operation.
+        """
         now = self._now()
         with self.session_factory.begin() as db:
             user = db.get(User, user_id, with_for_update=True)
@@ -162,6 +198,9 @@ class AuthRepository:
         token_hash: str,
         expires_at: datetime,
     ) -> None:
+        """中文：处理“创建·刷新·会话”相关操作。
+        English: Handles the create refresh session operation.
+        """
         with self.session_factory.begin() as db:
             db.add(RefreshSession(
                 user_id=user_id,
@@ -176,6 +215,9 @@ class AuthRepository:
         replacement_hash: str,
         replacement_expires_at: datetime,
     ) -> tuple[RefreshRotationStatus, AuthenticatedUser | None]:
+        """中文：处理“rotate·刷新·会话”相关操作。
+        English: Handles the rotate refresh session operation.
+        """
         now = self._now()
         with self.session_factory.begin() as db:
             current = db.scalar(select(RefreshSession).where(
@@ -210,6 +252,9 @@ class AuthRepository:
                 expires_at=replacement_expires_at,
             )
             db.add(replacement)
+            # 中文：先写入新会话，再让旧会话引用它，满足 MySQL 自引用外键的顺序要求。
+            # English: Insert the replacement before referencing it from the old row to satisfy MySQL's self-referencing foreign key.
+            db.flush([replacement])
             current.used_at = now
             current.revoked_at = now
             current.replaced_by_id = replacement.id
@@ -217,6 +262,9 @@ class AuthRepository:
             return "rotated", self.to_identity(user)
 
     def revoke_refresh_family(self, token_hash: str) -> None:
+        """中文：处理“revoke·刷新·family”相关操作。
+        English: Handles the revoke refresh family operation.
+        """
         now = self._now()
         with self.session_factory.begin() as db:
             current = db.scalar(select(RefreshSession).where(
@@ -229,6 +277,9 @@ class AuthRepository:
                     user.token_version += 1
 
     def revoke_tokens(self, user_id: str) -> None:
+        """中文：处理“revoke·tokens”相关操作。
+        English: Handles the revoke tokens operation.
+        """
         with self.session_factory.begin() as db:
             user = db.get(User, user_id)
             if user is not None:
@@ -241,6 +292,9 @@ class AuthRepository:
         student_email: str,
         relationship: str,
     ) -> GuardianLinkResponse | None:
+        """中文：处理“创建·家长·link”相关操作。
+        English: Handles the create guardian link operation.
+        """
         with self.session_factory.begin() as db:
             student = db.scalar(
                 self._user_query().where(User.email == student_email, User.role == "student")
@@ -266,6 +320,9 @@ class AuthRepository:
             return self._link_response(db, link)
 
     def accept_guardian_link(self, link_id: str, student_user_id: str) -> GuardianLinkResponse | None:
+        """中文：处理“accept·家长·link”相关操作。
+        English: Handles the accept guardian link operation.
+        """
         with self.session_factory.begin() as db:
             link = db.scalar(select(GuardianStudentLink).where(
                 GuardianStudentLink.id == link_id,
@@ -280,6 +337,9 @@ class AuthRepository:
             return self._link_response(db, link)
 
     def revoke_guardian_link(self, link_id: str, actor_user_id: str) -> bool:
+        """中文：处理“revoke·家长·link”相关操作。
+        English: Handles the revoke guardian link operation.
+        """
         with self.session_factory.begin() as db:
             link = db.scalar(select(GuardianStudentLink).where(
                 GuardianStudentLink.id == link_id,
@@ -292,6 +352,9 @@ class AuthRepository:
             return True
 
     def list_guardian_links(self, user_id: str, role: str) -> list[GuardianLinkResponse]:
+        """中文：处理“列出·家长·links”相关操作。
+        English: Handles the list guardian links operation.
+        """
         with self.session_factory() as db:
             criterion = (
                 GuardianStudentLink.guardian_user_id == user_id
@@ -306,6 +369,9 @@ class AuthRepository:
             return [self._link_response(db, link) for link in links]
 
     def guardian_can_access(self, guardian_user_id: str, student_user_id: str) -> bool:
+        """中文：处理“家长·can·access”相关操作。
+        English: Handles the guardian can access operation.
+        """
         with self.session_factory() as db:
             link_id = db.scalar(select(GuardianStudentLink.id).where(
                 GuardianStudentLink.guardian_user_id == guardian_user_id,
@@ -316,22 +382,23 @@ class AuthRepository:
 
     @staticmethod
     def to_identity(user: User) -> AuthenticatedUser:
+        """中文：处理“to·identity”相关操作。
+        English: Handles the to identity operation.
+        """
         if user.student_profile is not None:
-            return AuthRepository._identity(
-                user,
-                user.student_profile.display_name,
-                user.student_profile.grade_band,
-            )
+            return AuthRepository._identity(user, user.student_profile.display_name)
         if user.guardian_profile is not None:
-            return AuthRepository._identity(user, user.guardian_profile.display_name, None)
-        return AuthRepository._identity(user, user.email.split("@", 1)[0], None)
+            return AuthRepository._identity(user, user.guardian_profile.display_name)
+        return AuthRepository._identity(user, user.email.split("@", 1)[0])
 
     @staticmethod
     def _identity(
         user: User,
         display_name: str,
-        grade_band: str | None,
     ) -> AuthenticatedUser:
+        """中文：处理“identity”相关操作。
+        English: Handles the identity operation.
+        """
         return AuthenticatedUser(
             id=user.id,
             email=user.email,
@@ -339,12 +406,14 @@ class AuthRepository:
             account_status=user.account_status,
             token_version=user.token_version,
             display_name=display_name,
-            grade_band=grade_band,
             email_verified=user.email_verified_at is not None,
         )
 
     @staticmethod
     def _user_query():
+        """中文：处理“用户·query”相关操作。
+        English: Handles the user query operation.
+        """
         return select(User).options(
             selectinload(User.student_profile),
             selectinload(User.guardian_profile),
@@ -352,6 +421,9 @@ class AuthRepository:
 
     @staticmethod
     def _link_response(db: Session, link: GuardianStudentLink) -> GuardianLinkResponse:
+        """中文：处理“link·响应”相关操作。
+        English: Handles the link response operation.
+        """
         guardian = db.get(GuardianProfile, link.guardian_user_id)
         student = db.get(StudentProfile, link.student_user_id)
         return GuardianLinkResponse(
@@ -368,16 +440,25 @@ class AuthRepository:
 
     @staticmethod
     def _to_utc(value: datetime | None) -> datetime | None:
+        """中文：处理“to·utc”相关操作。
+        English: Handles the to utc operation.
+        """
         if value is None:
             return None
         return value.replace(tzinfo=timezone.utc) if value.tzinfo is None else value.astimezone(timezone.utc)
 
     @staticmethod
     def _now() -> datetime:
+        """中文：处理“now”相关操作。
+        English: Handles the now operation.
+        """
         return datetime.now(timezone.utc).replace(tzinfo=None)
 
     @staticmethod
     def _revoke_refresh_family(db: Session, family_id: str, now: datetime) -> None:
+        """中文：处理“revoke·刷新·family”相关操作。
+        English: Handles the revoke refresh family operation.
+        """
         db.execute(update(RefreshSession).where(
             RefreshSession.family_id == family_id,
             RefreshSession.revoked_at.is_(None),
@@ -385,6 +466,9 @@ class AuthRepository:
 
     @staticmethod
     def _revoke_user_refresh_sessions(db: Session, user_id: str, now: datetime) -> None:
+        """中文：处理“revoke·用户·刷新·sessions”相关操作。
+        English: Handles the revoke user refresh sessions operation.
+        """
         db.execute(update(RefreshSession).where(
             RefreshSession.user_id == user_id,
             RefreshSession.revoked_at.is_(None),

@@ -17,7 +17,12 @@ from app.domain.knowledge import (
 
 
 class IndependentSolverContext(BaseModel):
-    """The complete and exclusive input visible to the independent solver."""
+    """中文：定义“independent·solver·context”类，封装该职责相关的数据与行为。
+    English: Defines the independent solver context class and encapsulates data and behavior for that responsibility.
+
+    原有说明 / Existing notes:
+    The complete and exclusive input visible to the independent solver.
+    """
 
     model_config = ConfigDict(extra="forbid")
 
@@ -41,6 +46,9 @@ class IndependentSolverContext(BaseModel):
 
     @model_validator(mode="after")
     def validate_scope(self) -> IndependentSolverContext:
+        """中文：处理“验证·范围”相关操作。
+        English: Handles the validate scope operation.
+        """
         if self.content_status not in {
             ProblemContentStatus.CANDIDATE,
             ProblemContentStatus.VALIDATING,
@@ -52,6 +60,9 @@ class IndependentSolverContext(BaseModel):
         return self
 
     def fingerprint(self) -> str:
+        """中文：处理“fingerprint”相关操作。
+        English: Handles the fingerprint operation.
+        """
         payload = self.model_dump(mode="json", exclude={"status_version", "content_status"})
         serialized = json.dumps(
             payload,
@@ -63,6 +74,9 @@ class IndependentSolverContext(BaseModel):
 
 
 class IndependentSolutionDraft(BaseModel):
+    """中文：定义“independent·解答·draft”类，封装该职责相关的数据与行为。
+    English: Defines the independent solution draft class and encapsulates data and behavior for that responsibility.
+    """
     model_config = ConfigDict(extra="forbid")
 
     schema_version: Literal["1.0"] = "1.0"
@@ -78,6 +92,9 @@ class IndependentSolutionDraft(BaseModel):
 
     @model_validator(mode="after")
     def validate_structure(self) -> IndependentSolutionDraft:
+        """中文：处理“验证·structure”相关操作。
+        English: Handles the validate structure operation.
+        """
         step_ids = [step.step_id for step in self.steps]
         sequences = [step.sequence for step in self.steps]
         if len(step_ids) != len(set(step_ids)):

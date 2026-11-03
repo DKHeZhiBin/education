@@ -99,6 +99,9 @@ ALLOWED_TRANSITIONS: dict[ProblemContentStatus, frozenset[ProblemContentStatus]]
 
 
 class InvalidProblemTransition(ValueError):
+    """中文：定义“invalid·题目·transition”类，封装该职责相关的数据与行为。
+    English: Defines the invalid problem transition class and encapsulates data and behavior for that responsibility.
+    """
     def __init__(
         self,
         code: str,
@@ -107,6 +110,9 @@ class InvalidProblemTransition(ValueError):
         missing_requirements: Iterable[str] = (),
         suggested_status: ProblemContentStatus | None = None,
     ) -> None:
+        """中文：初始化当前对象及其依赖。
+        English: Initializes the current object and its dependencies.
+        """
         self.code = code
         self.missing_requirements = tuple(missing_requirements)
         self.suggested_status = suggested_status
@@ -114,6 +120,9 @@ class InvalidProblemTransition(ValueError):
 
 
 class ProblemTransitionRequest(BaseModel):
+    """中文：定义“题目·transition·请求”类，封装该职责相关的数据与行为。
+    English: Defines the problem transition request class and encapsulates data and behavior for that responsibility.
+    """
     problem_id: str
     generation_batch_id: str | None = None
     current_status: ProblemContentStatus
@@ -138,6 +147,9 @@ class ProblemTransitionRequest(BaseModel):
 
     @model_validator(mode="after")
     def validate_evidence_scope(self) -> ProblemTransitionRequest:
+        """中文：处理“验证·evidence·范围”相关操作。
+        English: Handles the validate evidence scope operation.
+        """
         foreign_problem_ids = {
             item.problem_id for item in self.evidence if item.problem_id != self.problem_id
         }
@@ -160,6 +172,9 @@ class ProblemTransitionRequest(BaseModel):
 
 
 class ProblemTransitionResult(BaseModel):
+    """中文：定义“题目·transition·结果”类，封装该职责相关的数据与行为。
+    English: Defines the problem transition result class and encapsulates data and behavior for that responsibility.
+    """
     problem_id: str
     previous_status: ProblemContentStatus
     current_status: ProblemContentStatus
@@ -170,7 +185,13 @@ class ProblemTransitionResult(BaseModel):
 
 
 class ProblemContentStateMachine:
+    """中文：定义“题目·内容·state·machine”类，封装该职责相关的数据与行为。
+    English: Defines the problem content state machine class and encapsulates data and behavior for that responsibility.
+    """
     def transition(self, request: ProblemTransitionRequest) -> ProblemTransitionResult:
+        """中文：处理“transition”相关操作。
+        English: Handles the transition operation.
+        """
         if request.current_status == request.target_status:
             return ProblemTransitionResult(
                 problem_id=request.problem_id,
@@ -306,6 +327,9 @@ class ProblemContentStateMachine:
     def _latest_evidence_by_type(
         evidence: list[AdmissionEvidence],
     ) -> dict[str, AdmissionEvidence]:
+        """中文：处理“latest·evidence·by·type”相关操作。
+        English: Handles the latest evidence by type operation.
+        """
         latest: dict[str, AdmissionEvidence] = {}
         for item in sorted(evidence, key=lambda value: (value.created_at, value.id)):
             latest[item.evidence_type] = item
@@ -315,6 +339,9 @@ class ProblemContentStateMachine:
     def _require_passed_evidence(
         evidence: dict[str, AdmissionEvidence], evidence_type: str
     ) -> None:
+        """中文：处理“require·passed·evidence”相关操作。
+        English: Handles the require passed evidence operation.
+        """
         item = evidence.get(evidence_type)
         if item is None or item.status != AdmissionEvidenceStatus.PASSED:
             raise InvalidProblemTransition(
@@ -328,6 +355,9 @@ class ProblemContentStateMachine:
         request: ProblemTransitionRequest,
         evidence: dict[str, AdmissionEvidence],
     ) -> list[str]:
+        """中文：处理“approval·gaps”相关操作。
+        English: Handles the approval gaps operation.
+        """
         missing: list[str] = []
         if not request.structured_problem_complete:
             missing.append("structured_problem_complete")

@@ -28,6 +28,9 @@ UNSUPPORTED_DOMAIN_MARKERS = ("整数", "自然数", "正整数", "复数", "int
 
 @dataclass(frozen=True)
 class ParsedQuadratic:
+    """中文：定义“parsed·quadratic”类，封装该职责相关的数据与行为。
+    English: Defines the parsed quadratic class and encapsulates data and behavior for that responsibility.
+    """
     equation: str
     symbol: sp.Symbol
     residual: sp.Expr
@@ -39,12 +42,20 @@ class ParsedQuadratic:
 
 
 class QuadraticSympyVerifier:
-    """Verify one-variable quadratic equations without model judgment."""
+    """中文：定义“quadratic·sympy·verifier”类，封装该职责相关的数据与行为。
+    English: Defines the quadratic sympy verifier class and encapsulates data and behavior for that responsibility.
+
+    原有说明 / Existing notes:
+    Verify one-variable quadratic equations without model judgment.
+    """
 
     name = "quadratic_sympy"
     schema_version = "1.0"
 
     def verify(self, context: QuadraticVerificationContext) -> QuadraticVerificationReport:
+        """中文：处理“校验”相关操作。
+        English: Handles the verify operation.
+        """
         step_ids = [str(item.get("step_id", "")) for item in context.solution_steps]
         step_ids = [item for item in step_ids if item]
         checks: list[QuadraticVerificationCheck] = []
@@ -146,6 +157,9 @@ class QuadraticSympyVerifier:
         )
 
     def _parse_problem(self, context: QuadraticVerificationContext) -> ParsedQuadratic:
+        """中文：处理“解析·题目”相关操作。
+        English: Handles the parse problem operation.
+        """
         if context.problem_type != "quadratic_equation":
             raise ValueError("验证器只接受 quadratic_equation 题型")
         equation = self._problem_equation(context)
@@ -183,6 +197,9 @@ class QuadraticSympyVerifier:
         context: QuadraticVerificationContext,
         symbol: sp.Symbol,
     ) -> sp.Set:
+        """中文：处理“declared·domain”相关操作。
+        English: Handles the declared domain operation.
+        """
         items = [
             str(item.get("normalized_expression") or item.get("statement") or "").strip()
             for item in [*context.explicit_conditions, *context.implicit_conditions]
@@ -233,6 +250,9 @@ class QuadraticSympyVerifier:
 
     @staticmethod
     def _problem_equation(context: QuadraticVerificationContext) -> str:
+        """中文：处理“题目·equation”相关操作。
+        English: Handles the problem equation operation.
+        """
         equations = [
             str(item.get("normalized_expression") or item.get("statement") or "").strip()
             for item in context.explicit_conditions
@@ -250,6 +270,9 @@ class QuadraticSympyVerifier:
     def _claimed_roots(
         answer: str, symbol: sp.Symbol
     ) -> tuple[tuple[sp.Expr, ...], str | None]:
+        """中文：处理“claimed·roots”相关操作。
+        English: Handles the claimed roots operation.
+        """
         lowered = answer.strip().lower()
         if any(marker in lowered for marker in EMPTY_ANSWER_MARKERS):
             return (), None
@@ -288,6 +311,9 @@ class QuadraticSympyVerifier:
         claimed_roots: tuple[sp.Expr, ...],
         answer_error: str | None,
     ) -> QuadraticVerificationCheck:
+        """中文：处理“substitution·检查”相关操作。
+        English: Handles the substitution check operation.
+        """
         if answer_error:
             return QuadraticVerificationCheck(
                 check_type="substitution",
@@ -320,6 +346,9 @@ class QuadraticSympyVerifier:
         claimed_roots: tuple[sp.Expr, ...],
         answer_error: str | None,
     ) -> QuadraticVerificationCheck:
+        """中文：处理“root·统计·检查”相关操作。
+        English: Handles the root count check operation.
+        """
         if answer_error:
             return QuadraticVerificationCheck(
                 check_type="root_count",
@@ -353,6 +382,9 @@ class QuadraticSympyVerifier:
         parsed: ParsedQuadratic,
         claimed_roots: tuple[sp.Expr, ...],
     ) -> QuadraticVerificationCheck:
+        """中文：处理“domain·检查”相关操作。
+        English: Handles the domain check operation.
+        """
         domain_text = " ".join(
             str(item.get("normalized_expression") or item.get("statement") or "")
             for item in [*context.explicit_conditions, *context.implicit_conditions]
@@ -398,6 +430,9 @@ class QuadraticSympyVerifier:
         parsed: ParsedQuadratic,
         claimed_roots: tuple[sp.Expr, ...],
     ) -> QuadraticVerificationCheck:
+        """中文：处理“boundary·检查”相关操作。
+        English: Handles the boundary check operation.
+        """
         leading = sp.simplify(parsed.polynomial.nth(2))
         denominator_values = [
             sp.simplify(parsed.denominator.subs(parsed.symbol, root))
@@ -422,6 +457,9 @@ class QuadraticSympyVerifier:
 
     @staticmethod
     def _extract_equation(value: str) -> str | None:
+        """中文：处理“extract·equation”相关操作。
+        English: Handles the extract equation operation.
+        """
         if value.count("=") != 1:
             return None
         candidate = value.strip().rstrip("。.;；")
@@ -432,11 +470,17 @@ class QuadraticSympyVerifier:
         return candidate
 
     def _answer_like(self, value: str, symbol: sp.Symbol) -> bool:
+        """中文：处理“答案·like”相关操作。
+        English: Handles the answer like operation.
+        """
         roots, error = self._claimed_roots(value, symbol)
         return error is None and bool(roots or any(marker in value.lower() for marker in EMPTY_ANSWER_MARKERS))
 
     @staticmethod
     def _inconclusive_core_checks(reason: str) -> list[QuadraticVerificationCheck]:
+        """中文：处理“inconclusive·core·checks”相关操作。
+        English: Handles the inconclusive core checks operation.
+        """
         return [QuadraticVerificationCheck(
             check_type=check_type,
             status=QuadraticCheckStatus.INCONCLUSIVE,
@@ -457,6 +501,9 @@ class QuadraticSympyVerifier:
         coefficients: dict[str, str] | None = None,
         discriminant: str | None = None,
     ) -> QuadraticVerificationReport:
+        """中文：处理“报告”相关操作。
+        English: Handles the report operation.
+        """
         failed = any(item.status == QuadraticCheckStatus.FAILED for item in checks)
         inconclusive = any(item.status == QuadraticCheckStatus.INCONCLUSIVE for item in checks)
         uncovered = [item for item in step_ids if item not in covered_step_ids]

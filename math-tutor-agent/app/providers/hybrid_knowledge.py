@@ -23,7 +23,12 @@ from app.search_index.repository import ProductionIndexRepository
 
 
 class HybridKnowledgeRetriever:
-    """Fuse Qdrant and MySQL FULLTEXT ranks through weighted RRF."""
+    """中文：定义“hybrid·知识·retriever”类，封装该职责相关的数据与行为。
+    English: Defines the hybrid knowledge retriever class and encapsulates data and behavior for that responsibility.
+
+    原有说明 / Existing notes:
+    Fuse Qdrant and MySQL FULLTEXT ranks through weighted RRF.
+    """
 
     name = "hybrid"
     available = True
@@ -35,6 +40,9 @@ class HybridKnowledgeRetriever:
         vector_retriever: QdrantKnowledgeRetriever | None = None,
         session_factory: sessionmaker[Session] | None = None,
     ) -> None:
+        """中文：初始化当前对象及其依赖。
+        English: Initializes the current object and its dependencies.
+        """
         self.config = config
         self.vector_retriever = vector_retriever or QdrantKnowledgeRetriever(config)
         self.session_factory = session_factory or create_session_factory(
@@ -44,6 +52,9 @@ class HybridKnowledgeRetriever:
         self.reranker = StructuralCandidateReranker(config)
 
     def retrieve(self, query: KnowledgeQuery) -> RetrievedTeachingContext:
+        """中文：处理“检索”相关操作。
+        English: Handles the retrieve operation.
+        """
         started = perf_counter()
         candidate_limit = min(
             100,
@@ -95,6 +106,9 @@ class HybridKnowledgeRetriever:
         )
 
     def check_readiness(self) -> tuple[bool, str]:
+        """中文：处理“检查·就绪状态”相关操作。
+        English: Handles the check readiness operation.
+        """
         vector_ok, vector_detail = self.vector_retriever.check_readiness()
         if not vector_ok:
             return False, f"vector_{vector_detail}"
@@ -106,6 +120,9 @@ class HybridKnowledgeRetriever:
         return True, "mysql_keyword_qdrant_and_embedding_ready"
 
     def close(self) -> None:
+        """中文：处理“关闭”相关操作。
+        English: Handles the close operation.
+        """
         self.vector_retriever.close()
 
     def _fuse(
@@ -113,6 +130,9 @@ class HybridKnowledgeRetriever:
         vector_candidates: list[RankedTeachingCandidate],
         keyword_candidates: list[RankedTeachingCandidate],
     ) -> list[RankedTeachingCandidate]:
+        """中文：处理“fuse”相关操作。
+        English: Handles the fuse operation.
+        """
         entries: dict[tuple[str, str], dict] = {}
         for candidate in vector_candidates:
             identity = (candidate.entity_type, candidate.entity_id)
@@ -165,6 +185,9 @@ class HybridKnowledgeRetriever:
         query: KnowledgeQuery,
         limit: int,
     ) -> KeywordSearchQuery:
+        """中文：处理“keyword·query”相关操作。
+        English: Handles the keyword query operation.
+        """
         filters = query.filters
         return KeywordSearchQuery(
             text=query.text,
@@ -198,4 +221,7 @@ class HybridKnowledgeRetriever:
 def build_hybrid_retriever(
     config: Settings = settings,
 ) -> HybridKnowledgeRetriever:
+    """中文：处理“构建·hybrid·retriever”相关操作。
+    English: Handles the build hybrid retriever operation.
+    """
     return HybridKnowledgeRetriever(config)

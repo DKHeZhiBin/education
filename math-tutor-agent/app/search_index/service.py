@@ -16,7 +16,12 @@ from app.vector_store.qdrant import QdrantVectorStore
 
 
 class ProductionIndexService:
-    """Idempotently publishes approved MySQL content to keyword and Qdrant indexes."""
+    """中文：定义“production·索引·服务”类，封装该职责相关的数据与行为。
+    English: Defines the production index service class and encapsulates data and behavior for that responsibility.
+
+    原有说明 / Existing notes:
+    Idempotently publishes approved MySQL content to keyword and Qdrant indexes.
+    """
 
     def __init__(
         self,
@@ -27,6 +32,9 @@ class ProductionIndexService:
         vector_store: QdrantVectorStore | None = None,
         cache_version: KnowledgeIndexVersion | None = None,
     ) -> None:
+        """中文：初始化当前对象及其依赖。
+        English: Initializes the current object and its dependencies.
+        """
         if embedding_provider is None:
             if not config.embedding_base_url.strip():
                 raise ValueError(
@@ -54,6 +62,9 @@ class ProductionIndexService:
         )
 
     def sync(self, *, limit: int | None = None) -> IndexSyncSummary:
+        """中文：处理“同步”相关操作。
+        English: Handles the sync operation.
+        """
         sync_limit = self.config.production_index_sync_limit if limit is None else limit
         if sync_limit <= 0:
             raise ValueError("index sync limit must be greater than zero")
@@ -126,7 +137,12 @@ class ProductionIndexService:
         )
 
     def sync_problem(self, problem_id: str) -> int:
-        """Publish one reapproved problem during an index rebuild job."""
+        """中文：处理“同步·题目”相关操作。
+        English: Handles the sync problem operation.
+
+        原有说明 / Existing notes:
+        Publish one reapproved problem during an index rebuild job.
+        """
         self.vector_store.ensure_collection()
         return self._sync_owner(
             owner_id=problem_id,
@@ -142,6 +158,9 @@ class ProductionIndexService:
         )
 
     def close(self) -> None:
+        """中文：处理“关闭”相关操作。
+        English: Handles the close operation.
+        """
         self.embedding_provider.close()
         self.vector_store.close()
 
@@ -153,6 +172,9 @@ class ProductionIndexService:
         project: Callable,
         activate: Callable[[Session, list[str]], None],
     ) -> int:
+        """中文：处理“同步·owner”相关操作。
+        English: Handles the sync owner operation.
+        """
         with self.session_factory.begin() as session:
             owner = load(session, owner_id)
             projections = project(owner)
@@ -204,11 +226,17 @@ class ProductionIndexService:
         return len(projections)
 
     def _mark_failed(self, *, error_code: str, **owner: str) -> None:
+        """中文：处理“mark·failed”相关操作。
+        English: Handles the mark failed operation.
+        """
         with self.session_factory.begin() as session:
             self.repository.mark_failed(session, error_code=error_code, **owner)
 
     @staticmethod
     def _error_code(error: Exception) -> str:
+        """中文：处理“error·code”相关操作。
+        English: Handles the error code operation.
+        """
         if isinstance(error, LookupError):
             return "owner_no_longer_approved"
         message = str(error).strip()

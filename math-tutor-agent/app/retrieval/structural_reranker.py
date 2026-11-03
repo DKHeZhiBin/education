@@ -17,15 +17,26 @@ TOKEN_PATTERN = re.compile(
 
 @dataclass(frozen=True)
 class CandidateStructure:
+    """中文：定义“候选内容·structure”类，封装该职责相关的数据与行为。
+    English: Defines the candidate structure class and encapsulates data and behavior for that responsibility.
+    """
     conditions: tuple[str, ...] = ()
     targets: tuple[str, ...] = ()
     solutions: tuple[str, ...] = ()
 
 
 class StructuralCandidateReranker:
-    """Deterministically compare problem conditions, target and solution shape."""
+    """中文：定义“structural·候选内容·reranker”类，封装该职责相关的数据与行为。
+    English: Defines the structural candidate reranker class and encapsulates data and behavior for that responsibility.
+
+    原有说明 / Existing notes:
+    Deterministically compare problem conditions, target and solution shape.
+    """
 
     def __init__(self, config: Settings = settings) -> None:
+        """中文：初始化当前对象及其依赖。
+        English: Initializes the current object and its dependencies.
+        """
         self.weights = {
             "fusion": config.rag_rerank_fusion_weight,
             "condition": config.rag_rerank_condition_weight,
@@ -38,6 +49,9 @@ class StructuralCandidateReranker:
         query: KnowledgeQuery,
         candidates: list[RankedTeachingCandidate],
     ) -> list[RankedTeachingCandidate]:
+        """中文：处理“rerank”相关操作。
+        English: Handles the rerank operation.
+        """
         query_structure = query.problem_structure
         query_conditions = query_structure.condition_statements or [query.text]
         query_targets = (
@@ -107,6 +121,9 @@ class StructuralCandidateReranker:
     def _candidate_structure(
         candidate: RankedTeachingCandidate,
     ) -> CandidateStructure:
+        """中文：处理“候选内容·structure”相关操作。
+        English: Handles the candidate structure operation.
+        """
         payload = candidate.payload
         teaching = payload.teaching_object
         fallback = (payload.search_text,)
@@ -158,6 +175,9 @@ class StructuralCandidateReranker:
         left_values: list[str],
         right_values: list[str],
     ) -> float | None:
+        """中文：处理“similarity”相关操作。
+        English: Handles the similarity operation.
+        """
         left = cls._tokens(left_values)
         right = cls._tokens(right_values)
         if not left or not right:
@@ -166,6 +186,9 @@ class StructuralCandidateReranker:
 
     @staticmethod
     def _strings(value: Any) -> list[str]:
+        """中文：处理“strings”相关操作。
+        English: Handles the strings operation.
+        """
         if isinstance(value, str):
             text = value.strip()
             return [text] if text else []
@@ -178,6 +201,9 @@ class StructuralCandidateReranker:
 
     @staticmethod
     def _tokens(values: list[str]) -> set[str]:
+        """中文：处理“tokens”相关操作。
+        English: Handles the tokens operation.
+        """
         tokens: set[str] = set()
         for value in values:
             normalized = unicodedata.normalize("NFKC", value).casefold()

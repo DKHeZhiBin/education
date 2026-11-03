@@ -11,10 +11,14 @@ from app.models.base import Base, MYSQL_DATETIME, TimestampMixin, UuidPrimaryKey
 
 if TYPE_CHECKING:
     from app.models.identity import StudentProfile
+    from app.models.knowledge_content import KnowledgeCatalog, KnowledgePointContent
     from app.models.session import LearningSession
 
 
 class LearningRecord(UuidPrimaryKeyMixin, TimestampMixin, Base):
+    """中文：定义“学习·记录”类，封装该职责相关的数据与行为。
+    English: Defines the learning record class and encapsulates data and behavior for that responsibility.
+    """
     __tablename__ = "learning_records"
     __table_args__ = (
         CheckConstraint("difficulty BETWEEN 1 AND 3", name="difficulty_range"),
@@ -48,9 +52,15 @@ class LearningRecord(UuidPrimaryKeyMixin, TimestampMixin, Base):
 
 
 class KnowledgePoint(Base):
+    """中文：定义“知识·point”类，封装该职责相关的数据与行为。
+    English: Defines the knowledge point class and encapsulates data and behavior for that responsibility.
+    """
     __tablename__ = "knowledge_points"
 
     id: Mapped[int] = mapped_column(BIGINT(unsigned=True), primary_key=True, autoincrement=True)
+    catalog_id: Mapped[int | None] = mapped_column(
+        ForeignKey("knowledge_catalogs.id", ondelete="SET NULL"), nullable=True
+    )
     subject: Mapped[str] = mapped_column(String(24), nullable=False)
     grade_band: Mapped[str] = mapped_column(String(24), nullable=False)
     code: Mapped[str] = mapped_column(String(80), unique=True, nullable=False)
@@ -62,6 +72,12 @@ class KnowledgePoint(Base):
         ForeignKey("knowledge_points.id", ondelete="SET NULL"), nullable=True
     )
     active: Mapped[bool] = mapped_column(default=True, nullable=False)
+    version_lock: Mapped[int] = mapped_column(INTEGER(unsigned=True), default=1, nullable=False)
+
+    catalog: Mapped[KnowledgeCatalog | None] = relationship(back_populates="knowledge_points")
+    contents: Mapped[list[KnowledgePointContent]] = relationship(
+        back_populates="knowledge_point", cascade="all, delete-orphan"
+    )
 
     parent: Mapped[KnowledgePoint | None] = relationship(
         remote_side="KnowledgePoint.id", back_populates="children"
@@ -85,6 +101,9 @@ class KnowledgePoint(Base):
 
 
 class KnowledgePointPrerequisite(Base):
+    """中文：定义“知识·point·prerequisite”类，封装该职责相关的数据与行为。
+    English: Defines the knowledge point prerequisite class and encapsulates data and behavior for that responsibility.
+    """
     __tablename__ = "knowledge_point_prerequisites"
     __table_args__ = (
         CheckConstraint(
@@ -112,6 +131,9 @@ class KnowledgePointPrerequisite(Base):
 
 
 class CapabilityPoint(Base):
+    """中文：定义“capability·point”类，封装该职责相关的数据与行为。
+    English: Defines the capability point class and encapsulates data and behavior for that responsibility.
+    """
     __tablename__ = "capability_points"
 
     id: Mapped[int] = mapped_column(BIGINT(unsigned=True), primary_key=True, autoincrement=True)
@@ -146,6 +168,9 @@ class CapabilityPoint(Base):
 
 
 class CapabilityPointPrerequisite(Base):
+    """中文：定义“capability·point·prerequisite”类，封装该职责相关的数据与行为。
+    English: Defines the capability point prerequisite class and encapsulates data and behavior for that responsibility.
+    """
     __tablename__ = "capability_point_prerequisites"
     __table_args__ = (
         CheckConstraint(
@@ -172,6 +197,9 @@ class CapabilityPointPrerequisite(Base):
 
 
 class CapabilityKnowledgeRequirement(Base):
+    """中文：定义“capability·知识·requirement”类，封装该职责相关的数据与行为。
+    English: Defines the capability knowledge requirement class and encapsulates data and behavior for that responsibility.
+    """
     __tablename__ = "capability_knowledge_requirements"
     __table_args__ = (
         Index("idx_capability_knowledge_reverse", "knowledge_point_id", "capability_point_id"),
@@ -195,7 +223,19 @@ class CapabilityKnowledgeRequirement(Base):
 
 
 class LearningRecordKnowledge(Base):
+    """中文：定义“学习·记录·知识”类，封装该职责相关的数据与行为。
+    English: Defines the learning record knowledge class and encapsulates data and behavior for that responsibility.
+    """
     __tablename__ = "learning_record_knowledge"
+    __table_args__ = (
+        CheckConstraint("hint_level BETWEEN 0 AND 4", name="hint_level_range"),
+        Index(
+            "idx_learning_record_knowledge_progress",
+            "knowledge_point_id",
+            "mastery_status",
+            "learning_record_id",
+        ),
+    )
 
     learning_record_id: Mapped[str] = mapped_column(
         ForeignKey("learning_records.id", ondelete="CASCADE"), primary_key=True
@@ -205,12 +245,24 @@ class LearningRecordKnowledge(Base):
     )
     relation_type: Mapped[str] = mapped_column(String(20), primary_key=True)
     evidence: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    mistake_detected: Mapped[bool] = mapped_column(default=False, nullable=False)
+    error_category: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    hint_level: Mapped[int] = mapped_column(TINYINT(unsigned=True), default=0, nullable=False)
+    effective_attempt_count: Mapped[int] = mapped_column(
+        SMALLINT(unsigned=True), default=0, nullable=False
+    )
+    mastery_status: Mapped[str] = mapped_column(
+        String(20), default="to_review", nullable=False
+    )
 
     learning_record: Mapped[LearningRecord] = relationship(back_populates="knowledge_links")
     knowledge_point: Mapped[KnowledgePoint] = relationship(back_populates="learning_record_links")
 
 
 class ReviewAttempt(UuidPrimaryKeyMixin, Base):
+    """中文：定义“复核·attempt”类，封装该职责相关的数据与行为。
+    English: Defines the review attempt class and encapsulates data and behavior for that responsibility.
+    """
     __tablename__ = "review_attempts"
     __table_args__ = (
         Index("idx_review_attempts_record_time", "learning_record_id", "reviewed_at"),

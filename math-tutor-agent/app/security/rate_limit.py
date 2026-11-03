@@ -26,17 +26,29 @@ return {1, ttl, current}
 
 
 class RateLimitExceeded(Exception):
+    """中文：定义“rate·limit·exceeded”类，封装该职责相关的数据与行为。
+    English: Defines the rate limit exceeded class and encapsulates data and behavior for that responsibility.
+    """
     def __init__(self, retry_after_seconds: int) -> None:
+        """中文：初始化当前对象及其依赖。
+        English: Initializes the current object and its dependencies.
+        """
         self.retry_after_seconds = retry_after_seconds
         super().__init__("Authentication request rate limit exceeded")
 
 
 class RateLimitUnavailable(Exception):
+    """中文：定义“rate·limit·unavailable”类，封装该职责相关的数据与行为。
+    English: Defines the rate limit unavailable class and encapsulates data and behavior for that responsibility.
+    """
     pass
 
 
 @dataclass(frozen=True)
 class RateLimitPolicy:
+    """中文：定义“rate·limit·策略”类，封装该职责相关的数据与行为。
+    English: Defines the rate limit policy class and encapsulates data and behavior for that responsibility.
+    """
     scope: str
     identifier: str
     attempts: int
@@ -44,13 +56,24 @@ class RateLimitPolicy:
 
 
 class AuthRateLimiter:
-    """Redis-backed fixed-window limits for security-sensitive auth routes."""
+    """中文：定义“auth·rate·limiter”类，封装该职责相关的数据与行为。
+    English: Defines the auth rate limiter class and encapsulates data and behavior for that responsibility.
+
+    原有说明 / Existing notes:
+    Redis-backed fixed-window limits for security-sensitive auth routes.
+    """
 
     def __init__(self, client: Redis | None) -> None:
+        """中文：初始化当前对象及其依赖。
+        English: Initializes the current object and its dependencies.
+        """
         self.client = client
         self.script = client.register_script(FIXED_WINDOW_SCRIPT) if client is not None else None
 
     def enforce_login(self, ip_address: str, email: str) -> None:
+        """中文：处理“enforce·登录”相关操作。
+        English: Handles the enforce login operation.
+        """
         self._enforce(
             "login",
             ip_address,
@@ -62,7 +85,12 @@ class AuthRateLimiter:
         )
 
     def reset_login_account_limits(self, ip_address: str, email: str) -> None:
-        """Clear failed-attempt pressure after success while retaining the IP-wide limit."""
+        """中文：处理“重置·登录·account·limits”相关操作。
+        English: Handles the reset login account limits operation.
+
+        原有说明 / Existing notes:
+        Clear failed-attempt pressure after success while retaining the IP-wide limit.
+        """
         if not settings.auth_rate_limit_enabled or self.client is None:
             return
         keys = [
@@ -75,6 +103,9 @@ class AuthRateLimiter:
             logger.warning("Unable to reset successful login rate limits", exc_info=True)
 
     def enforce_register(self, ip_address: str, email: str) -> None:
+        """中文：处理“enforce·register”相关操作。
+        English: Handles the enforce register operation.
+        """
         self._enforce(
             "register",
             ip_address,
@@ -86,6 +117,9 @@ class AuthRateLimiter:
         )
 
     def enforce_guardian_action(self, action: str, ip_address: str, actor_id: str) -> None:
+        """中文：处理“enforce·家长·action”相关操作。
+        English: Handles the enforce guardian action operation.
+        """
         self._enforce(
             f"guardian-{action}",
             ip_address,
@@ -97,6 +131,9 @@ class AuthRateLimiter:
         )
 
     def enforce_account_action(self, action: str, ip_address: str, account: str) -> None:
+        """中文：处理“enforce·account·action”相关操作。
+        English: Handles the enforce account action operation.
+        """
         self._enforce(
             action,
             ip_address,
@@ -108,6 +145,9 @@ class AuthRateLimiter:
         )
 
     def enforce_email_action(self, action: str, ip_address: str, email: str) -> None:
+        """中文：处理“enforce·邮箱·action”相关操作。
+        English: Handles the enforce email action operation.
+        """
         self._enforce(
             action,
             ip_address,
@@ -128,6 +168,9 @@ class AuthRateLimiter:
         account_attempts: int,
         combined_attempts: int,
     ) -> None:
+        """中文：处理“enforce”相关操作。
+        English: Handles the enforce operation.
+        """
         if not settings.auth_rate_limit_enabled:
             return
         if self.script is None:
@@ -150,6 +193,9 @@ class AuthRateLimiter:
             self._apply(action, policy)
 
     def _apply(self, action: str, policy: RateLimitPolicy) -> None:
+        """中文：处理“应用”相关操作。
+        English: Handles the apply operation.
+        """
         key = self._key(action, policy.scope, policy.identifier)
         try:
             result = self.script(
@@ -171,6 +217,9 @@ class AuthRateLimiter:
             raise RateLimitExceeded(max(1, ttl if ttl > 0 else policy.window_seconds))
 
     def _key(self, action: str, scope: str, *identifiers: str) -> str:
+        """中文：处理“key”相关操作。
+        English: Handles the key operation.
+        """
         value = "\0".join(identifiers)
         digest = hmac.new(
             settings.auth_jwt_secret.encode("utf-8"),
@@ -181,14 +230,23 @@ class AuthRateLimiter:
 
     @staticmethod
     def _normalize_ip(value: str) -> str:
+        """中文：处理“规范化·ip”相关操作。
+        English: Handles the normalize ip operation.
+        """
         return value.strip() or "unknown"
 
     @staticmethod
     def _normalize_account(value: str) -> str:
+        """中文：处理“规范化·account”相关操作。
+        English: Handles the normalize account operation.
+        """
         return value.strip().casefold()
 
     @staticmethod
     def _unavailable() -> None:
+        """中文：处理“unavailable”相关操作。
+        English: Handles the unavailable operation.
+        """
         if settings.auth_rate_limit_fail_closed:
             raise RateLimitUnavailable("Authentication rate limiting is unavailable")
 

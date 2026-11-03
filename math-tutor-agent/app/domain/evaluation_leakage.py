@@ -9,12 +9,18 @@ from pydantic import BaseModel, Field, model_validator
 
 
 class EvaluationLeakageStatus(StrEnum):
+    """中文：定义“evaluation·leakage·状态”类，封装该职责相关的数据与行为。
+    English: Defines the evaluation leakage status class and encapsulates data and behavior for that responsibility.
+    """
     PASSED = "passed"
     FAILED = "failed"
     INCONCLUSIVE = "inconclusive"
 
 
 class EvaluationCaseSignature(BaseModel):
+    """中文：定义“evaluation·case·signature”类，封装该职责相关的数据与行为。
+    English: Defines the evaluation case signature class and encapsulates data and behavior for that responsibility.
+    """
     case_id: str
     source_commit: str
     source_label: str
@@ -26,6 +32,9 @@ class EvaluationCaseSignature(BaseModel):
 
 
 class EvaluationDatasetSignature(BaseModel):
+    """中文：定义“evaluation·dataset·signature”类，封装该职责相关的数据与行为。
+    English: Defines the evaluation dataset signature class and encapsulates data and behavior for that responsibility.
+    """
     name: str | None = None
     schema_version: str | None = None
     evaluation_only: bool = False
@@ -40,6 +49,9 @@ class EvaluationDatasetSignature(BaseModel):
 
 
 class LeakageCandidateSnapshot(BaseModel):
+    """中文：定义“leakage·候选内容·snapshot”类，封装该职责相关的数据与行为。
+    English: Defines the leakage candidate snapshot class and encapsulates data and behavior for that responsibility.
+    """
     problem_id: str
     generation_batch_id: str
     content_hash: str = Field(min_length=64, max_length=64)
@@ -52,10 +64,16 @@ class LeakageCandidateSnapshot(BaseModel):
 
 
 class EvaluationLeakageContext(BaseModel):
+    """中文：定义“evaluation·leakage·context”类，封装该职责相关的数据与行为。
+    English: Defines the evaluation leakage context class and encapsulates data and behavior for that responsibility.
+    """
     candidate: LeakageCandidateSnapshot
     dataset: EvaluationDatasetSignature
 
     def fingerprint(self) -> str:
+        """中文：处理“fingerprint”相关操作。
+        English: Handles the fingerprint operation.
+        """
         payload = json.dumps(
             self.model_dump(mode="json"),
             ensure_ascii=False,
@@ -66,6 +84,9 @@ class EvaluationLeakageContext(BaseModel):
 
 
 class EvaluationLeakageMatch(BaseModel):
+    """中文：定义“evaluation·leakage·match”类，封装该职责相关的数据与行为。
+    English: Defines the evaluation leakage match class and encapsulates data and behavior for that responsibility.
+    """
     case_id: str
     source_commit: str
     source_label: str
@@ -78,6 +99,9 @@ class EvaluationLeakageMatch(BaseModel):
 
 
 class EvaluationLeakageReport(BaseModel):
+    """中文：定义“evaluation·leakage·报告”类，封装该职责相关的数据与行为。
+    English: Defines the evaluation leakage report class and encapsulates data and behavior for that responsibility.
+    """
     schema_version: Literal["1.0"] = "1.0"
     problem_id: str
     context_fingerprint: str = Field(min_length=64, max_length=64)
@@ -93,6 +117,9 @@ class EvaluationLeakageReport(BaseModel):
 
     @model_validator(mode="after")
     def validate_outcome(self) -> EvaluationLeakageReport:
+        """中文：处理“验证·outcome”相关操作。
+        English: Handles the validate outcome operation.
+        """
         if self.status == EvaluationLeakageStatus.FAILED and not self.matches:
             raise ValueError("failed leakage detection requires a match")
         if self.status == EvaluationLeakageStatus.PASSED and self.matches:

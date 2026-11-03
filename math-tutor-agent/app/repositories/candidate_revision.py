@@ -31,15 +31,24 @@ from app.models.knowledge import KnowledgeProblem
 
 
 class CandidateRevisionReferenceInvalid(ValueError):
+    """中文：定义“候选内容·revision·reference·invalid”类，封装该职责相关的数据与行为。
+    English: Defines the candidate revision reference invalid class and encapsulates data and behavior for that responsibility.
+    """
     pass
 
 
 class CandidateRevisionVersionConflict(RuntimeError):
+    """中文：定义“候选内容·revision·version·conflict”类，封装该职责相关的数据与行为。
+    English: Defines the candidate revision version conflict class and encapsulates data and behavior for that responsibility.
+    """
     pass
 
 
 @dataclass(frozen=True)
 class CandidateRevisionAgentContext:
+    """中文：定义“候选内容·revision·智能体·context”类，封装该职责相关的数据与行为。
+    English: Defines the candidate revision agent context class and encapsulates data and behavior for that responsibility.
+    """
     revision_context: CandidateRevisionContext
     model_version_id: str
     prompt_version_id: str
@@ -48,7 +57,12 @@ class CandidateRevisionAgentContext:
 
 
 class CandidateRevisionRepository:
-    """Build a failure-bounded revision context and persist a new candidate version."""
+    """中文：定义“候选内容·revision·仓储”类，封装该职责相关的数据与行为。
+    English: Defines the candidate revision repository class and encapsulates data and behavior for that responsibility.
+
+    原有说明 / Existing notes:
+    Build a failure-bounded revision context and persist a new candidate version.
+    """
 
     PROMPT_PURPOSE = "candidate_question_revision"
     OUTPUT_SCHEMA_VERSION = "1.0"
@@ -66,6 +80,9 @@ class CandidateRevisionRepository:
         model_version_id: str,
         prompt_version_id: str,
     ) -> CandidateRevisionAgentContext:
+        """中文：处理“加载·智能体·context”相关操作。
+        English: Handles the load agent context operation.
+        """
         problem = session.get(KnowledgeProblem, problem_id)
         if problem is None:
             raise CandidateRevisionReferenceInvalid("candidate problem not found")
@@ -88,6 +105,9 @@ class CandidateRevisionRepository:
         agent_context: CandidateRevisionAgentContext,
         draft: CandidateRevisionDraft,
     ) -> PersistedCandidateRevision:
+        """中文：处理“persist·revision”相关操作。
+        English: Handles the persist revision operation.
+        """
         source = session.scalar(
             select(KnowledgeProblem)
             .where(KnowledgeProblem.id == agent_context.revision_context.problem_id)
@@ -233,6 +253,9 @@ class CandidateRevisionRepository:
         session: Session,
         problem: KnowledgeProblem,
     ) -> CandidateRevisionContext:
+        """中文：处理“构建·context”相关操作。
+        English: Handles the build context operation.
+        """
         if problem.generation_batch_id is None or problem.mother_problem_id is None:
             raise CandidateRevisionReferenceInvalid(
                 "only generated candidates with a trusted mother can be revised"
@@ -357,6 +380,9 @@ class CandidateRevisionRepository:
 
     @classmethod
     def _failure_from_evidence(cls, item: AdmissionEvidence) -> RevisionFailureEvidence:
+        """中文：处理“failure·from·evidence”相关操作。
+        English: Handles the failure from evidence operation.
+        """
         payload = item.payload_json
         suggested = cls._suggestions(payload)
         return RevisionFailureEvidence(
@@ -371,6 +397,9 @@ class CandidateRevisionRepository:
 
     @staticmethod
     def _public_failure_details(payload: dict[str, Any]) -> dict[str, Any]:
+        """中文：处理“public·failure·details”相关操作。
+        English: Handles the public failure details operation.
+        """
         allowed = {
             "issues",
             "blocking_issues",
@@ -387,9 +416,15 @@ class CandidateRevisionRepository:
 
     @classmethod
     def _suggestions(cls, value: Any) -> list[str]:
+        """中文：处理“suggestions”相关操作。
+        English: Handles the suggestions operation.
+        """
         found: list[str] = []
 
         def visit(current: Any, key: str | None = None) -> None:
+            """中文：处理“visit”相关操作。
+            English: Handles the visit operation.
+            """
             if isinstance(current, dict):
                 for nested_key, nested in current.items():
                     visit(nested, str(nested_key))
@@ -410,6 +445,9 @@ class CandidateRevisionRepository:
 
     @staticmethod
     def _synthetic_revision_hint(failure_type: str) -> str:
+        """中文：处理“synthetic·revision·提示”相关操作。
+        English: Handles the synthetic revision hint operation.
+        """
         if failure_type == "structured_problem_complete":
             return "补全题型、显式条件与求解目标，使题意可独立确定。"
         return "修订题干与条件，使独立解题能够产生可完整验证的题解。"
@@ -421,6 +459,9 @@ class CandidateRevisionRepository:
         model_version_id: str,
         prompt_version_id: str,
     ) -> tuple[ModelVersion, PromptVersion]:
+        """中文：处理“require·versions”相关操作。
+        English: Handles the require versions operation.
+        """
         model = session.get(ModelVersion, model_version_id)
         prompt = session.get(PromptVersion, prompt_version_id)
         if model is None or not model.active:
@@ -440,6 +481,9 @@ class CandidateRevisionRepository:
         draft: CandidateRevisionDraft,
         context: CandidateRevisionContext,
     ) -> CandidateRevisionDraft:
+        """中文：处理“验证·draft”相关操作。
+        English: Handles the validate draft operation.
+        """
         if draft.context_fingerprint != context.fingerprint():
             raise CandidateRevisionReferenceInvalid(
                 "revision output does not match the current failure context"
@@ -504,6 +548,9 @@ class CandidateRevisionRepository:
         model_version_id: str,
         prompt_version_id: str,
     ) -> AdmissionEvidence:
+        """中文：处理“创建·revision·evidence”相关操作。
+        English: Handles the create revision evidence operation.
+        """
         payload = {
             "schema_version": "1.0",
             "source_problem_id": source.id,
@@ -553,6 +600,9 @@ class CandidateRevisionRepository:
         current: CandidateRevisionContext,
         content_hash: str,
     ) -> PersistedCandidateRevision:
+        """中文：处理“existing·结果”相关操作。
+        English: Handles the existing result operation.
+        """
         metadata = existing.metadata_json
         if (
             existing.content_hash != content_hash
@@ -585,6 +635,9 @@ class CandidateRevisionRepository:
 
     @staticmethod
     def _draft_hash(draft: CandidateRevisionDraft) -> str:
+        """中文：处理“draft·hash”相关操作。
+        English: Handles the draft hash operation.
+        """
         question = draft.revised_question
         payload = {
             "statement": question.normalized_statement or question.statement,
@@ -597,11 +650,17 @@ class CandidateRevisionRepository:
 
     @staticmethod
     def _normalize_text(value: str) -> str:
+        """中文：处理“规范化·text”相关操作。
+        English: Handles the normalize text operation.
+        """
         normalized = unicodedata.normalize("NFKC", value)
         return re.sub(r"\s+", " ", normalized).strip()
 
     @staticmethod
     def _hash_json(payload: dict[str, Any]) -> str:
+        """中文：处理“hash·json”相关操作。
+        English: Handles the hash json operation.
+        """
         serialized = json.dumps(
             payload,
             ensure_ascii=False,

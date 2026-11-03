@@ -29,6 +29,9 @@ from app.search_index.repository import ProductionIndexRepository
 
 
 class QdrantKnowledgeRetriever:
+    """中文：定义“Qdrant·知识·retriever”类，封装该职责相关的数据与行为。
+    English: Defines the qdrant knowledge retriever class and encapsulates data and behavior for that responsibility.
+    """
     name = "qdrant"
     available = True
 
@@ -39,6 +42,9 @@ class QdrantKnowledgeRetriever:
         store: QdrantVectorStore | None = None,
         session_factory: sessionmaker[Session] | None = None,
     ) -> None:
+        """中文：初始化当前对象及其依赖。
+        English: Initializes the current object and its dependencies.
+        """
         self.config = config
         self.embedding_provider = embedding_provider or build_embedding_provider(config)
         self.store = store or QdrantVectorStore(config)
@@ -48,6 +54,9 @@ class QdrantKnowledgeRetriever:
         self.index_repository = ProductionIndexRepository()
 
     def retrieve(self, query: KnowledgeQuery) -> RetrievedTeachingContext:
+        """中文：处理“检索”相关操作。
+        English: Handles the retrieve operation.
+        """
         started = perf_counter()
         try:
             candidates = self.search_candidates(query)
@@ -69,6 +78,9 @@ class QdrantKnowledgeRetriever:
         *,
         limit: int | None = None,
     ) -> list[RankedTeachingCandidate]:
+        """中文：处理“搜索·candidates”相关操作。
+        English: Handles the search candidates operation.
+        """
         vector = self.embedding_provider.embed_query(query.text)
         points = self.store.client.query_points(
             collection_name=self.config.qdrant_collection,
@@ -110,6 +122,9 @@ class QdrantKnowledgeRetriever:
         ]
 
     def _filter(self, query: KnowledgeQuery) -> models.Filter:
+        """中文：处理“filter”相关操作。
+        English: Handles the filter operation.
+        """
         entity_types = allowed_entity_types(query)
         filters = query.filters
         must: list[models.Condition] = [
@@ -178,6 +193,9 @@ class QdrantKnowledgeRetriever:
         return models.Filter(must=must)
 
     def check_readiness(self) -> tuple[bool, str]:
+        """中文：处理“检查·就绪状态”相关操作。
+        English: Handles the check readiness operation.
+        """
         embedding_ok, embedding_detail = self.embedding_provider.check_readiness()
         if not embedding_ok:
             return False, f"embedding_{embedding_detail}"
@@ -192,6 +210,9 @@ class QdrantKnowledgeRetriever:
         return True, "qdrant_embedding_and_mysql_projection_ready"
 
     def close(self) -> None:
+        """中文：处理“关闭”相关操作。
+        English: Handles the close operation.
+        """
         self.embedding_provider.close()
         self.store.close()
 
@@ -201,6 +222,9 @@ class QdrantKnowledgeRetriever:
         started: float,
         limitation: str,
     ) -> RetrievedTeachingContext:
+        """中文：处理“failure”相关操作。
+        English: Handles the failure operation.
+        """
         return RetrievedTeachingContext(
             status="degraded",
             provider=self.name,
@@ -218,6 +242,9 @@ class QdrantKnowledgeRetriever:
         key: str,
         value: str | None,
     ) -> None:
+        """中文：处理“新增·value”相关操作。
+        English: Handles the add value operation.
+        """
         if value:
             conditions.append(models.FieldCondition(
                 key=key, match=models.MatchValue(value=value)
@@ -225,4 +252,7 @@ class QdrantKnowledgeRetriever:
 
 
 def build_qdrant_retriever(config: Settings = settings) -> QdrantKnowledgeRetriever:
+    """中文：处理“构建·Qdrant·retriever”相关操作。
+    English: Handles the build qdrant retriever operation.
+    """
     return QdrantKnowledgeRetriever(config)

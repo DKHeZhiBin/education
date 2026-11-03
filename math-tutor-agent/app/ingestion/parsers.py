@@ -8,17 +8,30 @@ from app.ingestion.schemas import ParsedBlock, SupportedMediaType
 
 
 class DocumentParseError(ValueError):
+    """中文：定义“文档·解析·error”类，封装该职责相关的数据与行为。
+    English: Defines the document parse error class and encapsulates data and behavior for that responsibility.
+    """
     pass
 
 
 class DocumentParser(ABC):
+    """中文：定义“文档·parser”类，封装该职责相关的数据与行为。
+    English: Defines the document parser class and encapsulates data and behavior for that responsibility.
+    """
     name: str
 
     @abstractmethod
-    def parse(self, content: str) -> list[ParsedBlock]: ...
+    def parse(self, content: str) -> list[ParsedBlock]:
+        """中文：处理“解析”相关操作。
+        English: Handles the parse operation.
+        """
+        ...
 
 
 def _content_type(text: str) -> str:
+    """中文：处理“内容·type”相关操作。
+    English: Handles the content type operation.
+    """
     lowered = text.casefold().strip()
     labels = {
         "definition": ("definition", "定义"),
@@ -34,9 +47,15 @@ def _content_type(text: str) -> str:
 
 
 class PlainTextParser(DocumentParser):
+    """中文：定义“plain·text·parser”类，封装该职责相关的数据与行为。
+    English: Defines the plain text parser class and encapsulates data and behavior for that responsibility.
+    """
     name = "plain_text_v1"
 
     def parse(self, content: str) -> list[ParsedBlock]:
+        """中文：处理“解析”相关操作。
+        English: Handles the parse operation.
+        """
         paragraphs = re.split(r"\n\s*\n", content)
         blocks = []
         for index, paragraph in enumerate(paragraphs, start=1):
@@ -51,10 +70,16 @@ class PlainTextParser(DocumentParser):
 
 
 class MarkdownParser(DocumentParser):
+    """中文：定义“markdown·parser”类，封装该职责相关的数据与行为。
+    English: Defines the markdown parser class and encapsulates data and behavior for that responsibility.
+    """
     name = "markdown_v1"
     _heading = re.compile(r"^(#{1,6})\s+(.+?)\s*$")
 
     def parse(self, content: str) -> list[ParsedBlock]:
+        """中文：处理“解析”相关操作。
+        English: Handles the parse operation.
+        """
         heading_path: list[str] = []
         pending: list[str] = []
         blocks: list[ParsedBlock] = []
@@ -62,6 +87,9 @@ class MarkdownParser(DocumentParser):
         in_fence = False
 
         def flush(end_line: int) -> None:
+            """中文：处理“flush”相关操作。
+            English: Handles the flush operation.
+            """
             nonlocal pending, paragraph_start
             text = "\n".join(pending).strip()
             if text:
@@ -102,10 +130,16 @@ class MarkdownParser(DocumentParser):
 
 
 class _StructuredHTMLParser(HTMLParser):
+    """中文：定义“structured·htmlparser”类，封装该职责相关的数据与行为。
+    English: Defines the structured htmlparser class and encapsulates data and behavior for that responsibility.
+    """
     ignored_tags = {"script", "style", "nav", "footer", "noscript"}
     block_tags = {"p", "li", "pre", "blockquote", "td", "th", "div"}
 
     def __init__(self) -> None:
+        """中文：初始化当前对象及其依赖。
+        English: Initializes the current object and its dependencies.
+        """
         super().__init__(convert_charrefs=True)
         self.heading_path: list[str] = []
         self.blocks: list[ParsedBlock] = []
@@ -115,6 +149,9 @@ class _StructuredHTMLParser(HTMLParser):
         self._block_number = 0
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        """中文：处理“处理·starttag”相关操作。
+        English: Handles the handle starttag operation.
+        """
         tag = tag.casefold()
         if tag in self.ignored_tags:
             self._ignored_depth += 1
@@ -128,6 +165,9 @@ class _StructuredHTMLParser(HTMLParser):
             self._buffer.append("\n")
 
     def handle_endtag(self, tag: str) -> None:
+        """中文：处理“处理·endtag”相关操作。
+        English: Handles the handle endtag operation.
+        """
         tag = tag.casefold()
         if tag in self.ignored_tags:
             self._ignored_depth = max(0, self._ignored_depth - 1)
@@ -138,14 +178,23 @@ class _StructuredHTMLParser(HTMLParser):
             self._flush()
 
     def handle_data(self, data: str) -> None:
+        """中文：处理“处理·data”相关操作。
+        English: Handles the handle data operation.
+        """
         if not self._ignored_depth:
             self._buffer.append(data)
 
     def close(self) -> None:
+        """中文：处理“关闭”相关操作。
+        English: Handles the close operation.
+        """
         super().close()
         self._flush()
 
     def _flush(self) -> None:
+        """中文：处理“flush”相关操作。
+        English: Handles the flush operation.
+        """
         text = "".join(self._buffer).strip()
         tag = self._current_tag
         self._buffer = []
@@ -166,9 +215,15 @@ class _StructuredHTMLParser(HTMLParser):
 
 
 class HTMLDocumentParser(DocumentParser):
+    """中文：定义“htmldocument·parser”类，封装该职责相关的数据与行为。
+    English: Defines the htmldocument parser class and encapsulates data and behavior for that responsibility.
+    """
     name = "html_v1"
 
     def parse(self, content: str) -> list[ParsedBlock]:
+        """中文：处理“解析”相关操作。
+        English: Handles the parse operation.
+        """
         parser = _StructuredHTMLParser()
         try:
             parser.feed(content)
@@ -186,6 +241,9 @@ PARSERS: dict[str, DocumentParser] = {
 
 
 def parser_for(media_type: SupportedMediaType) -> DocumentParser:
+    """中文：处理“parser·for”相关操作。
+    English: Handles the parser for operation.
+    """
     try:
         return PARSERS[media_type]
     except KeyError as error:

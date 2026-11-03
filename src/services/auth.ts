@@ -1,5 +1,6 @@
 const API_BASE_URL = import.meta.env.VITE_AGENT_API_URL ?? 'http://localhost:8000/v1'
 const TOKEN_KEY = 'math-tutor-access-token'
+export const AUTH_SESSION_EXPIRED_EVENT = 'math-tutor:auth-session-expired'
 
 export type UserRole = 'student' | 'guardian' | 'admin'
 
@@ -10,7 +11,6 @@ export interface AuthUser {
   account_status: string
   token_version: number
   display_name: string
-  grade_band: string | null
   email_verified: boolean
 }
 
@@ -62,6 +62,13 @@ function saveSession(result: TokenResponse) {
 }
 
 let refreshInFlight: Promise<TokenResponse> | null = null
+
+/**
+ * 通知界面登录会话已经失效。 / Notify the UI that the authentication session has expired.
+ */
+function notifyAuthSessionExpired() {
+  window.dispatchEvent(new CustomEvent(AUTH_SESSION_EXPIRED_EVENT))
+}
 
 export async function logout() {
   const token = getAccessToken()
@@ -116,7 +123,6 @@ export async function register(input: {
   password: string
   role: 'student' | 'guardian'
   display_name: string
-  grade_band?: string
 }) {
   const response = await fetch(`${API_BASE_URL}/auth/register`, {
     method: 'POST',
@@ -185,15 +191,39 @@ export async function revokeGuardianLink(linkId: string) {
   if (!response.ok) await parseResponse(response)
 }
 
+export async function exportStudentData() {
+  const response = await authorizedFetch('/auth/me/data-export', {
+    headers: { Accept: 'application/json' },
+  })
+  if (!response.ok) await parseResponse(response)
+  const blob = await response.blob()
+  const disposition = response.headers.get('Content-Disposition') ?? ''
+  const matched = disposition.match(/filename="([^"]+)"/)
+  return { blob, filename: matched?.[1] ?? `student-data-${new Date().toISOString().slice(0, 10)}.json` }
+}
+
+export async function deleteStudentAccount(currentPassword: string) {
+  const response = await authorizedFetch('/auth/me', {
+    method: 'DELETE',
+    body: JSON.stringify({
+      current_password: currentPassword,
+      confirmation: 'DELETE_MY_ACCOUNT',
+    }),
+  })
+  if (!response.ok) await parseResponse(response)
+  clearAccessToken()
+}
+
 export async function authorizedFetch(path: string, init?: RequestInit, retry = true): Promise<Response> {
+  const headers = new Headers(init?.headers)
+  headers.set('Authorization', `Bearer ${getAccessToken() ?? ''}`)
+  if (!(init?.body instanceof FormData) && !headers.has('Content-Type')) {
+    headers.set('Content-Type', 'application/json')
+  }
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...init,
     credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${getAccessToken() ?? ''}`,
-      ...init?.headers,
-    },
+    headers,
   })
   if (response.status === 401 && retry) {
     try {
@@ -201,7 +231,11 @@ export async function authorizedFetch(path: string, init?: RequestInit, retry = 
       return authorizedFetch(path, init, false)
     } catch {
       clearAccessToken()
+      notifyAuthSessionExpired()
     }
+  } else if (response.status === 401) {
+    clearAccessToken()
+    notifyAuthSessionExpired()
   }
   return response
 }

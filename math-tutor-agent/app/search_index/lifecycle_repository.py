@@ -31,7 +31,13 @@ from app.models.search_index import (
 
 
 class SearchIndexLifecycleRepository:
+    """中文：定义“搜索·索引·lifecycle·仓储”类，封装该职责相关的数据与行为。
+    English: Defines the search index lifecycle repository class and encapsulates data and behavior for that responsibility.
+    """
     def __init__(self) -> None:
+        """中文：初始化当前对象及其依赖。
+        English: Initializes the current object and its dependencies.
+        """
         self.state_machine = ProblemContentStateMachine()
 
     @staticmethod
@@ -41,6 +47,9 @@ class SearchIndexLifecycleRepository:
         *,
         index_version: str,
     ) -> SearchIndexMaintenanceJob:
+        """中文：处理“enqueue”相关操作。
+        English: Handles the enqueue operation.
+        """
         problem = session.get(
             KnowledgeProblem,
             request.problem_id,
@@ -48,6 +57,14 @@ class SearchIndexLifecycleRepository:
         )
         if problem is None:
             raise LookupError("problem not found")
+        if (
+            request.expected_status_version is not None
+            and problem.status_version != request.expected_status_version
+        ):
+            raise IndexMaintenanceVersionConflict(
+                expected=request.expected_status_version,
+                actual=problem.status_version,
+            )
         if problem.content_status not in {"approved", "indexed"}:
             raise ValueError(
                 "index maintenance source must be approved or indexed"
@@ -122,6 +139,9 @@ class SearchIndexLifecycleRepository:
         max_attempts: int,
         recovery_before: datetime,
     ) -> list[str]:
+        """中文：处理“work·ids”相关操作。
+        English: Handles the work ids operation.
+        """
         return list(session.scalars(
             select(SearchIndexMaintenanceJob.id)
             .where(
@@ -157,6 +177,9 @@ class SearchIndexLifecycleRepository:
         *,
         recovery_before: datetime,
     ) -> tuple[bool, list[str] | None]:
+        """中文：处理“启动·deletion”相关操作。
+        English: Handles the start deletion operation.
+        """
         job = session.get(
             SearchIndexMaintenanceJob,
             job_id,
@@ -173,7 +196,16 @@ class SearchIndexLifecycleRepository:
         job.last_error_code = None
         return True, list(job.point_ids_json)
 
-    def finish_deletion(self, session: Session, job_id: str) -> str:
+    def finish_deletion(
+        self,
+        session: Session,
+        job_id: str,
+        *,
+        actor_id: str | None = None,
+    ) -> str:
+        """中文：处理“finish·deletion”相关操作。
+        English: Handles the finish deletion operation.
+        """
         job = session.get(
             SearchIndexMaintenanceJob,
             job_id,
@@ -209,7 +241,12 @@ class SearchIndexLifecycleRepository:
                 index_is_active=False,
                 evidence=evidence_items,
             ))
-            self._persist_transition(session, problem, transition)
+            self._persist_transition(
+                session,
+                problem,
+                transition,
+                actor_id=actor_id,
+            )
             if job.trigger_type == "revalidation":
                 validating = self.state_machine.transition(ProblemTransitionRequest(
                     problem_id=problem.id,
@@ -239,6 +276,9 @@ class SearchIndexLifecycleRepository:
         *,
         recovery_before: datetime,
     ) -> tuple[bool, str | None]:
+        """中文：处理“prepare·rebuild”相关操作。
+        English: Handles the prepare rebuild operation.
+        """
         job = session.get(
             SearchIndexMaintenanceJob,
             job_id,
@@ -271,6 +311,9 @@ class SearchIndexLifecycleRepository:
 
     @staticmethod
     def finish_rebuild(session: Session, job_id: str) -> None:
+        """中文：处理“finish·rebuild”相关操作。
+        English: Handles the finish rebuild operation.
+        """
         job = session.get(
             SearchIndexMaintenanceJob,
             job_id,
@@ -285,6 +328,9 @@ class SearchIndexLifecycleRepository:
 
     @staticmethod
     def _resolve_content_issues(session: Session, job_id: str) -> None:
+        """中文：处理“解析·内容·issues”相关操作。
+        English: Handles the resolve content issues operation.
+        """
         reports = session.scalars(
             select(ContentIssueReport)
             .where(
@@ -298,6 +344,9 @@ class SearchIndexLifecycleRepository:
 
     @staticmethod
     def mark_failed(session: Session, job_id: str, error_code: str) -> None:
+        """中文：处理“mark·failed”相关操作。
+        English: Handles the mark failed operation.
+        """
         job = session.get(
             SearchIndexMaintenanceJob,
             job_id,
@@ -310,10 +359,16 @@ class SearchIndexLifecycleRepository:
 
     @staticmethod
     def get(session: Session, job_id: str) -> SearchIndexMaintenanceJob | None:
+        """中文：处理“获取”相关操作。
+        English: Handles the get operation.
+        """
         return session.get(SearchIndexMaintenanceJob, job_id)
 
     @staticmethod
     def view(job: SearchIndexMaintenanceJob) -> IndexMaintenanceJobView:
+        """中文：处理“view”相关操作。
+        English: Handles the view operation.
+        """
         return IndexMaintenanceJobView(
             id=job.id,
             problem_id=job.problem_id,
@@ -341,6 +396,9 @@ class SearchIndexLifecycleRepository:
         job: SearchIndexMaintenanceJob,
         removed_at: datetime,
     ) -> DomainAdmissionEvidence:
+        """中文：处理“removal·evidence”相关操作。
+        English: Handles the removal evidence operation.
+        """
         if problem.generation_batch_id is None:
             raise RuntimeError("indexed problem is missing generation_batch_id")
         payload = {
@@ -387,6 +445,9 @@ class SearchIndexLifecycleRepository:
         session: Session,
         problem_id: str,
     ) -> list[DomainAdmissionEvidence]:
+        """中文：处理“题目·evidence”相关操作。
+        English: Handles the problem evidence operation.
+        """
         entities = session.scalars(
             select(AdmissionEvidence)
             .where(AdmissionEvidence.problem_id == problem_id)
@@ -396,6 +457,9 @@ class SearchIndexLifecycleRepository:
 
     @staticmethod
     def _domain_evidence(entity: AdmissionEvidence) -> DomainAdmissionEvidence:
+        """中文：处理“domain·evidence”相关操作。
+        English: Handles the domain evidence operation.
+        """
         created_at = entity.created_at
         if created_at.tzinfo is None:
             created_at = created_at.replace(tzinfo=timezone.utc)
@@ -418,7 +482,16 @@ class SearchIndexLifecycleRepository:
         )
 
     @staticmethod
-    def _persist_transition(session: Session, problem: KnowledgeProblem, transition) -> None:
+    def _persist_transition(
+        session: Session,
+        problem: KnowledgeProblem,
+        transition,
+        *,
+        actor_id: str | None = None,
+    ) -> None:
+        """中文：处理“persist·transition”相关操作。
+        English: Handles the persist transition operation.
+        """
         changed_at = SearchIndexLifecycleRepository._now()
         next_version = problem.status_version + 1
         session.add(ProblemStatusTransition(
@@ -432,8 +505,8 @@ class SearchIndexLifecycleRepository:
                 "search_index_maintenance",
                 *transition.checked_requirements,
             ],
-            actor_type="system",
-            actor_id=None,
+            actor_type="admin" if actor_id else "system",
+            actor_id=actor_id,
             created_at=changed_at,
         ))
         problem.content_status = transition.current_status.value
@@ -444,4 +517,22 @@ class SearchIndexLifecycleRepository:
 
     @staticmethod
     def _now() -> datetime:
+        """中文：处理“now”相关操作。
+        English: Handles the now operation.
+        """
         return datetime.now(timezone.utc).replace(tzinfo=None)
+
+
+class IndexMaintenanceVersionConflict(RuntimeError):
+    """中文：定义“索引·maintenance·version·conflict”类，封装该职责相关的数据与行为。
+    English: Defines the index maintenance version conflict class and encapsulates data and behavior for that responsibility.
+    """
+    def __init__(self, *, expected: int, actual: int) -> None:
+        """中文：初始化当前对象及其依赖。
+        English: Initializes the current object and its dependencies.
+        """
+        self.expected = expected
+        self.actual = actual
+        super().__init__(
+            f"expected status version {expected}, found {actual}"
+        )

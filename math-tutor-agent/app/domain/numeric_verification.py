@@ -7,12 +7,18 @@ from pydantic import BaseModel, Field, model_validator
 
 
 class NumericCheckStatus(StrEnum):
+    """中文：定义“numeric·检查·状态”类，封装该职责相关的数据与行为。
+    English: Defines the numeric check status class and encapsulates data and behavior for that responsibility.
+    """
     PASSED = "passed"
     FAILED = "failed"
     INCONCLUSIVE = "inconclusive"
 
 
 class NumericVerificationCheck(BaseModel):
+    """中文：定义“numeric·校验·检查”类，封装该职责相关的数据与行为。
+    English: Defines the numeric verification check class and encapsulates data and behavior for that responsibility.
+    """
     check_type: Literal[
         "coefficient_reconstruction",
         "sample_consistency",
@@ -26,6 +32,9 @@ class NumericVerificationCheck(BaseModel):
 
 
 class NumericVerificationReport(BaseModel):
+    """中文：定义“numeric·校验·报告”类，封装该职责相关的数据与行为。
+    English: Defines the numeric verification report class and encapsulates data and behavior for that responsibility.
+    """
     schema_version: Literal["1.0"] = "1.0"
     problem_id: str
     solution_id: str
@@ -47,6 +56,9 @@ class NumericVerificationReport(BaseModel):
 
     @model_validator(mode="after")
     def validate_status(self) -> NumericVerificationReport:
+        """中文：处理“验证·状态”相关操作。
+        English: Handles the validate status operation.
+        """
         if self.status == NumericCheckStatus.PASSED and any(
             item.status != NumericCheckStatus.PASSED for item in self.checks
         ):

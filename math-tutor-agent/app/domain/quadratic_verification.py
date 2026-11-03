@@ -9,12 +9,18 @@ from pydantic import BaseModel, Field, model_validator
 
 
 class QuadraticCheckStatus(StrEnum):
+    """中文：定义“quadratic·检查·状态”类，封装该职责相关的数据与行为。
+    English: Defines the quadratic check status class and encapsulates data and behavior for that responsibility.
+    """
     PASSED = "passed"
     FAILED = "failed"
     INCONCLUSIVE = "inconclusive"
 
 
 class QuadraticVerificationCheck(BaseModel):
+    """中文：定义“quadratic·校验·检查”类，封装该职责相关的数据与行为。
+    English: Defines the quadratic verification check class and encapsulates data and behavior for that responsibility.
+    """
     check_type: Literal[
         "solve",
         "substitution",
@@ -30,6 +36,9 @@ class QuadraticVerificationCheck(BaseModel):
 
 
 class QuadraticVerificationContext(BaseModel):
+    """中文：定义“quadratic·校验·context”类，封装该职责相关的数据与行为。
+    English: Defines the quadratic verification context class and encapsulates data and behavior for that responsibility.
+    """
     problem_id: str
     solution_id: str
     generation_batch_id: str
@@ -48,6 +57,9 @@ class QuadraticVerificationContext(BaseModel):
     final_answer: str
 
     def fingerprint(self) -> str:
+        """中文：处理“fingerprint”相关操作。
+        English: Handles the fingerprint operation.
+        """
         payload = json.dumps(
             self.model_dump(mode="json"),
             ensure_ascii=False,
@@ -58,6 +70,9 @@ class QuadraticVerificationContext(BaseModel):
 
 
 class QuadraticVerificationReport(BaseModel):
+    """中文：定义“quadratic·校验·报告”类，封装该职责相关的数据与行为。
+    English: Defines the quadratic verification report class and encapsulates data and behavior for that responsibility.
+    """
     schema_version: Literal["1.0"] = "1.0"
     problem_id: str
     solution_id: str
@@ -79,6 +94,9 @@ class QuadraticVerificationReport(BaseModel):
 
     @model_validator(mode="after")
     def validate_outcome(self) -> QuadraticVerificationReport:
+        """中文：处理“验证·outcome”相关操作。
+        English: Handles the validate outcome operation.
+        """
         failed = any(check.status == QuadraticCheckStatus.FAILED for check in self.checks)
         if self.verification_status == "failed" and not failed:
             raise ValueError("failed verification requires a failed check")
@@ -94,4 +112,7 @@ class QuadraticVerificationReport(BaseModel):
         return self
 
     def check(self, check_type: str) -> QuadraticVerificationCheck:
+        """中文：处理“检查”相关操作。
+        English: Handles the check operation.
+        """
         return next(item for item in self.checks if item.check_type == check_type)

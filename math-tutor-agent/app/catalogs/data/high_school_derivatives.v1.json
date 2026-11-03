@@ -1,0 +1,55 @@
+{
+  "catalog_code": "CN.HS.MATH.DERIVATIVES",
+  "version": "1.0.0",
+  "title": "高中数学：导数知识关系图",
+  "subject": "math",
+  "grade_band": "high",
+  "topic": "导数",
+  "knowledge_points": [
+    {"code":"HS.CALC.DERIVATIVE","name":"导数","description":"从平均变化率走向瞬时变化率，并用导数描述函数的局部变化。","category":"core","parent_code":null,"sort_order":100},
+    {"code":"HS.FUNC.CONCEPT","name":"函数的概念","description":"理解自变量、因变量以及函数在给定点附近的取值关系。","category":"foundation","parent_code":null,"sort_order":10},
+    {"code":"HS.FUNC.DOMAIN","name":"函数定义域","description":"判断函数和差商表达式成立时自变量需要满足的条件。","category":"foundation","parent_code":null,"sort_order":20},
+    {"code":"HS.RATE.AVERAGE","name":"平均变化率","description":"用两个位置间的函数增量与自变量增量之比描述平均变化快慢。","category":"foundation","parent_code":null,"sort_order":30},
+    {"code":"HS.CALC.LIMIT.INTUITIVE","name":"无限接近思想","description":"理解变量可以无限接近某个值，而不要求在过程中始终等于该值。","category":"foundation","parent_code":null,"sort_order":40},
+    {"code":"HS.CALC.LIMIT.FUNCTION","name":"函数极限","description":"理解函数在自变量趋近某点时的稳定趋势，为差商取极限提供基础。","category":"foundation","parent_code":null,"sort_order":50},
+    {"code":"HS.CALC.DERIVATIVE.DEFINITION","name":"导数的定义","description":"理解函数在一点的导数是差商在自变量增量趋近于零时的极限，并能识别定义中的函数增量、自变量增量和极限过程。","category":"core","parent_code":"HS.CALC.DERIVATIVE","sort_order":110},
+    {"code":"HS.CALC.DERIVATIVE.GEOMETRIC","name":"导数的几何意义","description":"把割线斜率的极限解释为曲线在一点处切线的斜率。","category":"core","parent_code":"HS.CALC.DERIVATIVE","sort_order":120},
+    {"code":"HS.CALC.DERIVATIVE.BY_DEFINITION","name":"用定义求导","description":"按照写差商、化简差商、取极限的过程求简单函数在一点的导数。","category":"core","parent_code":"HS.CALC.DERIVATIVE","sort_order":130},
+    {"code":"HS.CALC.DERIVATIVE.RULES","name":"基本求导法则","description":"在理解导数定义的基础上使用常数、幂函数、和差等基本求导规则。","category":"core","parent_code":"HS.CALC.DERIVATIVE","sort_order":140},
+    {"code":"HS.CALC.DERIVATIVE.APPLICATION","name":"导数研究函数","description":"利用导数符号研究函数的单调性、极值和变化趋势。","category":"extension","parent_code":"HS.CALC.DERIVATIVE","sort_order":150},
+    {"code":"HS.CALC.DERIVATIVE.HIGHER","name":"高阶导数","description":"理解二阶及更高阶导数，并能计算简单函数的各阶导数。","category":"extension","parent_code":"HS.CALC.DERIVATIVE","sort_order":160},
+    {"code":"HS.CALC.DERIVATIVE.LOCAL_LINEAR","name":"局部线性近似","description":"利用函数值和一阶导数构造函数在一点附近的线性近似。","category":"extension","parent_code":"HS.CALC.DERIVATIVE","sort_order":170},
+    {"code":"HS.CALC.TAYLOR","name":"泰勒公式","description":"用有限阶泰勒多项式和余项描述函数在展开点附近的局部行为，并通过余项估计近似误差。","category":"extension","parent_code":"HS.CALC.DERIVATIVE","sort_order":180}
+  ],
+  "capability_points": [
+    {"code":"HS.CALC.DERIVATIVE.CAP","name":"导数学习能力","description":"理解导数定义并把它用于计算、解释和函数研究。","category":"reasoning","parent_code":null,"sort_order":100},
+    {"code":"HS.CALC.DERIVATIVE.CAP.READ_DEFINITION","name":"读懂差商极限","description":"能指出定义中的增量、差商与趋近过程。","category":"recognition","parent_code":"HS.CALC.DERIVATIVE.CAP","sort_order":110},
+    {"code":"HS.CALC.DERIVATIVE.CAP.CALCULATE","name":"按定义计算导数","description":"能建立并化简差商，正确完成极限计算。","category":"calculation","parent_code":"HS.CALC.DERIVATIVE.CAP","sort_order":120},
+    {"code":"HS.CALC.DERIVATIVE.CAP.INTERPRET","name":"解释导数意义","description":"能用瞬时变化率和切线斜率解释导数。","category":"reasoning","parent_code":"HS.CALC.DERIVATIVE.CAP","sort_order":130}
+  ],
+  "knowledge_prerequisites": [
+    {"knowledge_code":"HS.CALC.LIMIT.FUNCTION","prerequisite_code":"HS.CALC.LIMIT.INTUITIVE","strength":"required","required_level":"familiar","rationale":"函数极限需要先理解无限接近的过程。"},
+    {"knowledge_code":"HS.CALC.DERIVATIVE.DEFINITION","prerequisite_code":"HS.FUNC.CONCEPT","strength":"required","required_level":"familiar","rationale":"导数定义描述函数在某一点附近的变化，需要先理解函数及其取值。"},
+    {"knowledge_code":"HS.CALC.DERIVATIVE.DEFINITION","prerequisite_code":"HS.FUNC.DOMAIN","strength":"recommended","required_level":"introduced","rationale":"写差商时需要确认 x、x+Δx 以及差商表达式都有意义。"},
+    {"knowledge_code":"HS.CALC.DERIVATIVE.DEFINITION","prerequisite_code":"HS.RATE.AVERAGE","strength":"required","required_level":"proficient","rationale":"导数由区间平均变化率在区间长度趋近于零时得到。"},
+    {"knowledge_code":"HS.CALC.DERIVATIVE.DEFINITION","prerequisite_code":"HS.CALC.LIMIT.FUNCTION","strength":"required","required_level":"familiar","rationale":"导数定义的核心操作是对差商取极限。"},
+    {"knowledge_code":"HS.CALC.DERIVATIVE.GEOMETRIC","prerequisite_code":"HS.CALC.DERIVATIVE.DEFINITION","strength":"required","required_level":"familiar","rationale":"切线斜率来自割线斜率，也就是差商的极限。"},
+    {"knowledge_code":"HS.CALC.DERIVATIVE.BY_DEFINITION","prerequisite_code":"HS.CALC.DERIVATIVE.DEFINITION","strength":"required","required_level":"proficient","rationale":"按定义求导必须先能正确写出导数定义式。"},
+    {"knowledge_code":"HS.CALC.DERIVATIVE.RULES","prerequisite_code":"HS.CALC.DERIVATIVE.BY_DEFINITION","strength":"recommended","required_level":"familiar","rationale":"用定义求导可以解释基本求导法则为什么成立。"},
+    {"knowledge_code":"HS.CALC.DERIVATIVE.APPLICATION","prerequisite_code":"HS.CALC.DERIVATIVE.GEOMETRIC","strength":"required","required_level":"familiar","rationale":"研究函数变化需要理解导数符号和切线斜率的意义。"},
+    {"knowledge_code":"HS.CALC.DERIVATIVE.APPLICATION","prerequisite_code":"HS.CALC.DERIVATIVE.RULES","strength":"required","required_level":"proficient","rationale":"研究复杂函数的变化趋势需要稳定计算导数。"},
+    {"knowledge_code":"HS.CALC.DERIVATIVE.HIGHER","prerequisite_code":"HS.CALC.DERIVATIVE.RULES","strength":"required","required_level":"proficient","rationale":"高阶导数需要连续、稳定地应用基本求导法则。"},
+    {"knowledge_code":"HS.CALC.DERIVATIVE.LOCAL_LINEAR","prerequisite_code":"HS.CALC.DERIVATIVE.DEFINITION","strength":"required","required_level":"proficient","rationale":"局部线性近似使用函数在展开点的一阶导数。"},
+    {"knowledge_code":"HS.CALC.TAYLOR","prerequisite_code":"HS.CALC.DERIVATIVE.HIGHER","strength":"required","required_level":"familiar","rationale":"泰勒多项式的系数由展开点处的各阶导数给出。"},
+    {"knowledge_code":"HS.CALC.TAYLOR","prerequisite_code":"HS.CALC.DERIVATIVE.LOCAL_LINEAR","strength":"recommended","required_level":"familiar","rationale":"局部线性近似是一阶泰勒多项式，有助于理解多阶局部近似。"}
+  ],
+  "capability_prerequisites": [
+    {"capability_code":"HS.CALC.DERIVATIVE.CAP.CALCULATE","prerequisite_code":"HS.CALC.DERIVATIVE.CAP.READ_DEFINITION","strength":"required","rationale":"正确计算前需要先读懂定义式的各个部分。"},
+    {"capability_code":"HS.CALC.DERIVATIVE.CAP.INTERPRET","prerequisite_code":"HS.CALC.DERIVATIVE.CAP.READ_DEFINITION","strength":"required","rationale":"解释瞬时变化率需要理解差商极限。"}
+  ],
+  "capability_knowledge_requirements": [
+    {"capability_code":"HS.CALC.DERIVATIVE.CAP.READ_DEFINITION","knowledge_code":"HS.CALC.DERIVATIVE.DEFINITION","role":"core","required_level":"proficient"},
+    {"capability_code":"HS.CALC.DERIVATIVE.CAP.CALCULATE","knowledge_code":"HS.CALC.DERIVATIVE.BY_DEFINITION","role":"core","required_level":"proficient"},
+    {"capability_code":"HS.CALC.DERIVATIVE.CAP.INTERPRET","knowledge_code":"HS.CALC.DERIVATIVE.GEOMETRIC","role":"core","required_level":"proficient"}
+  ]
+}

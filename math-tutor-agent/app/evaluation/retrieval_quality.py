@@ -19,6 +19,9 @@ from app.evaluation.datasets import (
 
 
 class RetrievalQualityEvaluator:
+    """中文：定义“retrieval·质量·evaluator”类，封装该职责相关的数据与行为。
+    English: Defines the retrieval quality evaluator class and encapsulates data and behavior for that responsibility.
+    """
     def evaluate(
         self,
         records: list[RetrievalEvaluationRunRecord],
@@ -26,6 +29,9 @@ class RetrievalQualityEvaluator:
         manifest_path: str | Path = DEFAULT_RETRIEVAL_MANIFEST,
         production_collection: str,
     ) -> RetrievalQualityReport:
+        """中文：处理“评估”相关操作。
+        English: Handles the evaluate operation.
+        """
         manifest, documents, queries, _ = load_retrieval_evaluation_suite(
             manifest_path,
             production_collection=production_collection,
@@ -116,6 +122,9 @@ class RetrievalQualityEvaluator:
         query: RetrievalEvaluationQuery,
         document_by_id: dict[str, RetrievalEvaluationDocument],
     ) -> RetrievalQueryQuality:
+        """中文：处理“评估·query”相关操作。
+        English: Handles the evaluate query operation.
+        """
         k = query.k
         initial = record.initial_document_ids[:k]
         reranked = record.reranked_document_ids[:k]
@@ -169,6 +178,9 @@ class RetrievalQualityEvaluator:
     def _ndcg(
         ranked_ids: list[str], relevant: set[str], required: set[str], k: int
     ) -> float:
+        """中文：处理“ndcg”相关操作。
+        English: Handles the ndcg operation.
+        """
         grades = [2 if item in required else 1 if item in relevant else 0 for item in ranked_ids[:k]]
         ideal = sorted(
             [2 if item in required else 1 for item in relevant], reverse=True
@@ -185,6 +197,9 @@ class RetrievalQualityEvaluator:
         forbidden: set[str],
         document_by_id: dict[str, RetrievalEvaluationDocument],
     ) -> bool:
+        """中文：处理“claim·consistent”相关操作。
+        English: Handles the claim consistent operation.
+        """
         evidence = set(claim.evidence_document_ids)
         return bool(
             claim.support_status == "supported"
@@ -204,6 +219,9 @@ class RetrievalQualityEvaluator:
         relevant: set[str],
         document_by_id: dict[str, RetrievalEvaluationDocument],
     ) -> bool:
+        """中文：处理“citation·correct”相关操作。
+        English: Handles the citation correct operation.
+        """
         claim = claim_by_id.get(citation.claim_id)
         document = document_by_id.get(citation.document_id)
         return bool(
@@ -221,6 +239,9 @@ class RetrievalQualityEvaluator:
         *, key: str, label: str, numerator: float, denominator: float,
         definition: str, details: dict | None = None,
     ) -> RetrievalQualityMetric:
+        """中文：处理“指标”相关操作。
+        English: Handles the metric operation.
+        """
         score = numerator / denominator if denominator else None
         return RetrievalQualityMetric(
             key=key,

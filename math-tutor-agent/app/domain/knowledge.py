@@ -7,12 +7,20 @@ from uuid import uuid4
 
 from pydantic import BaseModel, Field, HttpUrl, model_validator
 
+from app.core.product_scope import MVP_GRADE_BAND
+
 
 def new_knowledge_id() -> str:
+    """中文：处理“new·知识·id”相关操作。
+    English: Handles the new knowledge id operation.
+    """
     return str(uuid4())
 
 
 class KnowledgeSourceType(StrEnum):
+    """中文：定义“知识·source·type”类，封装该职责相关的数据与行为。
+    English: Defines the knowledge source type class and encapsulates data and behavior for that responsibility.
+    """
     CURRICULUM_STANDARD = "curriculum_standard"
     TEXTBOOK = "textbook"
     TEACHER_GUIDE = "teacher_guide"
@@ -23,6 +31,9 @@ class KnowledgeSourceType(StrEnum):
 
 
 class KnowledgeDocumentType(StrEnum):
+    """中文：定义“知识·文档·type”类，封装该职责相关的数据与行为。
+    English: Defines the knowledge document type class and encapsulates data and behavior for that responsibility.
+    """
     CURRICULUM = "curriculum"
     TEXTBOOK = "textbook"
     CHAPTER = "chapter"
@@ -35,6 +46,9 @@ class KnowledgeDocumentType(StrEnum):
 
 
 class KnowledgeContentType(StrEnum):
+    """中文：定义“知识·内容·type”类，封装该职责相关的数据与行为。
+    English: Defines the knowledge content type class and encapsulates data and behavior for that responsibility.
+    """
     TEXT = "text"
     CODE = "code"
     CURRICULUM = "curriculum"
@@ -61,6 +75,9 @@ class KnowledgeContentType(StrEnum):
 
 
 class KnowledgeReviewStatus(StrEnum):
+    """中文：定义“知识·复核·状态”类，封装该职责相关的数据与行为。
+    English: Defines the knowledge review status class and encapsulates data and behavior for that responsibility.
+    """
     UNREVIEWED = "unreviewed"
     PENDING = "pending"
     APPROVED = "approved"
@@ -68,6 +85,9 @@ class KnowledgeReviewStatus(StrEnum):
 
 
 class KnowledgeLifecycleStatus(StrEnum):
+    """中文：定义“知识·lifecycle·状态”类，封装该职责相关的数据与行为。
+    English: Defines the knowledge lifecycle status class and encapsulates data and behavior for that responsibility.
+    """
     DRAFT = "draft"
     ACTIVE = "active"
     SUPERSEDED = "superseded"
@@ -75,6 +95,9 @@ class KnowledgeLifecycleStatus(StrEnum):
 
 
 class IngestionStatus(StrEnum):
+    """中文：定义“ingestion·状态”类，封装该职责相关的数据与行为。
+    English: Defines the ingestion status class and encapsulates data and behavior for that responsibility.
+    """
     PENDING = "pending"
     PARSED = "parsed"
     INDEXED = "indexed"
@@ -82,6 +105,9 @@ class IngestionStatus(StrEnum):
 
 
 class ProblemContentStatus(StrEnum):
+    """中文：定义“题目·内容·状态”类，封装该职责相关的数据与行为。
+    English: Defines the problem content status class and encapsulates data and behavior for that responsibility.
+    """
     CANDIDATE = "candidate"
     VALIDATING = "validating"
     REVISION_REQUIRED = "revision_required"
@@ -92,6 +118,9 @@ class ProblemContentStatus(StrEnum):
 
 
 class ProblemDerivationType(StrEnum):
+    """中文：定义“题目·derivation·type”类，封装该职责相关的数据与行为。
+    English: Defines the problem derivation type class and encapsulates data and behavior for that responsibility.
+    """
     PARAMETER_CHANGE = "parameter_change"
     CONDITION_CHANGE = "condition_change"
     REPRESENTATION_CHANGE = "representation_change"
@@ -102,6 +131,9 @@ class ProblemDerivationType(StrEnum):
 
 
 class ProblemCondition(BaseModel):
+    """中文：定义“题目·condition”类，封装该职责相关的数据与行为。
+    English: Defines the problem condition class and encapsulates data and behavior for that responsibility.
+    """
     statement: str = Field(min_length=1, max_length=1000)
     condition_type: Literal[
         "equation",
@@ -118,11 +150,17 @@ class ProblemCondition(BaseModel):
 
 
 class ImplicitProblemCondition(ProblemCondition):
+    """中文：定义“implicit·题目·condition”类，封装该职责相关的数据与行为。
+    English: Defines the implicit problem condition class and encapsulates data and behavior for that responsibility.
+    """
     inference_basis: str = Field(min_length=1, max_length=1000)
     confidence: float = Field(ge=0, le=1)
 
 
 class ProblemTarget(BaseModel):
+    """中文：定义“题目·target”类，封装该职责相关的数据与行为。
+    English: Defines the problem target class and encapsulates data and behavior for that responsibility.
+    """
     action: Literal[
         "solve",
         "prove",
@@ -140,6 +178,9 @@ class ProblemTarget(BaseModel):
 
 
 class ProblemDifficultyFactor(BaseModel):
+    """中文：定义“题目·difficulty·factor”类，封装该职责相关的数据与行为。
+    English: Defines the problem difficulty factor class and encapsulates data and behavior for that responsibility.
+    """
     factor_type: Literal[
         "hidden_condition",
         "knowledge_combination",
@@ -160,6 +201,9 @@ class ProblemDifficultyFactor(BaseModel):
 
 
 class SourceReference(BaseModel):
+    """中文：定义“source·reference”类，封装该职责相关的数据与行为。
+    English: Defines the source reference class and encapsulates data and behavior for that responsibility.
+    """
     id: str = Field(default_factory=new_knowledge_id)
     source_type: KnowledgeSourceType
     title: str = Field(min_length=1, max_length=500)
@@ -175,6 +219,9 @@ class SourceReference(BaseModel):
 
 
 class CurriculumVersion(BaseModel):
+    """中文：定义“课程·version”类，封装该职责相关的数据与行为。
+    English: Defines the curriculum version class and encapsulates data and behavior for that responsibility.
+    """
     id: str = Field(default_factory=new_knowledge_id)
     source_reference_id: str
     authority: str = Field(min_length=1, max_length=255)
@@ -189,6 +236,9 @@ class CurriculumVersion(BaseModel):
 
 
 class KnowledgeDocument(BaseModel):
+    """中文：定义“知识·文档”类，封装该职责相关的数据与行为。
+    English: Defines the knowledge document class and encapsulates data and behavior for that responsibility.
+    """
     id: str = Field(default_factory=new_knowledge_id)
     source_reference_id: str
     curriculum_version_id: str | None = None
@@ -214,6 +264,9 @@ class KnowledgeDocument(BaseModel):
 
     @model_validator(mode="after")
     def validate_tags(self) -> KnowledgeDocument:
+        """中文：处理“验证·tags”相关操作。
+        English: Handles the validate tags operation.
+        """
         _require_unique_tags("knowledge_point_codes", self.knowledge_point_codes)
         _require_unique_tags("grade_codes", self.grade_codes)
         _require_unique_tags("problem_types", self.problem_types)
@@ -222,6 +275,9 @@ class KnowledgeDocument(BaseModel):
 
 
 class DocumentChunk(BaseModel):
+    """中文：定义“文档·切片”类，封装该职责相关的数据与行为。
+    English: Defines the document chunk class and encapsulates data and behavior for that responsibility.
+    """
     id: str = Field(default_factory=new_knowledge_id)
     document_id: str
     curriculum_version_id: str | None = None
@@ -242,6 +298,9 @@ class DocumentChunk(BaseModel):
 
     @model_validator(mode="after")
     def validate_tags(self) -> DocumentChunk:
+        """中文：处理“验证·tags”相关操作。
+        English: Handles the validate tags operation.
+        """
         _require_unique_tags("knowledge_point_codes", self.knowledge_point_codes)
         _require_unique_tags("grade_codes", self.grade_codes)
         _require_unique_tags("problem_types", self.problem_types)
@@ -249,6 +308,9 @@ class DocumentChunk(BaseModel):
 
 
 class KnowledgeProblem(BaseModel):
+    """中文：定义“知识·题目”类，封装该职责相关的数据与行为。
+    English: Defines the knowledge problem class and encapsulates data and behavior for that responsibility.
+    """
     id: str = Field(default_factory=new_knowledge_id)
     source_reference_id: str
     document_id: str | None = None
@@ -285,6 +347,9 @@ class KnowledgeProblem(BaseModel):
 
     @model_validator(mode="after")
     def validate_mother_problem_relation(self) -> KnowledgeProblem:
+        """中文：处理“验证·mother·题目·relation”相关操作。
+        English: Handles the validate mother problem relation operation.
+        """
         _require_unique_tags("knowledge_point_codes", self.knowledge_point_codes)
         _require_unique_tags("grade_codes", self.grade_codes)
         if self.mother_problem_id == self.id:
@@ -307,7 +372,7 @@ class KnowledgeProblem(BaseModel):
                 raise ValueError("approved or indexed problems must have a structured target")
             if not (
                 self.grade_band
-                and self.grade_codes
+                and (self.grade_band == MVP_GRADE_BAND or self.grade_codes)
                 and self.knowledge_point_codes
                 and self.problem_type
                 and self.content_type
@@ -320,12 +385,18 @@ class KnowledgeProblem(BaseModel):
 
 
 def _require_unique_tags(name: str, values: list[Any]) -> None:
+    """中文：处理“require·unique·tags”相关操作。
+    English: Handles the require unique tags operation.
+    """
     normalized = [item.value if isinstance(item, StrEnum) else item for item in values]
     if len(normalized) != len(set(normalized)):
         raise ValueError(f"{name} must contain unique values")
 
 
 class SolutionStepJustification(BaseModel):
+    """中文：定义“解答·step·justification”类，封装该职责相关的数据与行为。
+    English: Defines the solution step justification class and encapsulates data and behavior for that responsibility.
+    """
     basis_type: Literal[
         "given_condition",
         "definition",
@@ -343,6 +414,9 @@ class SolutionStepJustification(BaseModel):
 
 
 class StructuredSolutionStep(BaseModel):
+    """中文：定义“structured·解答·step”类，封装该职责相关的数据与行为。
+    English: Defines the structured solution step class and encapsulates data and behavior for that responsibility.
+    """
     step_id: str = Field(min_length=1, max_length=64)
     sequence: int = Field(ge=1)
     action: str = Field(min_length=1, max_length=1000)
@@ -354,6 +428,9 @@ class StructuredSolutionStep(BaseModel):
 
 
 class SolutionBreakthrough(BaseModel):
+    """中文：定义“解答·breakthrough”类，封装该职责相关的数据与行为。
+    English: Defines the solution breakthrough class and encapsulates data and behavior for that responsibility.
+    """
     breakthrough_id: str = Field(min_length=1, max_length=64)
     title: str = Field(min_length=1, max_length=255)
     description: str = Field(min_length=1, max_length=1000)
@@ -364,6 +441,9 @@ class SolutionBreakthrough(BaseModel):
 
 
 class SolutionVerificationCheck(BaseModel):
+    """中文：定义“解答·校验·检查”类，封装该职责相关的数据与行为。
+    English: Defines the solution verification check class and encapsulates data and behavior for that responsibility.
+    """
     check_type: Literal[
         "symbolic_equivalence",
         "candidate_substitution",
@@ -381,6 +461,9 @@ class SolutionVerificationCheck(BaseModel):
 
 
 class SolutionVerificationCoverage(BaseModel):
+    """中文：定义“解答·校验·coverage”类，封装该职责相关的数据与行为。
+    English: Defines the solution verification coverage class and encapsulates data and behavior for that responsibility.
+    """
     level: Literal["none", "partial", "full"] = "none"
     covered_step_ids: list[str] = Field(default_factory=list)
     uncovered_step_ids: list[str] = Field(default_factory=list)
@@ -390,6 +473,9 @@ class SolutionVerificationCoverage(BaseModel):
 
 
 class KnowledgeSolution(BaseModel):
+    """中文：定义“知识·解答”类，封装该职责相关的数据与行为。
+    English: Defines the knowledge solution class and encapsulates data and behavior for that responsibility.
+    """
     id: str = Field(default_factory=new_knowledge_id)
     problem_id: str
     source_reference_id: str
@@ -410,6 +496,9 @@ class KnowledgeSolution(BaseModel):
 
     @model_validator(mode="after")
     def validate_structured_solution(self) -> KnowledgeSolution:
+        """中文：处理“验证·structured·解答”相关操作。
+        English: Handles the validate structured solution operation.
+        """
         step_ids = [step.step_id for step in self.steps]
         sequences = [step.sequence for step in self.steps]
         if len(step_ids) != len(set(step_ids)):
@@ -493,7 +582,12 @@ class KnowledgeSolution(BaseModel):
 
 
 class KnowledgeFilters(BaseModel):
-    """Portable metadata filters understood by every retriever implementation."""
+    """中文：定义“知识·filters”类，封装该职责相关的数据与行为。
+    English: Defines the knowledge filters class and encapsulates data and behavior for that responsibility.
+
+    原有说明 / Existing notes:
+    Portable metadata filters understood by every retriever implementation.
+    """
 
     subject: str = "math"
     grade: str | None = None
@@ -513,6 +607,9 @@ RetrievalStructureText = Annotated[str, Field(min_length=1, max_length=1000)]
 
 
 class RetrievalProblemStructure(BaseModel):
+    """中文：定义“retrieval·题目·structure”类，封装该职责相关的数据与行为。
+    English: Defines the retrieval problem structure class and encapsulates data and behavior for that responsibility.
+    """
     condition_statements: list[RetrievalStructureText] = Field(
         default_factory=list, max_length=20
     )
@@ -526,8 +623,14 @@ class RetrievalProblemStructure(BaseModel):
 
 
 class KnowledgeQuery(BaseModel):
-    """Provider-neutral retrieval request created by the orchestration layer."""
+    """中文：定义“知识·query”类，封装该职责相关的数据与行为。
+    English: Defines the knowledge query class and encapsulates data and behavior for that responsibility.
 
+    原有说明 / Existing notes:
+    Provider-neutral retrieval request created by the orchestration layer.
+    """
+
+    data_scope: Literal["textbook"] = "textbook"
     text: str = Field(min_length=1, max_length=4000)
     purpose: Literal[
         "problem_understanding",
@@ -544,6 +647,9 @@ class KnowledgeQuery(BaseModel):
 
     @model_validator(mode="after")
     def validate_hint_scope(self) -> KnowledgeQuery:
+        """中文：处理“验证·提示·范围”相关操作。
+        English: Handles the validate hint scope operation.
+        """
         if self.purpose == "hint_teaching" and self.hint_level is None:
             raise ValueError("hint_teaching query requires hint_level")
         if self.purpose != "hint_teaching" and self.hint_level is not None:
@@ -552,6 +658,9 @@ class KnowledgeQuery(BaseModel):
 
 
 class KnowledgeCitation(BaseModel):
+    """中文：定义“知识·citation”类，封装该职责相关的数据与行为。
+    English: Defines the knowledge citation class and encapsulates data and behavior for that responsibility.
+    """
     source_reference_id: str | None = None
     document_id: str
     chunk_id: str | None = None
@@ -562,7 +671,12 @@ class KnowledgeCitation(BaseModel):
 
 
 class RetrievedKnowledge(BaseModel):
-    """Provider-internal candidate; this raw excerpt must never enter an Agent payload."""
+    """中文：定义“retrieved·知识”类，封装该职责相关的数据与行为。
+    English: Defines the retrieved knowledge class and encapsulates data and behavior for that responsibility.
+
+    原有说明 / Existing notes:
+    Provider-internal candidate; this raw excerpt must never enter an Agent payload.
+    """
 
     chunk_id: str
     content: str = Field(min_length=1, max_length=2000)
@@ -577,6 +691,9 @@ CompactCode = Annotated[str, Field(min_length=1, max_length=120)]
 
 
 class RetrievedConcept(BaseModel):
+    """中文：定义“retrieved·concept”类，封装该职责相关的数据与行为。
+    English: Defines the retrieved concept class and encapsulates data and behavior for that responsibility.
+    """
     concept_code: str = Field(min_length=1, max_length=120)
     name: str = Field(min_length=1, max_length=200)
     definition_summary: str = Field(min_length=1, max_length=600)
@@ -588,6 +705,9 @@ class RetrievedConcept(BaseModel):
 
 
 class RetrievedPrinciple(BaseModel):
+    """中文：定义“retrieved·principle”类，封装该职责相关的数据与行为。
+    English: Defines the retrieved principle class and encapsulates data and behavior for that responsibility.
+    """
     principle_key: str = Field(min_length=1, max_length=120)
     name: str = Field(min_length=1, max_length=200)
     statement_summary: str = Field(min_length=1, max_length=700)
@@ -600,12 +720,18 @@ class RetrievedPrinciple(BaseModel):
 
     @model_validator(mode="after")
     def validate_formula_disclosure(self) -> RetrievedPrinciple:
+        """中文：处理“验证·formula·disclosure”相关操作。
+        English: Handles the validate formula disclosure operation.
+        """
         if self.formula is not None and self.disclosure_level < 2:
             raise ValueError("formula requires disclosure level 2 or above")
         return self
 
 
 class RetrievedProblemPattern(BaseModel):
+    """中文：定义“retrieved·题目·pattern”类，封装该职责相关的数据与行为。
+    English: Defines the retrieved problem pattern class and encapsulates data and behavior for that responsibility.
+    """
     problem_id: str
     structure_summary: str = Field(min_length=1, max_length=700)
     condition_schema: list[CompactText] = Field(default_factory=list, max_length=10)
@@ -619,12 +745,18 @@ class RetrievedProblemPattern(BaseModel):
 
     @model_validator(mode="after")
     def validate_method_disclosure(self) -> RetrievedProblemPattern:
+        """中文：处理“验证·method·disclosure”相关操作。
+        English: Handles the validate method disclosure operation.
+        """
         if self.method_names and self.disclosure_level < 2:
             raise ValueError("method names require disclosure level 2 or above")
         return self
 
 
 class RetrievedSolutionStep(BaseModel):
+    """中文：定义“retrieved·解答·step”类，封装该职责相关的数据与行为。
+    English: Defines the retrieved solution step class and encapsulates data and behavior for that responsibility.
+    """
     step_key: str = Field(min_length=1, max_length=64)
     sequence: int = Field(ge=1, le=20)
     action_summary: str = Field(min_length=1, max_length=600)
@@ -633,6 +765,9 @@ class RetrievedSolutionStep(BaseModel):
 
 
 class RetrievedSolutionOutline(BaseModel):
+    """中文：定义“retrieved·解答·outline”类，封装该职责相关的数据与行为。
+    English: Defines the retrieved solution outline class and encapsulates data and behavior for that responsibility.
+    """
     solution_id: str
     problem_id: str
     method_name: str = Field(min_length=1, max_length=255)
@@ -647,12 +782,18 @@ class RetrievedSolutionOutline(BaseModel):
 
     @model_validator(mode="after")
     def validate_verified_answer(self) -> RetrievedSolutionOutline:
+        """中文：处理“验证·verified·答案”相关操作。
+        English: Handles the validate verified answer operation.
+        """
         if self.final_answer is not None and self.verification_level != "full":
             raise ValueError("final answer requires full verification")
         return self
 
 
 class RetrievedErrorPattern(BaseModel):
+    """中文：定义“retrieved·error·pattern”类，封装该职责相关的数据与行为。
+    English: Defines the retrieved error pattern class and encapsulates data and behavior for that responsibility.
+    """
     pattern_code: str = Field(min_length=1, max_length=120)
     title: str = Field(min_length=1, max_length=200)
     observable_signals: list[CompactText] = Field(min_length=1, max_length=8)
@@ -665,6 +806,9 @@ class RetrievedErrorPattern(BaseModel):
 
 
 class RetrievedHint(BaseModel):
+    """中文：定义“retrieved·提示”类，封装该职责相关的数据与行为。
+    English: Defines the retrieved hint class and encapsulates data and behavior for that responsibility.
+    """
     hint_blueprint_id: str
     solution_id: str
     solution_step_key: str | None = Field(default=None, max_length=64)
@@ -684,6 +828,9 @@ class RetrievedHint(BaseModel):
 
     @model_validator(mode="after")
     def validate_level_stage(self) -> RetrievedHint:
+        """中文：处理“验证·level·stage”相关操作。
+        English: Handles the validate level stage operation.
+        """
         stage_by_level = {
             1: "direction",
             2: "key_relation",
@@ -698,6 +845,9 @@ class RetrievedHint(BaseModel):
 
 
 class RetrievedSourceFact(BaseModel):
+    """中文：定义“retrieved·source·fact”类，封装该职责相关的数据与行为。
+    English: Defines the retrieved source fact class and encapsulates data and behavior for that responsibility.
+    """
     fact_type: Literal[
         "definition",
         "curriculum_requirement",
@@ -712,6 +862,9 @@ class RetrievedSourceFact(BaseModel):
 
 
 class RetrievalDiagnostics(BaseModel):
+    """中文：定义“retrieval·diagnostics”类，封装该职责相关的数据与行为。
+    English: Defines the retrieval diagnostics class and encapsulates data and behavior for that responsibility.
+    """
     latency_ms: int | None = Field(default=None, ge=0)
     index_version: str | None = Field(default=None, max_length=100)
     candidate_count: int = Field(default=0, ge=0)
@@ -722,7 +875,12 @@ class RetrievalDiagnostics(BaseModel):
 
 
 class AgentTeachingContext(BaseModel):
-    """The only RAG object that may be serialized into an Agent prompt."""
+    """中文：定义“智能体·教学·context”类，封装该职责相关的数据与行为。
+    English: Defines the agent teaching context class and encapsulates data and behavior for that responsibility.
+
+    原有说明 / Existing notes:
+    The only RAG object that may be serialized into an Agent prompt.
+    """
 
     schema_version: Literal["1.0"] = "1.0"
     purpose: Literal[
@@ -741,9 +899,62 @@ class AgentTeachingContext(BaseModel):
     source_facts: list[RetrievedSourceFact] = Field(default_factory=list, max_length=8)
     limitations: list[CompactText] = Field(default_factory=list, max_length=8)
 
+    @model_validator(mode="after")
+    def validate_disclosure_boundary(self) -> AgentTeachingContext:
+        """中文：处理“验证·disclosure·boundary”相关操作。
+        English: Handles the validate disclosure boundary operation.
+
+        原有说明 / Existing notes:
+        Keep the prompt-safe projection valid even when built outside a Provider.
+        """
+        groups = (
+            self.concepts,
+            self.principles,
+            self.problem_patterns,
+            self.solution_outlines,
+            self.error_patterns,
+            self.hints,
+            self.source_facts,
+        )
+        if self.purpose == "problem_understanding" and (
+            self.solution_outlines or self.error_patterns or self.hints or self.source_facts
+        ):
+            raise ValueError("problem understanding received disallowed content groups")
+        if self.purpose == "solution_analysis" and (self.hints or self.source_facts):
+            raise ValueError("solution analysis received disallowed content groups")
+        if self.purpose == "source_lookup" and any(groups[:-1]):
+            raise ValueError("source lookup may only return source_facts")
+        if self.purpose != "hint_teaching" and self.hints:
+            raise ValueError("hint blueprints are only valid for hint teaching")
+        if self.purpose != "hint_teaching" and self.hint_level is not None:
+            raise ValueError("hint_level is only valid for hint teaching")
+
+        if self.purpose == "hint_teaching":
+            if self.hint_level is None:
+                raise ValueError("hint teaching requires hint_level")
+            disclosed = [
+                *self.concepts,
+                *self.principles,
+                *self.problem_patterns,
+                *self.solution_outlines,
+                *self.error_patterns,
+            ]
+            if any(item.disclosure_level > self.hint_level for item in disclosed):
+                raise ValueError("agent context exceeds the requested hint level")
+            if any(item.hint_level != self.hint_level for item in self.hints):
+                raise ValueError("agent hint must match the requested hint level")
+            if self.hint_level < 4 and self.solution_outlines:
+                raise ValueError("levels 1-3 cannot receive solution outlines")
+        return self
+
 
 class RetrievedTeachingContext(BaseModel):
-    """Validated, bounded teaching facts produced from raw retrieval candidates."""
+    """中文：定义“retrieved·教学·context”类，封装该职责相关的数据与行为。
+    English: Defines the retrieved teaching context class and encapsulates data and behavior for that responsibility.
+
+    原有说明 / Existing notes:
+    Validated, bounded teaching facts produced from raw retrieval candidates.
+    """
 
     schema_version: Literal["1.0"] = "1.0"
     status: Literal["success", "no_results", "disabled", "degraded"]
@@ -764,6 +975,9 @@ class RetrievedTeachingContext(BaseModel):
 
     @model_validator(mode="after")
     def validate_agent_boundary(self) -> RetrievedTeachingContext:
+        """中文：处理“验证·智能体·boundary”相关操作。
+        English: Handles the validate agent boundary operation.
+        """
         groups = (
             self.concepts,
             self.principles,
@@ -830,7 +1044,12 @@ class RetrievedTeachingContext(BaseModel):
         return self
 
     def to_agent_context(self) -> AgentTeachingContext:
-        """Drop query, provider diagnostics, and every raw retrieval candidate."""
+        """中文：处理“to·智能体·context”相关操作。
+        English: Handles the to agent context operation.
+
+        原有说明 / Existing notes:
+        Drop query, provider diagnostics, and every raw retrieval candidate.
+        """
         return AgentTeachingContext(
             purpose=self.query.purpose,
             hint_level=self.query.hint_level,

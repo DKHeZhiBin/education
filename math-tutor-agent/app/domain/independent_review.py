@@ -12,18 +12,27 @@ from app.domain.knowledge import ProblemContentStatus
 
 
 class ReviewDecision(StrEnum):
+    """中文：定义“复核·decision”类，封装该职责相关的数据与行为。
+    English: Defines the review decision class and encapsulates data and behavior for that responsibility.
+    """
     PASSED = "passed"
     FAILED = "failed"
     INCONCLUSIVE = "inconclusive"
 
 
 class ReviewFindingStatus(StrEnum):
+    """中文：定义“复核·finding·状态”类，封装该职责相关的数据与行为。
+    English: Defines the review finding status class and encapsulates data and behavior for that responsibility.
+    """
     ALIGNED = "aligned"
     CONFLICT = "conflict"
     INSUFFICIENT = "insufficient"
 
 
 class CandidateAnswerSnapshot(BaseModel):
+    """中文：定义“候选内容·答案·snapshot”类，封装该职责相关的数据与行为。
+    English: Defines the candidate answer snapshot class and encapsulates data and behavior for that responsibility.
+    """
     model_config = ConfigDict(extra="forbid")
 
     solution_id: str
@@ -37,6 +46,9 @@ class CandidateAnswerSnapshot(BaseModel):
 
 
 class IndependentAnswerSnapshot(BaseModel):
+    """中文：定义“independent·答案·snapshot”类，封装该职责相关的数据与行为。
+    English: Defines the independent answer snapshot class and encapsulates data and behavior for that responsibility.
+    """
     model_config = ConfigDict(extra="forbid")
 
     source_evidence_type: Literal["symbolic_verification", "numeric_verification"]
@@ -46,6 +58,9 @@ class IndependentAnswerSnapshot(BaseModel):
 
 
 class ToolEvidenceSnapshot(BaseModel):
+    """中文：定义“工具·evidence·snapshot”类，封装该职责相关的数据与行为。
+    English: Defines the tool evidence snapshot class and encapsulates data and behavior for that responsibility.
+    """
     model_config = ConfigDict(extra="forbid")
 
     evidence_id: str
@@ -62,6 +77,9 @@ class ToolEvidenceSnapshot(BaseModel):
 
 
 class TeachingLabelsSnapshot(BaseModel):
+    """中文：定义“教学·labels·snapshot”类，封装该职责相关的数据与行为。
+    English: Defines the teaching labels snapshot class and encapsulates data and behavior for that responsibility.
+    """
     model_config = ConfigDict(extra="forbid")
 
     subject: str
@@ -75,7 +93,12 @@ class TeachingLabelsSnapshot(BaseModel):
 
 
 class IndependentReviewContext(BaseModel):
-    """Complete, versioned projection visible to the independent review model."""
+    """中文：定义“independent·复核·context”类，封装该职责相关的数据与行为。
+    English: Defines the independent review context class and encapsulates data and behavior for that responsibility.
+
+    原有说明 / Existing notes:
+    Complete, versioned projection visible to the independent review model.
+    """
 
     model_config = ConfigDict(extra="forbid")
 
@@ -93,6 +116,9 @@ class IndependentReviewContext(BaseModel):
 
     @model_validator(mode="after")
     def validate_contract(self) -> IndependentReviewContext:
+        """中文：处理“验证·contract”相关操作。
+        English: Handles the validate contract operation.
+        """
         if self.content_status not in {
             ProblemContentStatus.CANDIDATE,
             ProblemContentStatus.VALIDATING,
@@ -116,6 +142,9 @@ class IndependentReviewContext(BaseModel):
         return self
 
     def fingerprint(self) -> str:
+        """中文：处理“fingerprint”相关操作。
+        English: Handles the fingerprint operation.
+        """
         payload = self.model_dump(mode="json")
         serialized = json.dumps(
             payload,
@@ -127,6 +156,9 @@ class IndependentReviewContext(BaseModel):
 
 
 class AnswerComparison(BaseModel):
+    """中文：定义“答案·comparison”类，封装该职责相关的数据与行为。
+    English: Defines the answer comparison class and encapsulates data and behavior for that responsibility.
+    """
     model_config = ConfigDict(extra="forbid")
 
     status: ReviewFindingStatus
@@ -136,6 +168,9 @@ class AnswerComparison(BaseModel):
 
 
 class ToolEvidenceAssessment(BaseModel):
+    """中文：定义“工具·evidence·assessment”类，封装该职责相关的数据与行为。
+    English: Defines the tool evidence assessment class and encapsulates data and behavior for that responsibility.
+    """
     model_config = ConfigDict(extra="forbid")
 
     evidence_id: str
@@ -146,6 +181,9 @@ class ToolEvidenceAssessment(BaseModel):
 
 
 class TeachingLabelAssessment(BaseModel):
+    """中文：定义“教学·label·assessment”类，封装该职责相关的数据与行为。
+    English: Defines the teaching label assessment class and encapsulates data and behavior for that responsibility.
+    """
     model_config = ConfigDict(extra="forbid")
 
     dimension: Literal[
@@ -160,6 +198,9 @@ class TeachingLabelAssessment(BaseModel):
 
 
 class IndependentReviewReport(BaseModel):
+    """中文：定义“independent·复核·报告”类，封装该职责相关的数据与行为。
+    English: Defines the independent review report class and encapsulates data and behavior for that responsibility.
+    """
     model_config = ConfigDict(extra="forbid")
 
     schema_version: Literal["1.0"] = "1.0"
@@ -180,6 +221,9 @@ class IndependentReviewReport(BaseModel):
 
     @model_validator(mode="after")
     def validate_outcome(self) -> IndependentReviewReport:
+        """中文：处理“验证·outcome”相关操作。
+        English: Handles the validate outcome operation.
+        """
         tool_ids = [item.evidence_id for item in self.tool_assessments]
         dimensions = [item.dimension for item in self.teaching_assessments]
         if len(tool_ids) != len(set(tool_ids)):

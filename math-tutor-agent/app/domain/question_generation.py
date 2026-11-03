@@ -9,6 +9,7 @@ from typing import Annotated, Literal
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from app.domain.generation import GenerationBatchStatus
+from app.domain.candidate_validation import CandidateValidationBatchResult
 from app.domain.knowledge import (
     ImplicitProblemCondition,
     ProblemCondition,
@@ -17,9 +18,13 @@ from app.domain.knowledge import (
     ProblemDifficultyFactor,
     ProblemTarget,
 )
+from app.core.product_scope import MVP_GRADE_BAND, is_mvp_scope
 
 
 class QuestionGenerationStopReason(StrEnum):
+    """中文：定义“问题·生成·停止·reason”类，封装该职责相关的数据与行为。
+    English: Defines the question generation stop reason class and encapsulates data and behavior for that responsibility.
+    """
     COMPLETED = "completed"
     BUDGET_EXHAUSTED = "budget_exhausted"
     CANCELLED = "cancelled"
@@ -30,6 +35,9 @@ class QuestionGenerationStopReason(StrEnum):
 
 
 class CandidateGenerationOutcome(StrEnum):
+    """中文：定义“候选内容·生成·outcome”类，封装该职责相关的数据与行为。
+    English: Defines the candidate generation outcome class and encapsulates data and behavior for that responsibility.
+    """
     CANDIDATE_CREATED = "candidate_created"
     GENERATION_FAILED = "generation_failed"
     SKIPPED = "skipped"
@@ -41,6 +49,9 @@ ErrorSummary = Annotated[str, Field(min_length=1, max_length=1000)]
 
 
 class QuestionGenerationBudget(BaseModel):
+    """中文：定义“问题·生成·budget”类，封装该职责相关的数据与行为。
+    English: Defines the question generation budget class and encapsulates data and behavior for that responsibility.
+    """
     max_execution_attempts: int = Field(default=3, ge=1, le=10)
     max_model_calls: int = Field(default=20, ge=1, le=10_000)
     max_revision_rounds: int = Field(default=2, ge=0, le=2)
@@ -54,6 +65,9 @@ class QuestionGenerationBudget(BaseModel):
 
     @model_validator(mode="after")
     def validate_token_limits(self) -> QuestionGenerationBudget:
+        """中文：处理“验证·令牌·limits”相关操作。
+        English: Handles the validate token limits operation.
+        """
         if self.max_input_tokens > self.max_total_tokens:
             raise ValueError("max_input_tokens cannot exceed max_total_tokens")
         if self.max_output_tokens > self.max_total_tokens:
@@ -62,6 +76,9 @@ class QuestionGenerationBudget(BaseModel):
 
 
 class QuestionGenerationUsage(BaseModel):
+    """中文：定义“问题·生成·usage”类，封装该职责相关的数据与行为。
+    English: Defines the question generation usage class and encapsulates data and behavior for that responsibility.
+    """
     model_calls: int = Field(default=0, ge=0)
     revision_rounds: int = Field(default=0, ge=0)
     input_tokens: int = Field(default=0, ge=0)
@@ -73,11 +90,17 @@ class QuestionGenerationUsage(BaseModel):
 
     @model_validator(mode="after")
     def validate_total_tokens(self) -> QuestionGenerationUsage:
+        """中文：处理“验证·total·tokens”相关操作。
+        English: Handles the validate total tokens operation.
+        """
         if self.total_tokens != self.input_tokens + self.output_tokens:
             raise ValueError("total_tokens must equal input_tokens + output_tokens")
         return self
 
     def exhausted_reasons(self, budget: QuestionGenerationBudget) -> list[str]:
+        """中文：处理“exhausted·reasons”相关操作。
+        English: Handles the exhausted reasons operation.
+        """
         checks = {
             "model_calls": self.model_calls >= budget.max_model_calls,
             "input_tokens": self.input_tokens >= budget.max_input_tokens,
@@ -90,6 +113,9 @@ class QuestionGenerationUsage(BaseModel):
         return [name for name, exhausted in checks.items() if exhausted]
 
     def exceeded_reasons(self, budget: QuestionGenerationBudget) -> list[str]:
+        """中文：处理“exceeded·reasons”相关操作。
+        English: Handles the exceeded reasons operation.
+        """
         checks = {
             "model_calls": self.model_calls > budget.max_model_calls,
             "revision_rounds": self.revision_rounds > budget.max_revision_rounds,
@@ -114,6 +140,9 @@ class QuestionGenerationUsage(BaseModel):
         duration_ms: int = 0,
         candidates: int = 0,
     ) -> bool:
+        """中文：处理“can·reserve”相关操作。
+        English: Handles the can reserve operation.
+        """
         values = (
             model_calls,
             revision_rounds,
@@ -138,17 +167,26 @@ class QuestionGenerationUsage(BaseModel):
 
 
 class DifficultyRange(BaseModel):
+    """中文：定义“difficulty·range”类，封装该职责相关的数据与行为。
+    English: Defines the difficulty range class and encapsulates data and behavior for that responsibility.
+    """
     minimum: int = Field(default=1, ge=1, le=5)
     maximum: int = Field(default=3, ge=1, le=5)
 
     @model_validator(mode="after")
     def validate_range(self) -> DifficultyRange:
+        """中文：处理“验证·range”相关操作。
+        English: Handles the validate range operation.
+        """
         if self.minimum > self.maximum:
             raise ValueError("difficulty minimum cannot exceed maximum")
         return self
 
 
 class QuestionGenerationConstraints(BaseModel):
+    """中文：定义“问题·生成·constraints”类，封装该职责相关的数据与行为。
+    English: Defines the question generation constraints class and encapsulates data and behavior for that responsibility.
+    """
     domains: list[str] = Field(default_factory=lambda: ["reals"], min_length=1)
     preserve_answer_type: bool = True
     preserve_solution_count: bool = False
@@ -160,6 +198,9 @@ class QuestionGenerationConstraints(BaseModel):
 
 
 class QuestionGenerationSpec(BaseModel):
+    """中文：定义“问题·生成·spec”类，封装该职责相关的数据与行为。
+    English: Defines the question generation spec class and encapsulates data and behavior for that responsibility.
+    """
     schema_version: Literal["1.0"] = "1.0"
     mother_problem_ids: list[MotherProblemId] = Field(min_length=1, max_length=100)
     requested_count: int = Field(ge=1, le=1000)
@@ -175,6 +216,7 @@ class QuestionGenerationSpec(BaseModel):
     model_version_id: str = Field(min_length=1)
     prompt_version_id: str = Field(min_length=1)
     verifier_profile: str = Field(min_length=1, max_length=100)
+    auto_validate: bool = False
     output_schema_version: str = Field(default="1.0", min_length=1, max_length=32)
     random_seed: int | None = Field(default=None, ge=0, le=2**31 - 1)
     constraints: QuestionGenerationConstraints = Field(
@@ -183,6 +225,9 @@ class QuestionGenerationSpec(BaseModel):
 
     @model_validator(mode="after")
     def validate_spec(self) -> QuestionGenerationSpec:
+        """中文：处理“验证·spec”相关操作。
+        English: Handles the validate spec operation.
+        """
         unique_fields = {
             "mother_problem_ids": self.mother_problem_ids,
             "knowledge_point_codes": self.knowledge_point_codes,
@@ -198,6 +243,9 @@ class QuestionGenerationSpec(BaseModel):
 
 
 class QuestionGenerationStoredInput(QuestionGenerationSpec):
+    """中文：定义“问题·生成·stored·input”类，封装该职责相关的数据与行为。
+    English: Defines the question generation stored input class and encapsulates data and behavior for that responsibility.
+    """
     idempotency_scope: str = Field(
         min_length=1,
         max_length=100,
@@ -206,7 +254,12 @@ class QuestionGenerationStoredInput(QuestionGenerationSpec):
 
 
 class TrustedMotherProblemContext(BaseModel):
-    """The only problem context the variation agent is allowed to read."""
+    """中文：定义“trusted·mother·题目·context”类，封装该职责相关的数据与行为。
+    English: Defines the trusted mother problem context class and encapsulates data and behavior for that responsibility.
+
+    原有说明 / Existing notes:
+    The only problem context the variation agent is allowed to read.
+    """
 
     model_config = ConfigDict(extra="forbid")
 
@@ -233,6 +286,9 @@ class TrustedMotherProblemContext(BaseModel):
 
     @model_validator(mode="after")
     def validate_admission(self) -> TrustedMotherProblemContext:
+        """中文：处理“验证·admission”相关操作。
+        English: Handles the validate admission operation.
+        """
         if self.content_status not in {
             ProblemContentStatus.APPROVED,
             ProblemContentStatus.INDEXED,
@@ -240,7 +296,7 @@ class TrustedMotherProblemContext(BaseModel):
             raise ValueError("trusted mother must be approved or indexed")
         if len(self.knowledge_point_codes) != len(set(self.knowledge_point_codes)):
             raise ValueError("mother knowledge_point_codes must be unique")
-        if not self.grade_codes:
+        if self.grade_band != MVP_GRADE_BAND and not self.grade_codes:
             raise ValueError("trusted mother must have at least one grade code")
         if len(self.grade_codes) != len(set(self.grade_codes)):
             raise ValueError("mother grade_codes must be unique")
@@ -248,6 +304,9 @@ class TrustedMotherProblemContext(BaseModel):
 
 
 class QuestionGenerationJobInput(QuestionGenerationSpec):
+    """中文：定义“问题·生成·任务·input”类，封装该职责相关的数据与行为。
+    English: Defines the question generation job input class and encapsulates data and behavior for that responsibility.
+    """
     idempotency_scope: str = Field(
         min_length=1,
         max_length=100,
@@ -259,6 +318,9 @@ class QuestionGenerationJobInput(QuestionGenerationSpec):
     @field_validator("idempotency_key")
     @classmethod
     def validate_idempotency_key(cls, value: str) -> str:
+        """中文：处理“验证·idempotency·key”相关操作。
+        English: Handles the validate idempotency key operation.
+        """
         if value != value.strip():
             raise ValueError("idempotency_key cannot have leading or trailing whitespace")
         if any(ord(character) < 32 or ord(character) == 127 for character in value):
@@ -267,11 +329,29 @@ class QuestionGenerationJobInput(QuestionGenerationSpec):
 
     @model_validator(mode="after")
     def validate_request_budget(self) -> QuestionGenerationJobInput:
+        """中文：处理“验证·请求·budget”相关操作。
+        English: Handles the validate request budget operation.
+        """
+        if not is_mvp_scope(self.subject, self.grade_band):
+            raise ValueError("question generation is limited to math/university")
         if self.requested_count > self.budget.max_candidates:
             raise ValueError("requested_count cannot exceed budget.max_candidates")
+        required_model_calls = self.requested_count * (4 if self.auto_validate else 1)
+        if required_model_calls > self.budget.max_model_calls:
+            raise ValueError(
+                "max_model_calls must reserve generation plus condition, solving and review calls"
+            )
+        if self.auto_validate:
+            raise ValueError(
+                "university-calculus automatic validation is not configured; "
+                "set auto_validate=false"
+            )
         return self
 
     def request_hash(self) -> str:
+        """中文：处理“请求·hash”相关操作。
+        English: Handles the request hash operation.
+        """
         payload = self.model_dump(
             mode="json",
             exclude={"idempotency_scope", "idempotency_key"},
@@ -279,15 +359,24 @@ class QuestionGenerationJobInput(QuestionGenerationSpec):
         return _canonical_hash(payload)
 
     def idempotency_key_hash(self) -> str:
+        """中文：处理“idempotency·key·hash”相关操作。
+        English: Handles the idempotency key hash operation.
+        """
         return _canonical_hash({
             "scope": self.idempotency_scope,
             "key": self.idempotency_key,
         })
 
     def batch_key(self) -> str:
+        """中文：处理“批次·key”相关操作。
+        English: Handles the batch key operation.
+        """
         return f"qgen-{self.idempotency_key_hash()}"
 
     def persistence_payload(self) -> dict:
+        """中文：处理“persistence·payload”相关操作。
+        English: Handles the persistence payload operation.
+        """
         return self.model_dump(
             mode="json",
             exclude={"idempotency_key", "budget"},
@@ -295,6 +384,9 @@ class QuestionGenerationJobInput(QuestionGenerationSpec):
 
 
 class GeneratedQuestionDraft(BaseModel):
+    """中文：定义“generated·问题·draft”类，封装该职责相关的数据与行为。
+    English: Defines the generated question draft class and encapsulates data and behavior for that responsibility.
+    """
     model_config = ConfigDict(extra="forbid")
 
     statement: str = Field(min_length=1, max_length=10_000)
@@ -311,6 +403,9 @@ class GeneratedQuestionDraft(BaseModel):
 
     @model_validator(mode="after")
     def validate_structure(self) -> GeneratedQuestionDraft:
+        """中文：处理“验证·structure”相关操作。
+        English: Handles the validate structure operation.
+        """
         if len(self.knowledge_point_codes) != len(set(self.knowledge_point_codes)):
             raise ValueError("knowledge_point_codes must be unique")
         if self.target.expected_answer_type != self.answer_type:
@@ -319,6 +414,9 @@ class GeneratedQuestionDraft(BaseModel):
 
 
 class QuestionGenerationCandidateResult(BaseModel):
+    """中文：定义“问题·生成·候选内容·结果”类，封装该职责相关的数据与行为。
+    English: Defines the question generation candidate result class and encapsulates data and behavior for that responsibility.
+    """
     ordinal: int = Field(ge=0)
     candidate_key: str = Field(min_length=1, max_length=100)
     mother_problem_id: str
@@ -331,14 +429,17 @@ class QuestionGenerationCandidateResult(BaseModel):
 
     @model_validator(mode="after")
     def validate_outcome(self) -> QuestionGenerationCandidateResult:
+        """中文：处理“验证·outcome”相关操作。
+        English: Handles the validate outcome operation.
+        """
         if self.outcome == CandidateGenerationOutcome.CANDIDATE_CREATED:
             if (
                 self.draft is None
                 or self.problem_id is None
-                or self.content_status != ProblemContentStatus.CANDIDATE
+                or self.content_status is None
             ):
                 raise ValueError(
-                    "created candidates require a draft, problem_id and candidate status"
+                    "created candidates require a draft, problem_id and content status"
                 )
             if self.failure_code is not None:
                 raise ValueError("created candidates cannot have a failure_code")
@@ -355,6 +456,9 @@ class QuestionGenerationCandidateResult(BaseModel):
 
 
 class QuestionGenerationJobOutput(BaseModel):
+    """中文：定义“问题·生成·任务·output”类，封装该职责相关的数据与行为。
+    English: Defines the question generation job output class and encapsulates data and behavior for that responsibility.
+    """
     schema_version: Literal["1.0"] = "1.0"
     job_id: str
     generation_batch_id: str
@@ -365,9 +469,13 @@ class QuestionGenerationJobOutput(BaseModel):
     started_at: datetime | None = None
     finished_at: datetime | None = None
     errors: list[ErrorSummary] = Field(default_factory=list, max_length=100)
+    validation: CandidateValidationBatchResult | None = None
 
     @model_validator(mode="after")
     def validate_output(self) -> QuestionGenerationJobOutput:
+        """中文：处理“验证·output”相关操作。
+        English: Handles the validate output operation.
+        """
         ordinals = [candidate.ordinal for candidate in self.candidates]
         keys = [candidate.candidate_key for candidate in self.candidates]
         if len(ordinals) != len(set(ordinals)) or len(keys) != len(set(keys)):
@@ -411,6 +519,9 @@ class QuestionGenerationJobOutput(BaseModel):
 
 
 class QuestionGenerationJob(BaseModel):
+    """中文：定义“问题·生成·任务”类，封装该职责相关的数据与行为。
+    English: Defines the question generation job class and encapsulates data and behavior for that responsibility.
+    """
     id: str
     generation_batch_id: str
     idempotency_key_hash: str = Field(pattern=r"^[0-9a-f]{64}$")
@@ -427,6 +538,9 @@ class QuestionGenerationJob(BaseModel):
 
     @model_validator(mode="after")
     def validate_identity_and_budget(self) -> QuestionGenerationJob:
+        """中文：处理“验证·identity·and·budget”相关操作。
+        English: Handles the validate identity and budget operation.
+        """
         request_payload = self.input.model_dump(
             mode="json",
             exclude={"idempotency_scope"},
@@ -503,6 +617,9 @@ class QuestionGenerationJob(BaseModel):
 
 
 class GenerationBatchStateMachine:
+    """中文：定义“生成·批次·state·machine”类，封装该职责相关的数据与行为。
+    English: Defines the generation batch state machine class and encapsulates data and behavior for that responsibility.
+    """
     _transitions = {
         GenerationBatchStatus.PENDING: {
             GenerationBatchStatus.RUNNING,
@@ -527,6 +644,9 @@ class GenerationBatchStateMachine:
         current: GenerationBatchStatus,
         target: GenerationBatchStatus,
     ) -> GenerationBatchStatus:
+        """中文：处理“transition”相关操作。
+        English: Handles the transition operation.
+        """
         if target == current:
             return current
         if target not in cls._transitions.get(current, set()):
@@ -535,12 +655,18 @@ class GenerationBatchStateMachine:
 
 
 def candidate_key(idempotency_key_hash: str, ordinal: int) -> str:
+    """中文：处理“候选内容·key”相关操作。
+    English: Handles the candidate key operation.
+    """
     if ordinal < 0:
         raise ValueError("candidate ordinal cannot be negative")
     return f"qgc-{sha256(f'{idempotency_key_hash}:{ordinal}'.encode()).hexdigest()}"
 
 
 def _canonical_hash(value: dict) -> str:
+    """中文：处理“canonical·hash”相关操作。
+    English: Handles the canonical hash operation.
+    """
     serialized = json.dumps(
         value,
         ensure_ascii=False,

@@ -18,6 +18,9 @@ from app.vector_store.qdrant import QdrantVectorStore
 
 
 class SearchIndexLifecycleService:
+    """中文：定义“搜索·索引·lifecycle·服务”类，封装该职责相关的数据与行为。
+    English: Defines the search index lifecycle service class and encapsulates data and behavior for that responsibility.
+    """
     def __init__(
         self,
         config: Settings = settings,
@@ -25,6 +28,9 @@ class SearchIndexLifecycleService:
         session_factory: sessionmaker[Session] | None = None,
         production_service: ProductionIndexService | None = None,
     ) -> None:
+        """中文：初始化当前对象及其依赖。
+        English: Initializes the current object and its dependencies.
+        """
         self.config = config
         self.session_factory = session_factory or create_session_factory(
             create_mysql_engine()
@@ -47,6 +53,9 @@ class SearchIndexLifecycleService:
         self,
         request: IndexMaintenanceRequest,
     ) -> IndexMaintenanceJobView:
+        """中文：处理“enqueue”相关操作。
+        English: Handles the enqueue operation.
+        """
         with self.session_factory.begin() as session:
             job = self.repository.enqueue(
                 session,
@@ -62,11 +71,17 @@ class SearchIndexLifecycleService:
         return view
 
     def get(self, job_id: str) -> IndexMaintenanceJobView | None:
+        """中文：处理“获取”相关操作。
+        English: Handles the get operation.
+        """
         with self.session_factory() as session:
             job = self.repository.get(session, job_id)
             return self.repository.view(job) if job else None
 
     def run(self, *, limit: int = 25) -> IndexMaintenanceRunSummary:
+        """中文：处理“执行”相关操作。
+        English: Handles the run operation.
+        """
         if limit <= 0:
             raise ValueError("maintenance limit must be greater than zero")
         with self.session_factory() as session:
@@ -102,10 +117,20 @@ class SearchIndexLifecycleService:
             failed_job_ids=failed,
         )
 
-    def run_job(self, job_id: str) -> IndexMaintenanceJobView:
-        """Process one known outbox job immediately; failures remain retryable."""
+    def run_job(
+        self,
+        job_id: str,
+        *,
+        actor_id: str | None = None,
+    ) -> IndexMaintenanceJobView:
+        """中文：处理“执行·任务”相关操作。
+        English: Handles the run job operation.
+
+        原有说明 / Existing notes:
+        Process one known outbox job immediately; failures remain retryable.
+        """
         try:
-            self._process(job_id)
+            self._process(job_id, actor_id=actor_id)
         except Exception as error:
             with self.session_factory.begin() as session:
                 self.repository.mark_failed(
@@ -119,12 +144,18 @@ class SearchIndexLifecycleService:
         return job
 
     def close(self) -> None:
+        """中文：处理“关闭”相关操作。
+        English: Handles the close operation.
+        """
         if self.production_service is not None:
             self.production_service.close()
         elif self.vector_store is not None:
             self.vector_store.close()
 
-    def _process(self, job_id: str) -> str:
+    def _process(self, job_id: str, *, actor_id: str | None = None) -> str:
+        """中文：处理“处理”相关操作。
+        English: Handles the process operation.
+        """
         recovery_before = self._recovery_before()
         with self.session_factory.begin() as session:
             claimed, point_ids = self.repository.start_deletion(
@@ -137,7 +168,11 @@ class SearchIndexLifecycleService:
         if point_ids is not None:
             self._vector_store().delete_points(point_ids)
             with self.session_factory.begin() as session:
-                outcome = self.repository.finish_deletion(session, job_id)
+                outcome = self.repository.finish_deletion(
+                    session,
+                    job_id,
+                    actor_id=actor_id,
+                )
                 generation = self.cache_version.bump(
                     session,
                     reason=f"index_deleted:{job_id}",
@@ -168,6 +203,9 @@ class SearchIndexLifecycleService:
         return "completed"
 
     def _vector_store(self) -> QdrantVectorStore:
+        """中文：处理“向量·store”相关操作。
+        English: Handles the vector store operation.
+        """
         if self.vector_store is None:
             self.vector_store = QdrantVectorStore(
                 self.config,
@@ -176,6 +214,9 @@ class SearchIndexLifecycleService:
         return self.vector_store
 
     def _production_service(self) -> ProductionIndexService:
+        """中文：处理“production·服务”相关操作。
+        English: Handles the production service operation.
+        """
         if self.production_service is None:
             self.production_service = ProductionIndexService(
                 self.config,
@@ -185,6 +226,9 @@ class SearchIndexLifecycleService:
         return self.production_service
 
     def _recovery_before(self) -> datetime:
+        """中文：处理“recovery·before”相关操作。
+        English: Handles the recovery before operation.
+        """
         return (
             datetime.now(timezone.utc)
             - timedelta(
@@ -194,6 +238,9 @@ class SearchIndexLifecycleService:
 
     @staticmethod
     def _error_code(error: Exception) -> str:
+        """中文：处理“error·code”相关操作。
+        English: Handles the error code operation.
+        """
         if isinstance(error, LookupError):
             return "maintenance_entity_missing"
         return type(error).__name__.lower()[:100]

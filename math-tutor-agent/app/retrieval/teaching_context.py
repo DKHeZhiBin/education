@@ -61,6 +61,9 @@ PURPOSE_ENTITIES = {
 
 
 def allowed_entity_types(query: KnowledgeQuery) -> list[str]:
+    """中文：处理“allowed·entity·types”相关操作。
+    English: Handles the allowed entity types operation.
+    """
     entity_types = list(PURPOSE_ENTITIES[query.purpose])
     if query.purpose == "hint_teaching" and query.hint_level == 4:
         entity_types.append("solution_outline")
@@ -68,6 +71,9 @@ def allowed_entity_types(query: KnowledgeQuery) -> list[str]:
 
 
 def candidate_allowed(candidate: RankedTeachingCandidate, query: KnowledgeQuery) -> bool:
+    """中文：处理“候选内容·allowed”相关操作。
+    English: Handles the candidate allowed operation.
+    """
     payload = candidate.payload
     filters = query.filters
     if payload.index_status != "active" or payload.content_status not in {
@@ -125,6 +131,9 @@ def build_teaching_context(
     candidate_count: int | None = None,
     limitations: list[str] | None = None,
 ) -> RetrievedTeachingContext:
+    """中文：处理“构建·教学·context”相关操作。
+    English: Handles the build teaching context operation.
+    """
     groups: dict[str, list[Any]] = {name: [] for name in CATEGORY_LIMITS}
     notes = list(limitations or [])
     invalid = 0

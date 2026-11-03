@@ -23,34 +23,52 @@ from app.repositories.teaching_content import TeachingContentRepository
 
 
 class IndependentSolvingReferenceInvalid(ValueError):
+    """中文：定义“independent·solving·reference·invalid”类，封装该职责相关的数据与行为。
+    English: Defines the independent solving reference invalid class and encapsulates data and behavior for that responsibility.
+    """
     pass
 
 
 class IndependentSolvingVersionConflict(RuntimeError):
+    """中文：定义“independent·solving·version·conflict”类，封装该职责相关的数据与行为。
+    English: Defines the independent solving version conflict class and encapsulates data and behavior for that responsibility.
+    """
     pass
 
 
 @dataclass(frozen=True)
 class IndependentSolvingAgentContext:
+    """中文：定义“independent·solving·智能体·context”类，封装该职责相关的数据与行为。
+    English: Defines the independent solving agent context class and encapsulates data and behavior for that responsibility.
+    """
     solver_context: IndependentSolverContext
     generation_batch_id: str
     source_reference_id: str
     input_fingerprint: str
     model_version_id: str
     prompt_version_id: str
+    provider_id: str
     model_name: str
     versioned_prompt: str
 
 
 @dataclass(frozen=True)
 class PersistedIndependentSolution:
+    """中文：定义“persisted·independent·解答”类，封装该职责相关的数据与行为。
+    English: Defines the persisted independent solution class and encapsulates data and behavior for that responsibility.
+    """
     solution: DomainKnowledgeSolution
     evidence: DomainAdmissionEvidence
     created: bool
 
 
 class IndependentSolvingRepository:
-    """Enforce context isolation and persist an unverified independent solution."""
+    """中文：定义“independent·solving·仓储”类，封装该职责相关的数据与行为。
+    English: Defines the independent solving repository class and encapsulates data and behavior for that responsibility.
+
+    原有说明 / Existing notes:
+    Enforce context isolation and persist an unverified independent solution.
+    """
 
     def load_agent_context(
         self,
@@ -60,6 +78,9 @@ class IndependentSolvingRepository:
         model_version_id: str,
         prompt_version_id: str,
     ) -> IndependentSolvingAgentContext:
+        """中文：处理“加载·智能体·context”相关操作。
+        English: Handles the load agent context operation.
+        """
         model, prompt = self._require_versions(
             session, model_version_id, prompt_version_id
         )
@@ -93,6 +114,7 @@ class IndependentSolvingRepository:
             input_fingerprint=context.fingerprint(),
             model_version_id=model.id,
             prompt_version_id=prompt.id,
+            provider_id=model.provider,
             model_name=model.model_name,
             versioned_prompt=prompt.template_text,
         )
@@ -104,6 +126,9 @@ class IndependentSolvingRepository:
         context: IndependentSolvingAgentContext,
         draft: IndependentSolutionDraft,
     ) -> PersistedIndependentSolution:
+        """中文：处理“persist·解答”相关操作。
+        English: Handles the persist solution operation.
+        """
         self._require_versions(
             session,
             context.model_version_id,
@@ -231,6 +256,9 @@ class IndependentSolvingRepository:
 
     @staticmethod
     def _require_problem_scope(problem: KnowledgeProblem) -> None:
+        """中文：处理“require·题目·范围”相关操作。
+        English: Handles the require problem scope operation.
+        """
         if problem.generation_batch_id is None:
             raise IndependentSolvingReferenceInvalid(
                 "independent solver requires a generated candidate"
@@ -257,6 +285,9 @@ class IndependentSolvingRepository:
         session: Session,
         problem: KnowledgeProblem,
     ) -> AdmissionEvidence:
+        """中文：处理“require·passed·condition·检查”相关操作。
+        English: Handles the require passed condition check operation.
+        """
         evidence = session.scalar(
             select(AdmissionEvidence)
             .where(
@@ -296,6 +327,9 @@ class IndependentSolvingRepository:
         solution: KnowledgeSolution,
         context: IndependentSolvingAgentContext,
     ) -> AdmissionEvidence:
+        """中文：处理“获取·or·创建·independence·evidence”相关操作。
+        English: Handles the get or create independence evidence operation.
+        """
         payload = {
             "solution_id": solution.id,
             "solution_content_hash": solution.content_hash,
@@ -354,6 +388,9 @@ class IndependentSolvingRepository:
         model_version_id: str,
         prompt_version_id: str,
     ) -> tuple[ModelVersion, PromptVersion]:
+        """中文：处理“require·versions”相关操作。
+        English: Handles the require versions operation.
+        """
         model = session.get(ModelVersion, model_version_id)
         prompt = session.get(PromptVersion, prompt_version_id)
         if model is None or not model.active:
@@ -373,6 +410,9 @@ class IndependentSolvingRepository:
 
     @staticmethod
     def _solution_hash(draft: IndependentSolutionDraft) -> str:
+        """中文：处理“解答·hash”相关操作。
+        English: Handles the solution hash operation.
+        """
         return IndependentSolvingRepository._hash_json({
             "method_name": draft.method_name,
             "solution_text": draft.solution_text,
@@ -387,6 +427,9 @@ class IndependentSolvingRepository:
 
     @staticmethod
     def _hash_json(payload: dict) -> str:
+        """中文：处理“hash·json”相关操作。
+        English: Handles the hash json operation.
+        """
         serialized = json.dumps(
             payload,
             ensure_ascii=False,
@@ -397,6 +440,9 @@ class IndependentSolvingRepository:
 
     @staticmethod
     def _solution_to_domain(entity: KnowledgeSolution) -> DomainKnowledgeSolution:
+        """中文：处理“解答·to·domain”相关操作。
+        English: Handles the solution to domain operation.
+        """
         return DomainKnowledgeSolution(
             id=entity.id,
             problem_id=entity.problem_id,
@@ -417,6 +463,9 @@ class IndependentSolvingRepository:
 
     @staticmethod
     def _evidence_to_domain(entity: AdmissionEvidence) -> DomainAdmissionEvidence:
+        """中文：处理“evidence·to·domain”相关操作。
+        English: Handles the evidence to domain operation.
+        """
         return DomainAdmissionEvidence(
             id=entity.id,
             generation_batch_id=entity.generation_batch_id,

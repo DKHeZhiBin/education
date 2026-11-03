@@ -4,6 +4,7 @@ import argparse
 import json
 from pathlib import Path
 
+from app.core.logging import configure_cli_logging
 from app.core.config import settings
 from app.domain.retrieval_evaluation import RetrievalEvaluationRunRecord
 from app.evaluation.datasets import DEFAULT_RETRIEVAL_MANIFEST, EvaluationDatasetError
@@ -11,6 +12,9 @@ from app.evaluation.retrieval_quality import RetrievalQualityEvaluator
 
 
 def _load_records(path: Path) -> list[RetrievalEvaluationRunRecord]:
+    """中文：处理“加载·records”相关操作。
+    English: Handles the load records operation.
+    """
     try:
         lines = path.read_text(encoding="utf-8").splitlines()
     except OSError as exc:
@@ -29,6 +33,10 @@ def _load_records(path: Path) -> list[RetrievalEvaluationRunRecord]:
 
 
 def main() -> None:
+    """中文：处理“main”相关操作。
+    English: Handles the main operation.
+    """
+    configure_cli_logging()
     parser = argparse.ArgumentParser(
         description="Calculate retrieval, reranking, evidence and citation quality"
     )

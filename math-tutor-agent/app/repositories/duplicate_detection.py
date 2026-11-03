@@ -22,15 +22,24 @@ from app.models.knowledge import KnowledgeProblem, KnowledgeSolution
 
 
 class DuplicateDetectionReferenceInvalid(ValueError):
+    """中文：定义“重复项·detection·reference·invalid”类，封装该职责相关的数据与行为。
+    English: Defines the duplicate detection reference invalid class and encapsulates data and behavior for that responsibility.
+    """
     pass
 
 
 class DuplicateDetectionVersionConflict(RuntimeError):
+    """中文：定义“重复项·detection·version·conflict”类，封装该职责相关的数据与行为。
+    English: Defines the duplicate detection version conflict class and encapsulates data and behavior for that responsibility.
+    """
     pass
 
 
 @dataclass(frozen=True)
 class DuplicateDetectorContext:
+    """中文：定义“重复项·detector·context”类，封装该职责相关的数据与行为。
+    English: Defines the duplicate detector context class and encapsulates data and behavior for that responsibility.
+    """
     detection_context: DuplicateDetectionContext
     verifier_version_id: str
     verifier_key: str
@@ -38,9 +47,17 @@ class DuplicateDetectorContext:
 
 
 class DuplicateDetectionRepository:
-    """Build a bounded comparison pool and persist four-layer duplicate evidence."""
+    """中文：定义“重复项·detection·仓储”类，封装该职责相关的数据与行为。
+    English: Defines the duplicate detection repository class and encapsulates data and behavior for that responsibility.
+
+    原有说明 / Existing notes:
+    Build a bounded comparison pool and persist four-layer duplicate evidence.
+    """
 
     def __init__(self, *, maximum_comparison_problems: int = 2000) -> None:
+        """中文：初始化当前对象及其依赖。
+        English: Initializes the current object and its dependencies.
+        """
         if maximum_comparison_problems < 1:
             raise ValueError("maximum_comparison_problems must be positive")
         self.maximum_comparison_problems = maximum_comparison_problems
@@ -53,6 +70,9 @@ class DuplicateDetectionRepository:
         solution_id: str,
         verifier_version_id: str,
     ) -> DuplicateDetectorContext:
+        """中文：处理“加载·detector·context”相关操作。
+        English: Handles the load detector context operation.
+        """
         verifier = self._require_verifier(session, verifier_version_id)
         problem = session.get(KnowledgeProblem, problem_id)
         solution = session.get(KnowledgeSolution, solution_id)
@@ -75,6 +95,9 @@ class DuplicateDetectionRepository:
         context: DuplicateDetectorContext,
         report: DuplicateDetectionReport,
     ) -> DomainAdmissionEvidence:
+        """中文：处理“persist·报告”相关操作。
+        English: Handles the persist report operation.
+        """
         self._require_verifier(session, context.verifier_version_id)
         problem = session.scalar(
             select(KnowledgeProblem)
@@ -154,6 +177,9 @@ class DuplicateDetectionRepository:
         problem: KnowledgeProblem,
         solution: KnowledgeSolution,
     ) -> DuplicateDetectionContext:
+        """中文：处理“构建·context”相关操作。
+        English: Handles the build context operation.
+        """
         filters = (
             KnowledgeProblem.id != problem.id,
             KnowledgeProblem.subject == problem.subject,
@@ -186,6 +212,9 @@ class DuplicateDetectionRepository:
         problem: KnowledgeProblem,
         solution: KnowledgeSolution | None,
     ) -> DuplicateProblemSnapshot:
+        """中文：处理“snapshot”相关操作。
+        English: Handles the snapshot operation.
+        """
         return DuplicateProblemSnapshot(
             problem_id=problem.id,
             content_hash=problem.content_hash,
@@ -212,6 +241,9 @@ class DuplicateDetectionRepository:
     def _best_solution(
         solutions: list[KnowledgeSolution],
     ) -> KnowledgeSolution | None:
+        """中文：处理“best·解答”相关操作。
+        English: Handles the best solution operation.
+        """
         if not solutions:
             return None
         verification_rank = {"verified": 3, "partial": 2, "unverified": 1, "failed": 0}
@@ -226,6 +258,9 @@ class DuplicateDetectionRepository:
 
     @staticmethod
     def _require_scope(problem: KnowledgeProblem, solution: KnowledgeSolution) -> None:
+        """中文：处理“require·范围”相关操作。
+        English: Handles the require scope operation.
+        """
         if problem.generation_batch_id is None:
             raise DuplicateDetectionReferenceInvalid("generated candidate batch is required")
         if problem.content_status not in {"candidate", "validating", "revision_required"}:
@@ -253,6 +288,9 @@ class DuplicateDetectionRepository:
         problem: KnowledgeProblem,
         solution: KnowledgeSolution,
     ) -> None:
+        """中文：处理“require·independent·解答”相关操作。
+        English: Handles the require independent solution operation.
+        """
         evidence = session.scalar(
             select(AdmissionEvidence)
             .where(
@@ -281,6 +319,9 @@ class DuplicateDetectionRepository:
         problem: KnowledgeProblem,
         evidence: AdmissionEvidence,
     ) -> bool:
+        """中文：处理“predates·revalidation”相关操作。
+        English: Handles the predates revalidation operation.
+        """
         required = (problem.metadata_json or {}).get(
             "revalidation_started_status_version"
         )
@@ -295,6 +336,9 @@ class DuplicateDetectionRepository:
         verifier_version_id: str,
         problem_type: str | None = None,
     ) -> VerifierVersion:
+        """中文：处理“require·verifier”相关操作。
+        English: Handles the require verifier operation.
+        """
         verifier = session.get(VerifierVersion, verifier_version_id)
         if (
             verifier is None
@@ -313,6 +357,9 @@ class DuplicateDetectionRepository:
 
     @staticmethod
     def _summary(report: DuplicateDetectionReport) -> str:
+        """中文：处理“summary”相关操作。
+        English: Handles the summary operation.
+        """
         if report.status.value == "passed":
             return (
                 f"已完成 {report.compared_count} 道同题型题目的四层重复检测，"
@@ -327,6 +374,9 @@ class DuplicateDetectionRepository:
 
     @staticmethod
     def _hash_json(payload: dict) -> str:
+        """中文：处理“hash·json”相关操作。
+        English: Handles the hash json operation.
+        """
         serialized = json.dumps(
             payload,
             ensure_ascii=False,
@@ -337,6 +387,9 @@ class DuplicateDetectionRepository:
 
     @staticmethod
     def _evidence_to_domain(entity: AdmissionEvidence) -> DomainAdmissionEvidence:
+        """中文：处理“evidence·to·domain”相关操作。
+        English: Handles the evidence to domain operation.
+        """
         return DomainAdmissionEvidence(
             id=entity.id,
             generation_batch_id=entity.generation_batch_id,

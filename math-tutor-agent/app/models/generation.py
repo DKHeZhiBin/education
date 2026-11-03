@@ -23,6 +23,9 @@ if TYPE_CHECKING:
 
 
 class ModelVersion(UuidPrimaryKeyMixin, TimestampMixin, Base):
+    """中文：定义“模型·version”类，封装该职责相关的数据与行为。
+    English: Defines the model version class and encapsulates data and behavior for that responsibility.
+    """
     __tablename__ = "model_versions"
     __table_args__ = (
         UniqueConstraint("provider", "model_name", "version_label", name="model_version_identity"),
@@ -46,6 +49,9 @@ class ModelVersion(UuidPrimaryKeyMixin, TimestampMixin, Base):
 
 
 class PromptVersion(UuidPrimaryKeyMixin, TimestampMixin, Base):
+    """中文：定义“提示词·version”类，封装该职责相关的数据与行为。
+    English: Defines the prompt version class and encapsulates data and behavior for that responsibility.
+    """
     __tablename__ = "prompt_versions"
     __table_args__ = (
         UniqueConstraint("prompt_key", "version", name="prompt_version_identity"),
@@ -69,6 +75,9 @@ class PromptVersion(UuidPrimaryKeyMixin, TimestampMixin, Base):
 
 
 class VerifierVersion(UuidPrimaryKeyMixin, TimestampMixin, Base):
+    """中文：定义“verifier·version”类，封装该职责相关的数据与行为。
+    English: Defines the verifier version class and encapsulates data and behavior for that responsibility.
+    """
     __tablename__ = "verifier_versions"
     __table_args__ = (
         UniqueConstraint("verifier_key", "version", name="verifier_version_identity"),
@@ -90,6 +99,9 @@ class VerifierVersion(UuidPrimaryKeyMixin, TimestampMixin, Base):
 
 
 class GenerationBatch(UuidPrimaryKeyMixin, TimestampMixin, Base):
+    """中文：定义“生成·批次”类，封装该职责相关的数据与行为。
+    English: Defines the generation batch class and encapsulates data and behavior for that responsibility.
+    """
     __tablename__ = "generation_batches"
     __table_args__ = (
         CheckConstraint(
@@ -174,6 +186,9 @@ class GenerationBatch(UuidPrimaryKeyMixin, TimestampMixin, Base):
 
 
 class GenerationBatchManagementEvent(UuidPrimaryKeyMixin, Base):
+    """中文：定义“生成·批次·management·事件”类，封装该职责相关的数据与行为。
+    English: Defines the generation batch management event class and encapsulates data and behavior for that responsibility.
+    """
     __tablename__ = "generation_batch_management_events"
     __table_args__ = (
         CheckConstraint(
@@ -210,6 +225,9 @@ class GenerationBatchManagementEvent(UuidPrimaryKeyMixin, Base):
 
 
 class QuestionGenerationJob(UuidPrimaryKeyMixin, TimestampMixin, Base):
+    """中文：定义“问题·生成·任务”类，封装该职责相关的数据与行为。
+    English: Defines the question generation job class and encapsulates data and behavior for that responsibility.
+    """
     __tablename__ = "question_generation_jobs"
     __table_args__ = (
         CheckConstraint("attempt_count >= 0", name="attempt_count_nonnegative"),
@@ -247,6 +265,9 @@ class QuestionGenerationJob(UuidPrimaryKeyMixin, TimestampMixin, Base):
 
 
 class AdmissionEvidence(UuidPrimaryKeyMixin, Base):
+    """中文：定义“admission·evidence”类，封装该职责相关的数据与行为。
+    English: Defines the admission evidence class and encapsulates data and behavior for that responsibility.
+    """
     __tablename__ = "admission_evidence"
     __table_args__ = (
         CheckConstraint(

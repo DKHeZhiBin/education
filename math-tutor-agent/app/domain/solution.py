@@ -4,6 +4,9 @@ from pydantic import BaseModel, Field
 
 
 class SolutionStep(BaseModel):
+    """中文：定义“解答·step”类，封装该职责相关的数据与行为。
+    English: Defines the solution step class and encapsulates data and behavior for that responsibility.
+    """
     index: int = Field(ge=1)
     statement: str
     justification: str
@@ -11,6 +14,9 @@ class SolutionStep(BaseModel):
 
 
 class SolutionMethod(BaseModel):
+    """中文：定义“解答·method”类，封装该职责相关的数据与行为。
+    English: Defines the solution method class and encapsulates data and behavior for that responsibility.
+    """
     id: str
     name: str
     strategy_summary: str
@@ -23,6 +29,9 @@ class SolutionMethod(BaseModel):
 
 
 class KeyBreakthrough(BaseModel):
+    """中文：定义“key·breakthrough”类，封装该职责相关的数据与行为。
+    English: Defines the key breakthrough class and encapsulates data and behavior for that responsibility.
+    """
     id: str
     title: str
     description: str
@@ -32,6 +41,9 @@ class KeyBreakthrough(BaseModel):
 
 
 class SolutionPlan(BaseModel):
+    """中文：定义“解答·plan”类，封装该职责相关的数据与行为。
+    English: Defines the solution plan class and encapsulates data and behavior for that responsibility.
+    """
     revision_attempt: int = Field(default=0, ge=0)
     revision_reason: str = ""
     recommended_method_id: str | None = None

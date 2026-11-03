@@ -14,12 +14,18 @@ from app.domain.knowledge import (
 
 
 class ConditionCheckStatus(StrEnum):
+    """中文：定义“condition·检查·状态”类，封装该职责相关的数据与行为。
+    English: Defines the condition check status class and encapsulates data and behavior for that responsibility.
+    """
     PASSED = "passed"
     FAILED = "failed"
     INCONCLUSIVE = "inconclusive"
 
 
 class ConditionIssue(BaseModel):
+    """中文：定义“condition·issue”类，封装该职责相关的数据与行为。
+    English: Defines the condition issue class and encapsulates data and behavior for that responsibility.
+    """
     model_config = ConfigDict(extra="forbid")
 
     code: str = Field(min_length=1, max_length=64, pattern=r"^[a-z0-9_]+$")
@@ -30,6 +36,9 @@ class ConditionIssue(BaseModel):
 
 
 class ConditionCheckDimension(BaseModel):
+    """中文：定义“condition·检查·dimension”类，封装该职责相关的数据与行为。
+    English: Defines the condition check dimension class and encapsulates data and behavior for that responsibility.
+    """
     model_config = ConfigDict(extra="forbid")
 
     status: ConditionCheckStatus
@@ -39,6 +48,9 @@ class ConditionCheckDimension(BaseModel):
 
     @model_validator(mode="after")
     def validate_status(self) -> ConditionCheckDimension:
+        """中文：处理“验证·状态”相关操作。
+        English: Handles the validate status operation.
+        """
         blocking = any(issue.severity == "blocking" for issue in self.issues)
         if self.status == ConditionCheckStatus.PASSED and blocking:
             raise ValueError("passed dimension cannot contain blocking issues")
@@ -48,6 +60,9 @@ class ConditionCheckDimension(BaseModel):
 
 
 class SolutionCountCheck(ConditionCheckDimension):
+    """中文：定义“解答·统计·检查”类，封装该职责相关的数据与行为。
+    English: Defines the solution count check class and encapsulates data and behavior for that responsibility.
+    """
     requested_semantics: Literal[
         "all_solutions",
         "exact_count",
@@ -68,6 +83,9 @@ class SolutionCountCheck(ConditionCheckDimension):
 
     @model_validator(mode="after")
     def validate_count_semantics(self) -> SolutionCountCheck:
+        """中文：处理“验证·统计·semantics”相关操作。
+        English: Handles the validate count semantics operation.
+        """
         if self.requested_semantics == "exact_count" and self.stated_expected_count is None:
             raise ValueError("exact_count requires stated_expected_count")
         if self.prediction_basis == "undetermined" and self.predicted_solution_count is not None:
@@ -76,6 +94,9 @@ class SolutionCountCheck(ConditionCheckDimension):
 
 
 class ProblemConditionCheckReport(BaseModel):
+    """中文：定义“题目·condition·检查·报告”类，封装该职责相关的数据与行为。
+    English: Defines the problem condition check report class and encapsulates data and behavior for that responsibility.
+    """
     model_config = ConfigDict(extra="forbid")
 
     schema_version: Literal["1.0"] = "1.0"
@@ -91,6 +112,9 @@ class ProblemConditionCheckReport(BaseModel):
 
     @model_validator(mode="after")
     def validate_overall_status(self) -> ProblemConditionCheckReport:
+        """中文：处理“验证·overall·状态”相关操作。
+        English: Handles the validate overall status operation.
+        """
         statuses = {
             self.ambiguity.status,
             self.condition_completeness.status,
@@ -111,7 +135,12 @@ class ProblemConditionCheckReport(BaseModel):
 
 
 class ProblemConditionCheckContext(BaseModel):
-    """Solution-free candidate and mother context used by the checker."""
+    """中文：定义“题目·condition·检查·context”类，封装该职责相关的数据与行为。
+    English: Defines the problem condition check context class and encapsulates data and behavior for that responsibility.
+
+    原有说明 / Existing notes:
+    Solution-free candidate and mother context used by the checker.
+    """
 
     model_config = ConfigDict(extra="forbid")
 
@@ -138,6 +167,9 @@ class ProblemConditionCheckContext(BaseModel):
 
     @model_validator(mode="after")
     def validate_candidate_scope(self) -> ProblemConditionCheckContext:
+        """中文：处理“验证·候选内容·范围”相关操作。
+        English: Handles the validate candidate scope operation.
+        """
         if self.content_status not in {
             ProblemContentStatus.CANDIDATE,
             ProblemContentStatus.VALIDATING,

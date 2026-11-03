@@ -9,7 +9,7 @@ from pydantic import ValidationError
 
 from app.domain.candidate_revision import CandidateRevisionContext, CandidateRevisionDraft
 from app.prompts.candidate_revision import CANDIDATE_REVISION_PROMPT
-from app.providers.llm import OpenAICompatibleProvider
+from app.providers.llm import LLMProvider
 
 
 FORBIDDEN_OUTPUT_KEYS = {
@@ -31,17 +31,31 @@ FORBIDDEN_OUTPUT_KEYS = {
 
 
 class CandidateRevisionError(RuntimeError):
+    """中文：定义“候选内容·revision·error”类，封装该职责相关的数据与行为。
+    English: Defines the candidate revision error class and encapsulates data and behavior for that responsibility.
+    """
     def __init__(self, code: str, message: str) -> None:
+        """中文：初始化当前对象及其依赖。
+        English: Initializes the current object and its dependencies.
+        """
         super().__init__(message)
         self.code = code
 
 
 class CandidateRevisionAgent:
-    """Repair one candidate using only repository-selected failed evidence."""
+    """中文：定义“候选内容·revision·智能体”类，封装该职责相关的数据与行为。
+    English: Defines the candidate revision agent class and encapsulates data and behavior for that responsibility.
+
+    原有说明 / Existing notes:
+    Repair one candidate using only repository-selected failed evidence.
+    """
 
     name = "candidate_revision"
 
-    def __init__(self, provider: OpenAICompatibleProvider) -> None:
+    def __init__(self, provider: LLMProvider) -> None:
+        """中文：初始化当前对象及其依赖。
+        English: Initializes the current object and its dependencies.
+        """
         self.provider = provider
 
     def run(
@@ -51,6 +65,9 @@ class CandidateRevisionAgent:
         expected_model_name: str,
         versioned_prompt: str,
     ) -> CandidateRevisionDraft:
+        """中文：处理“执行”相关操作。
+        English: Handles the run operation.
+        """
         if not self.provider.available:
             raise CandidateRevisionError("provider_unavailable", "LLM provider is unavailable")
         if self.provider.model_name != expected_model_name:
@@ -89,6 +106,9 @@ class CandidateRevisionAgent:
 
     @staticmethod
     def _system_prompt(versioned_prompt: str) -> str:
+        """中文：处理“system·提示词”相关操作。
+        English: Handles the system prompt operation.
+        """
         bounded_template = versioned_prompt.strip()
         if not bounded_template:
             raise CandidateRevisionError("prompt_empty", "versioned prompt cannot be empty")
@@ -104,6 +124,9 @@ class CandidateRevisionAgent:
         draft: CandidateRevisionDraft,
         context: CandidateRevisionContext,
     ) -> CandidateRevisionDraft:
+        """中文：处理“验证·draft”相关操作。
+        English: Handles the validate draft operation.
+        """
         if draft.context_fingerprint != context.fingerprint():
             raise CandidateRevisionError(
                 "context_changed", "revision output does not match the supplied failure context"
@@ -183,6 +206,9 @@ class CandidateRevisionAgent:
 
     @classmethod
     def _forbidden_keys(cls, value: Any) -> set[str]:
+        """中文：处理“forbidden·keys”相关操作。
+        English: Handles the forbidden keys operation.
+        """
         if isinstance(value, dict):
             found = {
                 str(key).casefold()
@@ -201,5 +227,8 @@ class CandidateRevisionAgent:
 
     @staticmethod
     def _normalize_text(value: str) -> str:
+        """中文：处理“规范化·text”相关操作。
+        English: Handles the normalize text operation.
+        """
         normalized = unicodedata.normalize("NFKC", value)
         return re.sub(r"\s+", " ", normalized).strip()

@@ -22,10 +22,16 @@ from app.models.revalidation import (
 
 
 class PeriodicRevalidationReferenceInvalid(ValueError):
+    """中文：定义“periodic·revalidation·reference·invalid”类，封装该职责相关的数据与行为。
+    English: Defines the periodic revalidation reference invalid class and encapsulates data and behavior for that responsibility.
+    """
     pass
 
 
 class PeriodicRevalidationRepository:
+    """中文：定义“periodic·revalidation·仓储”类，封装该职责相关的数据与行为。
+    English: Defines the periodic revalidation repository class and encapsulates data and behavior for that responsibility.
+    """
     PROMPT_PURPOSES = {
         "condition_prompt_version_id": "problem_condition_check",
         "solver_prompt_version_id": "independent_problem_solving",
@@ -41,6 +47,9 @@ class PeriodicRevalidationRepository:
     def upsert_policy(
         self, session: Session, request: RevalidationPolicyInput
     ) -> ContentRevalidationPolicy:
+        """中文：处理“upsert·策略”相关操作。
+        English: Handles the upsert policy operation.
+        """
         self._validate_versions(session, request)
         policy = session.scalar(select(ContentRevalidationPolicy).where(
             ContentRevalidationPolicy.policy_key == request.policy_key
@@ -59,6 +68,9 @@ class PeriodicRevalidationRepository:
     def due_policies(
         self, session: Session, now: datetime, policy_key: str | None = None
     ) -> list[ContentRevalidationPolicy]:
+        """中文：处理“due·policies”相关操作。
+        English: Handles the due policies operation.
+        """
         filters = [ContentRevalidationPolicy.enabled.is_(True)]
         if policy_key:
             filters.append(ContentRevalidationPolicy.policy_key == policy_key)
@@ -79,6 +91,9 @@ class PeriodicRevalidationRepository:
         trigger_type: str,
         scheduled_for: datetime,
     ) -> ContentRevalidationRun:
+        """中文：处理“创建·执行”相关操作。
+        English: Handles the create run operation.
+        """
         run_key = f"{policy.policy_key}:{trigger_type}:{scheduled_for.isoformat()}"
         existing = session.scalar(select(ContentRevalidationRun).where(
             ContentRevalidationRun.run_key == run_key
@@ -109,9 +124,15 @@ class PeriodicRevalidationRepository:
         return run
 
     def get_run(self, session: Session, run_id: str) -> ContentRevalidationRun | None:
+        """中文：处理“获取·执行”相关操作。
+        English: Handles the get run operation.
+        """
         return session.get(ContentRevalidationRun, run_id)
 
     def run_items(self, session: Session, run_id: str) -> list[ContentRevalidationItem]:
+        """中文：处理“执行·items”相关操作。
+        English: Handles the run items operation.
+        """
         return list(session.scalars(
             select(ContentRevalidationItem)
             .where(ContentRevalidationItem.run_id == run_id)
@@ -119,12 +140,18 @@ class PeriodicRevalidationRepository:
         ))
 
     def policy(self, session: Session, policy_id: str) -> ContentRevalidationPolicy:
+        """中文：处理“策略”相关操作。
+        English: Handles the policy operation.
+        """
         policy = session.get(ContentRevalidationPolicy, policy_id)
         if policy is None:
             raise PeriodicRevalidationReferenceInvalid("revalidation policy not found")
         return policy
 
     def view_policy(self, item: ContentRevalidationPolicy) -> RevalidationPolicyView:
+        """中文：处理“view·策略”相关操作。
+        English: Handles the view policy operation.
+        """
         return RevalidationPolicyView(
             id=item.id,
             policy_key=item.policy_key,
@@ -153,6 +180,9 @@ class PeriodicRevalidationRepository:
     def view_run(
         self, run: ContentRevalidationRun, items: list[ContentRevalidationItem]
     ) -> RevalidationRunView:
+        """中文：处理“view·执行”相关操作。
+        English: Handles the view run operation.
+        """
         return RevalidationRunView(
             id=run.id,
             policy_id=run.policy_id,
@@ -196,6 +226,9 @@ class PeriodicRevalidationRepository:
         policy: ContentRevalidationPolicy,
         now: datetime,
     ) -> list[KnowledgeProblem]:
+        """中文：处理“candidates”相关操作。
+        English: Handles the candidates operation.
+        """
         active_problem_ids = select(ContentRevalidationItem.problem_id).where(
             ContentRevalidationItem.status.not_in(["passed", "failed", "inconclusive"])
         )
@@ -238,6 +271,9 @@ class PeriodicRevalidationRepository:
         return selected
 
     def _validate_versions(self, session: Session, request: RevalidationPolicyInput) -> None:
+        """中文：处理“验证·versions”相关操作。
+        English: Handles the validate versions operation.
+        """
         for field in ("execution_model_version_id", "review_model_version_id"):
             value = getattr(request, field)
             entity = session.get(ModelVersion, value)

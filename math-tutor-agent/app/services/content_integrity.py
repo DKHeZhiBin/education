@@ -6,6 +6,7 @@ from hashlib import sha256
 from sqlalchemy import select
 from sqlalchemy.orm import Session, sessionmaker
 
+from app.core.product_scope import MVP_GRADE_BAND, MVP_SUBJECT_CODE
 from app.cache.knowledge_retrieval import KnowledgeIndexVersion
 from app.core.config import Settings, settings
 from app.core.database import create_mysql_engine, create_session_factory
@@ -24,11 +25,19 @@ from app.search_index.lifecycle_service import SearchIndexLifecycleService
 
 
 class ContentIssueReferenceInvalid(ValueError):
+    """中文：定义“内容·issue·reference·invalid”类，封装该职责相关的数据与行为。
+    English: Defines the content issue reference invalid class and encapsulates data and behavior for that responsibility.
+    """
     pass
 
 
 class ContentIntegrityService:
-    """Suppress reported content and put its current version back into validation."""
+    """中文：定义“内容·integrity·服务”类，封装该职责相关的数据与行为。
+    English: Defines the content integrity service class and encapsulates data and behavior for that responsibility.
+
+    原有说明 / Existing notes:
+    Suppress reported content and put its current version back into validation.
+    """
 
     def __init__(
         self,
@@ -37,6 +46,9 @@ class ContentIntegrityService:
         session_factory: sessionmaker[Session] | None = None,
         lifecycle_service: SearchIndexLifecycleService | None = None,
     ) -> None:
+        """中文：初始化当前对象及其依赖。
+        English: Initializes the current object and its dependencies.
+        """
         self.config = config
         self.session_factory = session_factory or create_session_factory(
             create_mysql_engine()
@@ -49,9 +61,17 @@ class ContentIntegrityService:
         self.cache_version = self.lifecycle_service.cache_version
 
     def canonical_problem_statement(self, problem_id: str) -> str:
+        """中文：处理“canonical·题目·statement”相关操作。
+        English: Handles the canonical problem statement operation.
+        """
         with self.session_factory() as session:
             problem = session.get(KnowledgeProblem, problem_id)
-            if problem is None or problem.content_status not in {"approved", "indexed"}:
+            if (
+                problem is None
+                or problem.content_status not in {"approved", "indexed"}
+                or problem.subject != MVP_SUBJECT_CODE
+                or problem.grade_band != MVP_GRADE_BAND
+            ):
                 raise ContentIssueReferenceInvalid(
                     "the selected problem is not available for tutoring"
                 )
@@ -64,6 +84,9 @@ class ContentIntegrityService:
         reporter_user_id: str,
         request: StudentContentIssueRequest,
     ) -> RuntimeContentIssueResult:
+        """中文：处理“报告·学生·issue”相关操作。
+        English: Handles the report student issue operation.
+        """
         problem_id = self._resolve_reported_problem(tutoring_session, request.problem_id)
         return self._submit(
             problem_id=problem_id,
@@ -84,6 +107,9 @@ class ContentIntegrityService:
         tutoring_session: TutoringSession,
         run_id: str,
     ) -> RuntimeContentIssueResult | None:
+        """中文：处理“处理·runtime·signals”相关操作。
+        English: Handles the process runtime signals operation.
+        """
         problem_id = tutoring_session.knowledge_problem_id
         if problem_id is None:
             return None
@@ -127,6 +153,9 @@ class ContentIntegrityService:
         )
 
     def close(self) -> None:
+        """中文：处理“关闭”相关操作。
+        English: Handles the close operation.
+        """
         self.lifecycle_service.close()
 
     def _submit(
@@ -141,6 +170,9 @@ class ContentIntegrityService:
         idempotency_key: str,
         evidence: dict,
     ) -> RuntimeContentIssueResult:
+        """中文：处理“submit”相关操作。
+        English: Handles the submit operation.
+        """
         identity = {
             "source": source,
             "problem_id": problem_id,
@@ -239,6 +271,9 @@ class ContentIntegrityService:
         session: Session,
         problem_id: str,
     ) -> SearchIndexMaintenanceJob | None:
+        """中文：处理“active·revalidation·任务”相关操作。
+        English: Handles the active revalidation job operation.
+        """
         return session.scalar(
             select(SearchIndexMaintenanceJob)
             .where(
@@ -254,11 +289,17 @@ class ContentIntegrityService:
         tutoring_session: TutoringSession,
         requested_problem_id: str | None,
     ) -> str:
+        """中文：处理“解析·reported·题目”相关操作。
+        English: Handles the resolve reported problem operation.
+        """
         allowed: set[str] = set()
         if tutoring_session.knowledge_problem_id:
             allowed.add(tutoring_session.knowledge_problem_id)
         for artifact in tutoring_session.artifacts:
-            if artifact.kind != "retrieved_teaching_context":
+            if artifact.kind not in {
+                "retrieved_textbook_context",
+                "retrieved_teaching_context",
+            }:
                 continue
             for group in ("problem_patterns", "solution_outlines"):
                 for item in artifact.payload.get(group, []):
@@ -282,6 +323,9 @@ class ContentIntegrityService:
 
     @staticmethod
     def _latest_payload(artifacts: list, kind: str) -> dict:
+        """中文：处理“latest·payload”相关操作。
+        English: Handles the latest payload operation.
+        """
         for artifact in reversed(artifacts):
             if artifact.kind == kind:
                 return artifact.payload
@@ -289,6 +333,9 @@ class ContentIntegrityService:
 
     @staticmethod
     def _hash(value: dict) -> str:
+        """中文：处理“hash”相关操作。
+        English: Handles the hash operation.
+        """
         serialized = json.dumps(
             value,
             ensure_ascii=False,
@@ -299,6 +346,9 @@ class ContentIntegrityService:
 
     @staticmethod
     def _view(report: ContentIssueReport) -> ContentIssueReportView:
+        """中文：处理“view”相关操作。
+        English: Handles the view operation.
+        """
         return ContentIssueReportView(
             id=report.id,
             problem_id=report.problem_id,

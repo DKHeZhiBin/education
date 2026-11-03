@@ -1,5 +1,21 @@
+import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Button, Card, Chip, PageTitle, ProgressBar } from '../../components/ui'
+import { MathMarkdown } from '../../components/MathMarkdown'
+import {
+  listTutoringSessions,
+  type TutoringSessionSummary,
+} from '../../services/tutoring'
+
+const statusLabel: Record<TutoringSessionSummary['status'], string> = {
+  collecting: '等待补充',
+  clarifying: '正在澄清',
+  diagnosing: '诊断思路',
+  hinting: '分级提示',
+  checking_attempt: '检查作答',
+  explaining: '完整讲解',
+  completed: '已经完成',
+}
 
 export function DashboardPage() {
   return <div className="page">
@@ -29,10 +45,79 @@ function DailyPlanCard() {
 }
 
 function ContinueLearningCard() {
-  return <Card>
-    <div className="section-heading"><div><span className="eyebrow">PICK UP WHERE YOU LEFT OFF</span><h3>继续学习</h3></div><Link to="/learn/diagnosis" className="text-link">查看计划 →</Link></div>
-    <div className="continue-row"><div className="subject-icon">x²</div><div className="continue-copy"><strong>整式运算 · 去括号</strong><p>上次学到：判断负号影响范围</p></div><Chip tone="amber">待巩固</Chip></div>
+  const [sessions, setSessions] = useState<TutoringSessionSummary[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  const loadSessions = useCallback(async () => {
+    setLoading(true)
+    setError('')
+    try {
+      const result = await listTutoringSessions()
+      setSessions(result.filter(item => item.status !== 'completed').slice(0, 4))
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : '暂时无法读取学习记录')
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    void loadSessions()
+  }, [loadSessions])
+
+  return <Card className="session-history-card">
+    <div className="section-heading">
+      <div><span className="eyebrow">PICK UP WHERE YOU LEFT OFF</span><h3>继续未完成的学习</h3></div>
+      <Link to="/learn/new" className="text-link">开始新题 →</Link>
+    </div>
+    {loading && <div className="session-history-state" role="status">正在读取最近会话…</div>}
+    {!loading && error && <div className="session-history-state error" role="alert">
+      <span>{error}</span>
+      <button type="button" className="text-button" onClick={() => void loadSessions()}>重新加载</button>
+    </div>}
+    {!loading && !error && sessions.length === 0 && <div className="session-history-empty">
+      <div className="subject-icon">x²</div>
+      <div><strong>目前没有未完成的学习</strong><p>提交一道新题后，可以随时从这里回来继续。</p></div>
+    </div>}
+    {!loading && !error && sessions.length > 0 && <div className="session-history-list">
+      {sessions.map(session => <Link className="continue-row session-history-row" key={session.id} to={resumePath(session)}>
+        <div className="subject-icon">x²</div>
+        <div className="continue-copy">
+          <MathMarkdown className="session-question" source={session.question} />
+          <p>{formatUpdatedAt(session.updated_at)} · {formatModel(session.llm_model_id)}</p>
+        </div>
+        <Chip tone="amber">{statusLabel[session.status]}</Chip>
+        <span className="continue-arrow" aria-hidden="true">→</span>
+      </Link>)}
+    </div>}
   </Card>
+}
+
+function resumePath(session: TutoringSessionSummary) {
+  const diagnosisStatuses: TutoringSessionSummary['status'][] = [
+    'collecting',
+    'clarifying',
+    'diagnosing',
+  ]
+  const step = diagnosisStatuses.includes(session.status) ? 'diagnosis' : 'coach'
+  return `/learn/${session.id}/${step}`
+}
+
+function formatUpdatedAt(value: string) {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return '最近更新'
+  return new Intl.DateTimeFormat('zh-CN', {
+    month: 'numeric',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(date)
+}
+
+function formatModel(modelId: string | null) {
+  if (!modelId) return '默认辅导模型'
+  return modelId.replace(':', ' · ')
 }
 
 function WeeklyMetricCards() {

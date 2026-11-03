@@ -20,7 +20,7 @@ from app.domain.periodic_revalidation import (
 from app.evaluation.leakage import EvaluationLeakageDetector
 from app.models.knowledge import KnowledgeProblem
 from app.models.revalidation import ContentRevalidationItem
-from app.providers.llm import OpenAICompatibleProvider, llm_provider
+from app.providers.llm import LLMProvider, RoutingLLMProvider, llm_provider
 from app.repositories.admission_gate import AdmissionGateRepository
 from app.repositories.duplicate_detection import DuplicateDetectionRepository
 from app.repositories.evaluation_leakage import EvaluationLeakageRepository
@@ -37,15 +37,23 @@ from app.verifiers.quadratic_sympy import QuadraticSympyVerifier
 
 
 class PeriodicContentRevalidationService:
-    """Run the existing fail-closed admission chain against approved content."""
+    """中文：定义“periodic·内容·revalidation·服务”类，封装该职责相关的数据与行为。
+    English: Defines the periodic content revalidation service class and encapsulates data and behavior for that responsibility.
+
+    原有说明 / Existing notes:
+    Run the existing fail-closed admission chain against approved content.
+    """
 
     def __init__(
         self,
         config: Settings = settings,
         *,
         session_factory: sessionmaker[Session] | None = None,
-        provider: OpenAICompatibleProvider = llm_provider,
+        provider: LLMProvider = llm_provider,
     ) -> None:
+        """中文：初始化当前对象及其依赖。
+        English: Initializes the current object and its dependencies.
+        """
         self.config = config
         self.session_factory = session_factory or create_session_factory(create_mysql_engine())
         self.provider = provider
@@ -70,11 +78,17 @@ class PeriodicContentRevalidationService:
         self.leakage_detector = EvaluationLeakageDetector()
 
     def configure(self, request: RevalidationPolicyInput) -> RevalidationPolicyView:
+        """中文：处理“configure”相关操作。
+        English: Handles the configure operation.
+        """
         with self.session_factory.begin() as session:
             policy = self.repository.upsert_policy(session, request)
             return self.repository.view_policy(policy)
 
     def run_due(self, scope: RevalidationScope) -> RevalidationDueRunSummary:
+        """中文：处理“执行·due”相关操作。
+        English: Handles the run due operation.
+        """
         now = self._now()
         with self.session_factory.begin() as session:
             policies = self.repository.due_policies(
@@ -111,6 +125,9 @@ class PeriodicContentRevalidationService:
         )
 
     def process_run(self, run_id: str) -> RevalidationRunView:
+        """中文：处理“处理·执行”相关操作。
+        English: Handles the process run operation.
+        """
         with self.session_factory.begin() as session:
             run = self.repository.get_run(session, run_id)
             if run is None:
@@ -164,6 +181,9 @@ class PeriodicContentRevalidationService:
             return self.repository.view_run(run, items)
 
     def get_run(self, run_id: str) -> RevalidationRunView | None:
+        """中文：处理“获取·执行”相关操作。
+        English: Handles the get run operation.
+        """
         with self.session_factory() as session:
             run = self.repository.get_run(session, run_id)
             if run is None:
@@ -171,9 +191,15 @@ class PeriodicContentRevalidationService:
             return self.repository.view_run(run, self.repository.run_items(session, run.id))
 
     def close(self) -> None:
+        """中文：处理“关闭”相关操作。
+        English: Handles the close operation.
+        """
         self.lifecycle.close()
 
     def _process_item(self, item_id: str, policy) -> None:
+        """中文：处理“处理·item”相关操作。
+        English: Handles the process item operation.
+        """
         problem_id = self._start_item(item_id)
         maintenance = self.lifecycle.enqueue(IndexMaintenanceRequest(
             problem_id=problem_id,
@@ -190,11 +216,21 @@ class PeriodicContentRevalidationService:
 
         self._set_item_status(item_id, "validating")
         condition_context = self._load_condition_context(problem_id, policy)
-        condition_report = self.condition_agent.run(
-            context=condition_context.check_context,
-            expected_model_name=condition_context.model_name,
-            versioned_prompt=condition_context.versioned_prompt,
-        )
+        if isinstance(self.provider, RoutingLLMProvider):
+            with self.provider.use_provider_model(
+                condition_context.provider_id, condition_context.model_name
+            ):
+                condition_report = self.condition_agent.run(
+                    context=condition_context.check_context,
+                    expected_model_name=condition_context.model_name,
+                    versioned_prompt=condition_context.versioned_prompt,
+                )
+        else:
+            condition_report = self.condition_agent.run(
+                context=condition_context.check_context,
+                expected_model_name=condition_context.model_name,
+                versioned_prompt=condition_context.versioned_prompt,
+            )
         with self.session_factory.begin() as session:
             condition_evidence = self.condition_repository.persist_report(
                 session, context=condition_context, report=condition_report
@@ -205,11 +241,21 @@ class PeriodicContentRevalidationService:
             raise RuntimeError("condition_revalidation_not_passed")
 
         solving_context = self._load_solving_context(problem_id, policy)
-        draft = self.solving_agent.run(
-            context=solving_context.solver_context,
-            expected_model_name=solving_context.model_name,
-            versioned_prompt=solving_context.versioned_prompt,
-        )
+        if isinstance(self.provider, RoutingLLMProvider):
+            with self.provider.use_provider_model(
+                solving_context.provider_id, solving_context.model_name
+            ):
+                draft = self.solving_agent.run(
+                    context=solving_context.solver_context,
+                    expected_model_name=solving_context.model_name,
+                    versioned_prompt=solving_context.versioned_prompt,
+                )
+        else:
+            draft = self.solving_agent.run(
+                context=solving_context.solver_context,
+                expected_model_name=solving_context.model_name,
+                versioned_prompt=solving_context.versioned_prompt,
+            )
         with self.session_factory.begin() as session:
             solved = self.solving_repository.persist_solution(
                 session, context=solving_context, draft=draft
@@ -229,11 +275,21 @@ class PeriodicContentRevalidationService:
             item.status = "ai_review"
 
         review_context = self._load_review_context(problem_id, solution_id, policy)
-        review_report = self.review_agent.run(
-            context=review_context.review_context,
-            expected_model_name=review_context.model_name,
-            versioned_prompt=review_context.versioned_prompt,
-        )
+        if isinstance(self.provider, RoutingLLMProvider):
+            with self.provider.use_provider_model(
+                review_context.provider_id, review_context.model_name
+            ):
+                review_report = self.review_agent.run(
+                    context=review_context.review_context,
+                    expected_model_name=review_context.model_name,
+                    versioned_prompt=review_context.versioned_prompt,
+                )
+        else:
+            review_report = self.review_agent.run(
+                context=review_context.review_context,
+                expected_model_name=review_context.model_name,
+                versioned_prompt=review_context.versioned_prompt,
+            )
         with self.session_factory.begin() as session:
             review_evidence = self.review_repository.persist_report(
                 session, context=review_context, report=review_report
@@ -277,6 +333,9 @@ class PeriodicContentRevalidationService:
     def _run_tools(
         self, item_id: str, problem_id: str, solution_id: str, policy
     ) -> list[str]:
+        """中文：处理“执行·tools”相关操作。
+        English: Handles the run tools operation.
+        """
         evidence_ids: list[str] = []
         with self.session_factory() as session:
             sympy_context = self.sympy_repository.load_verifier_context(
@@ -342,6 +401,9 @@ class PeriodicContentRevalidationService:
         return evidence_ids
 
     def _save_tool_evidence(self, item_id: str, evidence_ids: list[str]) -> None:
+        """中文：处理“保存·工具·evidence”相关操作。
+        English: Handles the save tool evidence operation.
+        """
         with self.session_factory.begin() as session:
             item = session.get(ContentRevalidationItem, item_id, with_for_update=True)
             if item is None:
@@ -349,6 +411,9 @@ class PeriodicContentRevalidationService:
             item.tool_evidence_ids_json = list(evidence_ids)
 
     def _load_condition_context(self, problem_id: str, policy):
+        """中文：处理“加载·condition·context”相关操作。
+        English: Handles the load condition context operation.
+        """
         with self.session_factory() as session:
             return self.condition_repository.load_agent_context(
                 session,
@@ -358,6 +423,9 @@ class PeriodicContentRevalidationService:
             )
 
     def _load_solving_context(self, problem_id: str, policy):
+        """中文：处理“加载·solving·context”相关操作。
+        English: Handles the load solving context operation.
+        """
         with self.session_factory() as session:
             return self.solving_repository.load_agent_context(
                 session,
@@ -367,6 +435,9 @@ class PeriodicContentRevalidationService:
             )
 
     def _load_review_context(self, problem_id: str, solution_id: str, policy):
+        """中文：处理“加载·复核·context”相关操作。
+        English: Handles the load review context operation.
+        """
         with self.session_factory() as session:
             return self.review_repository.load_agent_context(
                 session,
@@ -377,6 +448,9 @@ class PeriodicContentRevalidationService:
             )
 
     def _start_item(self, item_id: str) -> str:
+        """中文：处理“启动·item”相关操作。
+        English: Handles the start item operation.
+        """
         with self.session_factory.begin() as session:
             item = session.get(ContentRevalidationItem, item_id, with_for_update=True)
             if item is None:
@@ -395,6 +469,9 @@ class PeriodicContentRevalidationService:
             return item.problem_id
 
     def _set_item_status(self, item_id: str, status: str) -> None:
+        """中文：处理“set·item·状态”相关操作。
+        English: Handles the set item status operation.
+        """
         with self.session_factory.begin() as session:
             item = session.get(ContentRevalidationItem, item_id, with_for_update=True)
             if item is None:
@@ -402,6 +479,9 @@ class PeriodicContentRevalidationService:
             item.status = status
 
     def _mark_item_error(self, item_id: str, error: Exception) -> None:
+        """中文：处理“mark·item·error”相关操作。
+        English: Handles the mark item error operation.
+        """
         suppression_required = False
         problem_id: str | None = None
         with self.session_factory.begin() as session:
@@ -431,7 +511,12 @@ class PeriodicContentRevalidationService:
             self._suppress_after_preflight_failure(item_id, problem_id)
 
     def _suppress_after_preflight_failure(self, item_id: str, problem_id: str) -> None:
-        """Best-effort fail-safe for errors raised before normal index suppression."""
+        """中文：处理“suppress·after·preflight·failure”相关操作。
+        English: Handles the suppress after preflight failure operation.
+
+        原有说明 / Existing notes:
+        Best-effort fail-safe for errors raised before normal index suppression.
+        """
         try:
             maintenance = self.lifecycle.enqueue(IndexMaintenanceRequest(
                 problem_id=problem_id,
@@ -455,6 +540,9 @@ class PeriodicContentRevalidationService:
 
     @staticmethod
     def _now() -> datetime:
+        """中文：处理“now”相关操作。
+        English: Handles the now operation.
+        """
         return datetime.now(timezone.utc).replace(tzinfo=None)
 
 

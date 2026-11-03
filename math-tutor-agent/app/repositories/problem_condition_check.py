@@ -21,24 +21,39 @@ from app.models.knowledge import KnowledgeProblem
 
 
 class ProblemConditionCheckReferenceInvalid(ValueError):
+    """中文：定义“题目·condition·检查·reference·invalid”类，封装该职责相关的数据与行为。
+    English: Defines the problem condition check reference invalid class and encapsulates data and behavior for that responsibility.
+    """
     pass
 
 
 class ProblemConditionCheckVersionConflict(RuntimeError):
+    """中文：定义“题目·condition·检查·version·conflict”类，封装该职责相关的数据与行为。
+    English: Defines the problem condition check version conflict class and encapsulates data and behavior for that responsibility.
+    """
     pass
 
 
 @dataclass(frozen=True)
 class ProblemConditionCheckAgentContext:
+    """中文：定义“题目·condition·检查·智能体·context”类，封装该职责相关的数据与行为。
+    English: Defines the problem condition check agent context class and encapsulates data and behavior for that responsibility.
+    """
     check_context: ProblemConditionCheckContext
     model_version_id: str
     prompt_version_id: str
+    provider_id: str
     model_name: str
     versioned_prompt: str
 
 
 class ProblemConditionCheckRepository:
-    """Load solution-free candidates and append condition check evidence."""
+    """中文：定义“题目·condition·检查·仓储”类，封装该职责相关的数据与行为。
+    English: Defines the problem condition check repository class and encapsulates data and behavior for that responsibility.
+
+    原有说明 / Existing notes:
+    Load solution-free candidates and append condition check evidence.
+    """
 
     def load_agent_context(
         self,
@@ -48,6 +63,9 @@ class ProblemConditionCheckRepository:
         model_version_id: str,
         prompt_version_id: str,
     ) -> ProblemConditionCheckAgentContext:
+        """中文：处理“加载·智能体·context”相关操作。
+        English: Handles the load agent context operation.
+        """
         model, prompt = self._require_versions(
             session, model_version_id, prompt_version_id
         )
@@ -103,6 +121,7 @@ class ProblemConditionCheckRepository:
             check_context=context,
             model_version_id=model.id,
             prompt_version_id=prompt.id,
+            provider_id=model.provider,
             model_name=model.model_name,
             versioned_prompt=prompt.template_text,
         )
@@ -114,6 +133,9 @@ class ProblemConditionCheckRepository:
         context: ProblemConditionCheckAgentContext,
         report: ProblemConditionCheckReport,
     ) -> DomainAdmissionEvidence:
+        """中文：处理“persist·报告”相关操作。
+        English: Handles the persist report operation.
+        """
         if report.problem_id != context.check_context.problem_id:
             raise ProblemConditionCheckReferenceInvalid(
                 "condition report belongs to another problem"
@@ -189,6 +211,9 @@ class ProblemConditionCheckRepository:
         model_version_id: str,
         prompt_version_id: str,
     ) -> tuple[ModelVersion, PromptVersion]:
+        """中文：处理“require·versions”相关操作。
+        English: Handles the require versions operation.
+        """
         model = session.get(ModelVersion, model_version_id)
         prompt = session.get(PromptVersion, prompt_version_id)
         if model is None or not model.active:
@@ -208,6 +233,9 @@ class ProblemConditionCheckRepository:
 
     @staticmethod
     def _hash_payload(payload: dict) -> str:
+        """中文：处理“hash·payload”相关操作。
+        English: Handles the hash payload operation.
+        """
         serialized = json.dumps(
             payload,
             ensure_ascii=False,
@@ -218,6 +246,9 @@ class ProblemConditionCheckRepository:
 
     @staticmethod
     def _to_domain(entity: AdmissionEvidence) -> DomainAdmissionEvidence:
+        """中文：处理“to·domain”相关操作。
+        English: Handles the to domain operation.
+        """
         return DomainAdmissionEvidence(
             id=entity.id,
             generation_batch_id=entity.generation_batch_id,

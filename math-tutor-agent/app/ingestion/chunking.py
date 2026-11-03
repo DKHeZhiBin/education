@@ -23,10 +23,16 @@ ATOMIC_TOKEN_PATTERN = re.compile(
 
 
 def estimate_tokens(value: str) -> int:
+    """中文：处理“estimate·tokens”相关操作。
+    English: Handles the estimate tokens operation.
+    """
     return max(1, len(TOKEN_PATTERN.findall(value)))
 
 
 def _hard_split(text: str, max_tokens: int) -> list[str]:
+    """中文：处理“hard·split”相关操作。
+    English: Handles the hard split operation.
+    """
     matches = list(ATOMIC_TOKEN_PATTERN.finditer(text))
     if not matches:
         return [text]
@@ -50,6 +56,9 @@ def _hard_split(text: str, max_tokens: int) -> list[str]:
 
 
 def _overlap_tail(text: str, token_limit: int) -> str:
+    """中文：处理“overlap·tail”相关操作。
+    English: Handles the overlap tail operation.
+    """
     if token_limit <= 0:
         return ""
     matches = list(ATOMIC_TOKEN_PATTERN.finditer(text))
@@ -60,9 +69,15 @@ def _overlap_tail(text: str, token_limit: int) -> str:
 
 
 def _split_oversized(text: str, max_tokens: int) -> list[str]:
+    """中文：处理“split·oversized”相关操作。
+    English: Handles the split oversized operation.
+    """
     formulae: dict[str, str] = {}
 
     def protect(match: re.Match[str]) -> str:
+        """中文：处理“protect”相关操作。
+        English: Handles the protect operation.
+        """
         key = f"\u0000FORMULA_{len(formulae)}\u0000"
         formulae[key] = match.group(0)
         return key
@@ -96,6 +111,9 @@ def chunk_blocks(
     knowledge_point_codes: list[str],
     formula_records: list[FormulaRecord],
 ) -> tuple[list[PreparedChunk], int]:
+    """中文：处理“切片·blocks”相关操作。
+    English: Handles the chunk blocks operation.
+    """
     originals_by_normalized: dict[str, list[str]] = {}
     for record in formula_records:
         originals = originals_by_normalized.setdefault(record.normalized, [])
@@ -108,6 +126,9 @@ def chunk_blocks(
     current_type = "text"
 
     def flush() -> None:
+        """中文：处理“flush”相关操作。
+        English: Handles the flush operation.
+        """
         nonlocal current_texts
         if current_texts:
             raw_chunks.append((

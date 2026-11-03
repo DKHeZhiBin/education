@@ -43,11 +43,17 @@ ALLOWED_RIGHTS_STATUSES = {"approved_with_obligations", "approved_with_file_audi
 
 
 class TrustedSeedValidationError(ValueError):
+    """中文：定义“trusted·seed·验证·error”类，封装该职责相关的数据与行为。
+    English: Defines the trusted seed validation error class and encapsulates data and behavior for that responsibility.
+    """
     pass
 
 
 @dataclass(frozen=True)
 class VerifiedSeedProblem:
+    """中文：定义“verified·seed·题目”类，封装该职责相关的数据与行为。
+    English: Defines the verified seed problem class and encapsulates data and behavior for that responsibility.
+    """
     seed: TrustedMotherProblemSeed
     solutions: list[str]
     standard_form: str
@@ -56,6 +62,9 @@ class VerifiedSeedProblem:
 
 @dataclass(frozen=True)
 class TrustedSeedValidationSummary:
+    """中文：定义“trusted·seed·验证·summary”类，封装该职责相关的数据与行为。
+    English: Defines the trusted seed validation summary class and encapsulates data and behavior for that responsibility.
+    """
     dataset_id: str
     version: str
     source_registry_id: str
@@ -65,6 +74,9 @@ class TrustedSeedValidationSummary:
 
 @dataclass(frozen=True)
 class TrustedSeedImportSummary:
+    """中文：定义“trusted·seed·import·summary”类，封装该职责相关的数据与行为。
+    English: Defines the trusted seed import summary class and encapsulates data and behavior for that responsibility.
+    """
     dataset_id: str
     version: str
     source_reference_id: str
@@ -78,6 +90,9 @@ class TrustedSeedImportSummary:
 
 
 def load_trusted_seed(path: str | Path = DEFAULT_SEED_PATH) -> TrustedMotherProblemDataset:
+    """中文：处理“加载·trusted·seed”相关操作。
+    English: Handles the load trusted seed operation.
+    """
     with Path(path).open(encoding="utf-8") as seed_file:
         return TrustedMotherProblemDataset.model_validate(json.load(seed_file))
 
@@ -88,6 +103,9 @@ def validate_trusted_seed(
     source_registry_path: str | Path = DEFAULT_SOURCE_REGISTRY_PATH,
     evaluation_path: str | Path = DEFAULT_EVALUATION_PATH,
 ) -> tuple[TrustedSeedValidationSummary, list[VerifiedSeedProblem]]:
+    """中文：处理“验证·trusted·seed”相关操作。
+    English: Handles the validate trusted seed operation.
+    """
     registry_entry = _source_registry_entry(dataset.source.registry_id, source_registry_path)
     if registry_entry.get("rights_status") not in ALLOWED_RIGHTS_STATUSES:
         raise TrustedSeedValidationError(
@@ -158,6 +176,9 @@ def import_trusted_seed(
     source_registry_path: str | Path = DEFAULT_SOURCE_REGISTRY_PATH,
     evaluation_path: str | Path = DEFAULT_EVALUATION_PATH,
 ) -> TrustedSeedImportSummary:
+    """中文：处理“import·trusted·seed”相关操作。
+    English: Handles the import trusted seed operation.
+    """
     _, verified = validate_trusted_seed(
         dataset,
         source_registry_path=source_registry_path,
@@ -223,6 +244,9 @@ def import_trusted_seed(
 
 
 def _verify_problem(seed: TrustedMotherProblemSeed) -> VerifiedSeedProblem:
+    """中文：处理“校验·题目”相关操作。
+    English: Handles the verify problem operation.
+    """
     solved = solve_equation(seed.equation, seed.variable)
     if not solved.ok:
         raise TrustedSeedValidationError(
@@ -269,7 +293,12 @@ def _verify_problem(seed: TrustedMotherProblemSeed) -> VerifiedSeedProblem:
 
 
 def _equivalent_solution_sets(actual: list[str], expected: list[str]) -> bool:
-    """Compare roots by symbolic value instead of SymPy's display form."""
+    """中文：处理“equivalent·解答·sets”相关操作。
+    English: Handles the equivalent solution sets operation.
+
+    原有说明 / Existing notes:
+    Compare roots by symbolic value instead of SymPy's display form.
+    """
     if len(actual) != len(expected):
         return False
     unmatched = [sp.sympify(value) for value in expected]
@@ -284,6 +313,9 @@ def _equivalent_solution_sets(actual: list[str], expected: list[str]) -> bool:
 
 
 def _source_registry_entry(registry_id: str, path: str | Path) -> dict[str, Any]:
+    """中文：处理“source·registry·entry”相关操作。
+    English: Handles the source registry entry operation.
+    """
     with Path(path).open(encoding="utf-8") as registry_file:
         registry = json.load(registry_file)
     for source in registry.get("sources", []):
@@ -293,6 +325,9 @@ def _source_registry_entry(registry_id: str, path: str | Path) -> dict[str, Any]
 
 
 def _license_evidence(dataset: TrustedMotherProblemDataset) -> dict[str, Any]:
+    """中文：处理“license·evidence”相关操作。
+    English: Handles the license evidence operation.
+    """
     evidence_path = DEFAULT_LICENSE_EVIDENCE_DIR / f"{dataset.source.registry_id}.json"
     if not evidence_path.exists():
         raise TrustedSeedValidationError(
@@ -318,6 +353,9 @@ def _license_evidence(dataset: TrustedMotherProblemDataset) -> dict[str, Any]:
 
 
 def _evaluation_hashes(path: str | Path) -> set[str]:
+    """中文：处理“evaluation·hashes”相关操作。
+    English: Handles the evaluation hashes operation.
+    """
     hashes: set[str] = set()
     evaluation_path = Path(path)
     if not evaluation_path.exists():
@@ -336,6 +374,9 @@ def _evaluation_hashes(path: str | Path) -> set[str]:
 def _require_knowledge_points(
     session: Session, dataset: TrustedMotherProblemDataset
 ) -> None:
+    """中文：处理“require·知识·points”相关操作。
+    English: Handles the require knowledge points operation.
+    """
     required = {
         code for problem in dataset.problems for code in problem.knowledge_point_codes
     }
@@ -354,6 +395,9 @@ def _upsert_source(
     session: Session,
     dataset: TrustedMotherProblemDataset,
 ) -> SourceReference:
+    """中文：处理“upsert·source”相关操作。
+    English: Handles the upsert source operation.
+    """
     source_seed = dataset.source
     license_evidence_hash = _hash_json(_license_evidence(dataset))
     fingerprint = _hash_json({
@@ -391,6 +435,9 @@ def _upsert_document(
     source: SourceReference,
     curriculum_version: CurriculumVersion,
 ) -> KnowledgeDocument:
+    """中文：处理“upsert·文档”相关操作。
+    English: Handles the upsert document operation.
+    """
     checksum = _hash_json([
         {
             "external_id": problem.external_id,
@@ -450,6 +497,9 @@ def _upsert_curriculum_version(
     dataset: TrustedMotherProblemDataset,
     source: SourceReference,
 ) -> CurriculumVersion:
+    """中文：处理“upsert·课程·version”相关操作。
+    English: Handles the upsert curriculum version operation.
+    """
     version_code = f"edition-{dataset.source.edition}"
     version = session.scalar(select(CurriculumVersion).where(
         CurriculumVersion.authority == dataset.source.publisher,
@@ -477,6 +527,9 @@ def _upsert_curriculum_version(
 def _upsert_verifier(
     session: Session, dataset: TrustedMotherProblemDataset
 ) -> VerifierVersion:
+    """中文：处理“upsert·verifier”相关操作。
+    English: Handles the upsert verifier operation.
+    """
     verifier = session.scalar(select(VerifierVersion).where(
         VerifierVersion.verifier_key == dataset.verifier_key,
         VerifierVersion.version == dataset.verifier_version,
@@ -518,6 +571,9 @@ def _upsert_batch(
     dataset: TrustedMotherProblemDataset,
     imported_at: datetime,
 ) -> GenerationBatch:
+    """中文：处理“upsert·批次”相关操作。
+    English: Handles the upsert batch operation.
+    """
     batch = session.scalar(
         select(GenerationBatch).where(GenerationBatch.batch_key == dataset.batch_key)
     )
@@ -547,6 +603,9 @@ def _upsert_chunks(
     dataset: TrustedMotherProblemDataset,
     document: KnowledgeDocument,
 ) -> list[DocumentChunk]:
+    """中文：处理“upsert·chunks”相关操作。
+    English: Handles the upsert chunks operation.
+    """
     existing = {
         chunk.ordinal: chunk
         for chunk in session.scalars(
@@ -593,6 +652,9 @@ def _upsert_problem(
     chunk: DocumentChunk,
     batch: GenerationBatch,
 ) -> KnowledgeProblem:
+    """中文：处理“upsert·题目”相关操作。
+    English: Handles the upsert problem operation.
+    """
     content_hash = _problem_content_hash(seed.equation, seed.variable)
     duplicate = session.scalar(select(KnowledgeProblem).where(
         KnowledgeProblem.content_hash == content_hash,
@@ -694,6 +756,9 @@ def _upsert_solution(
     problem: KnowledgeProblem,
     source: SourceReference,
 ) -> KnowledgeSolution:
+    """中文：处理“upsert·解答”相关操作。
+    English: Handles the upsert solution operation.
+    """
     final_answer = _solution_set_text(verified.solutions)
     solution_text = (
         f"将方程整理为 {verified.standard_form}。"
@@ -786,6 +851,9 @@ def _upsert_evidence(
     batch: GenerationBatch,
     verifier: VerifierVersion,
 ) -> int:
+    """中文：处理“upsert·evidence”相关操作。
+    English: Handles the upsert evidence operation.
+    """
     evidence_specs = [
         ("source_rights_clearance", "system", "passed", True,
          "来源位于允许清单，固定为 ORCCA 第 2 版公开练习，许可证为 CC BY 4.0。",
@@ -855,6 +923,9 @@ def _solution_steps(
     verified: VerifiedSeedProblem,
     final_answer: str,
 ) -> list[dict[str, Any]]:
+    """中文：处理“解答·steps”相关操作。
+    English: Handles the solution steps operation.
+    """
     return [
         {
             "step_id": "step-1",
@@ -905,6 +976,9 @@ def _solution_steps(
 
 
 def _difficulty_factor(seed: TrustedMotherProblemSeed) -> dict[str, Any]:
+    """中文：处理“difficulty·factor”相关操作。
+    English: Handles the difficulty factor operation.
+    """
     factor_type = "method_selection" if seed.method != "quadratic_formula" else "computational_complexity"
     return {
         "factor_type": factor_type,
@@ -919,6 +993,9 @@ def _difficulty_factor(seed: TrustedMotherProblemSeed) -> dict[str, Any]:
 def _dataset_difficulty_factors(
     dataset: TrustedMotherProblemDataset,
 ) -> list[dict[str, Any]]:
+    """中文：处理“dataset·difficulty·factors”相关操作。
+    English: Handles the dataset difficulty factors operation.
+    """
     by_type: dict[str, dict[str, Any]] = {}
     for seed in dataset.problems:
         factor = _difficulty_factor(seed)
@@ -929,6 +1006,9 @@ def _dataset_difficulty_factors(
 
 
 def _method_name(method: str) -> str:
+    """中文：处理“method·name”相关操作。
+    English: Handles the method name operation.
+    """
     return {
         "quadratic_formula": "求根公式",
         "direct_square_root": "直接开平方法",
@@ -937,10 +1017,16 @@ def _method_name(method: str) -> str:
 
 
 def _solution_set_text(solutions: list[str]) -> str:
+    """中文：处理“解答·set·text”相关操作。
+    English: Handles the solution set text operation.
+    """
     return "实数解集为空" if not solutions else "解集为 {" + ", ".join(solutions) + "}"
 
 
 def _problem_content_hash(equation: str, variable: str) -> str:
+    """中文：处理“题目·内容·hash”相关操作。
+    English: Handles the problem content hash operation.
+    """
     parsed = parse_equation(equation)
     symbol = sp.Symbol(variable, real=True)
     try:
@@ -957,14 +1043,23 @@ def _problem_content_hash(equation: str, variable: str) -> str:
 
 
 def _normalized_text_hash(value: str) -> str:
+    """中文：处理“normalized·text·hash”相关操作。
+    English: Handles the normalized text hash operation.
+    """
     normalized = "".join(character for character in value.casefold() if character.isalnum())
     return sha256(normalized.encode("utf-8")).hexdigest()
 
 
 def _hash_json(value: Any) -> str:
+    """中文：处理“hash·json”相关操作。
+    English: Handles the hash json operation.
+    """
     serialized = json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
     return sha256(serialized.encode("utf-8")).hexdigest()
 
 
 def _utc_naive_now() -> datetime:
+    """中文：处理“utc·naive·now”相关操作。
+    English: Handles the utc naive now operation.
+    """
     return datetime.now(timezone.utc).replace(tzinfo=None)

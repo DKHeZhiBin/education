@@ -10,7 +10,7 @@ from app.domain.independent_solving import (
     IndependentSolverContext,
 )
 from app.prompts.independent_solving import INDEPENDENT_SOLVING_PROMPT
-from app.providers.llm import OpenAICompatibleProvider
+from app.providers.llm import LLMProvider
 
 
 FORBIDDEN_PROVENANCE_KEYS = {
@@ -27,17 +27,31 @@ FORBIDDEN_PROVENANCE_KEYS = {
 
 
 class IndependentSolvingError(RuntimeError):
+    """中文：定义“independent·solving·error”类，封装该职责相关的数据与行为。
+    English: Defines the independent solving error class and encapsulates data and behavior for that responsibility.
+    """
     def __init__(self, code: str, message: str) -> None:
+        """中文：初始化当前对象及其依赖。
+        English: Initializes the current object and its dependencies.
+        """
         super().__init__(message)
         self.code = code
 
 
 class IndependentSolvingAgent:
-    """Solve from a strict problem-only context and emit an unverified draft."""
+    """中文：定义“independent·solving·智能体”类，封装该职责相关的数据与行为。
+    English: Defines the independent solving agent class and encapsulates data and behavior for that responsibility.
+
+    原有说明 / Existing notes:
+    Solve from a strict problem-only context and emit an unverified draft.
+    """
 
     name = "independent_solving"
 
-    def __init__(self, provider: OpenAICompatibleProvider) -> None:
+    def __init__(self, provider: LLMProvider) -> None:
+        """中文：初始化当前对象及其依赖。
+        English: Initializes the current object and its dependencies.
+        """
         self.provider = provider
 
     def run(
@@ -47,6 +61,9 @@ class IndependentSolvingAgent:
         expected_model_name: str,
         versioned_prompt: str,
     ) -> IndependentSolutionDraft:
+        """中文：处理“执行”相关操作。
+        English: Handles the run operation.
+        """
         if not self.provider.available:
             raise IndependentSolvingError(
                 "provider_unavailable", "LLM provider is unavailable"
@@ -83,6 +100,9 @@ class IndependentSolvingAgent:
 
     @staticmethod
     def _system_prompt(versioned_prompt: str) -> str:
+        """中文：处理“system·提示词”相关操作。
+        English: Handles the system prompt operation.
+        """
         bounded = versioned_prompt.strip()
         if not bounded:
             raise IndependentSolvingError(
@@ -99,6 +119,9 @@ class IndependentSolvingAgent:
         draft: IndependentSolutionDraft,
         context: IndependentSolverContext,
     ) -> IndependentSolutionDraft:
+        """中文：处理“验证·draft”相关操作。
+        English: Handles the validate draft operation.
+        """
         if draft.answer_type != context.answer_type:
             raise IndependentSolvingError(
                 "answer_type_mismatch",
@@ -130,6 +153,9 @@ class IndependentSolvingAgent:
 
     @classmethod
     def _forbidden_keys(cls, value: Any) -> set[str]:
+        """中文：处理“forbidden·keys”相关操作。
+        English: Handles the forbidden keys operation.
+        """
         if isinstance(value, dict):
             found = {
                 str(key).casefold()

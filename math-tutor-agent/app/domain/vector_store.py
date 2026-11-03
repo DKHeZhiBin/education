@@ -30,6 +30,9 @@ VectorEntityType = Literal[
 
 
 class VerifierVersionPayload(BaseModel):
+    """中文：定义“verifier·version·payload”类，封装该职责相关的数据与行为。
+    English: Defines the verifier version payload class and encapsulates data and behavior for that responsibility.
+    """
     verifier_version_id: str = Field(min_length=1, max_length=36)
     verifier_key: str = Field(min_length=1, max_length=100)
     version: str = Field(min_length=1, max_length=32)
@@ -38,7 +41,12 @@ class VerifierVersionPayload(BaseModel):
 
 
 class QdrantTeachingPayload(BaseModel):
-    """Versioned payload contract shared by the indexer and retriever."""
+    """中文：定义“Qdrant·教学·payload”类，封装该职责相关的数据与行为。
+    English: Defines the qdrant teaching payload class and encapsulates data and behavior for that responsibility.
+
+    原有说明 / Existing notes:
+    Versioned payload contract shared by the indexer and retriever.
+    """
 
     schema_version: Literal["1.0", "1.1"] = "1.1"
     index_status: Literal["staging", "active"] = "active"
@@ -75,6 +83,9 @@ class QdrantTeachingPayload(BaseModel):
 
     @model_validator(mode="after")
     def validate_structured_object(self) -> "QdrantTeachingPayload":
+        """中文：处理“验证·structured·object”相关操作。
+        English: Handles the validate structured object operation.
+        """
         models = {
             "concept": RetrievedConcept,
             "principle": RetrievedPrinciple,
@@ -121,12 +132,18 @@ class QdrantTeachingPayload(BaseModel):
 
 
 class VectorPoint(BaseModel):
+    """中文：定义“向量·point”类，封装该职责相关的数据与行为。
+    English: Defines the vector point class and encapsulates data and behavior for that responsibility.
+    """
     id: UUID
     vector: list[float] = Field(min_length=1)
     payload: QdrantTeachingPayload
 
 
 class CollectionProvisionResult(BaseModel):
+    """中文：定义“collection·provision·结果”类，封装该职责相关的数据与行为。
+    English: Defines the collection provision result class and encapsulates data and behavior for that responsibility.
+    """
     collection: str
     created: bool
     vector_name: str

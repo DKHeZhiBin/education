@@ -19,15 +19,24 @@ from app.models.knowledge import KnowledgeProblem, KnowledgeSolution
 
 
 class NumericVerificationReferenceInvalid(ValueError):
+    """中文：定义“numeric·校验·reference·invalid”类，封装该职责相关的数据与行为。
+    English: Defines the numeric verification reference invalid class and encapsulates data and behavior for that responsibility.
+    """
     pass
 
 
 class NumericVerificationVersionConflict(RuntimeError):
+    """中文：定义“numeric·校验·version·conflict”类，封装该职责相关的数据与行为。
+    English: Defines the numeric verification version conflict class and encapsulates data and behavior for that responsibility.
+    """
     pass
 
 
 @dataclass(frozen=True)
 class NumericVerifierContext:
+    """中文：定义“numeric·verifier·context”类，封装该职责相关的数据与行为。
+    English: Defines the numeric verifier context class and encapsulates data and behavior for that responsibility.
+    """
     verification_context: QuadraticVerificationContext
     verifier_version_id: str
     verifier_key: str
@@ -35,7 +44,12 @@ class NumericVerifierContext:
 
 
 class NumericVerificationRepository:
-    """Persist numeric evidence without reading or replacing SymPy evidence."""
+    """中文：定义“numeric·校验·仓储”类，封装该职责相关的数据与行为。
+    English: Defines the numeric verification repository class and encapsulates data and behavior for that responsibility.
+
+    原有说明 / Existing notes:
+    Persist numeric evidence without reading or replacing SymPy evidence.
+    """
 
     def load_verifier_context(
         self,
@@ -45,6 +59,9 @@ class NumericVerificationRepository:
         solution_id: str,
         verifier_version_id: str,
     ) -> NumericVerifierContext:
+        """中文：处理“加载·verifier·context”相关操作。
+        English: Handles the load verifier context operation.
+        """
         verifier = self._require_verifier(session, verifier_version_id)
         problem = session.get(KnowledgeProblem, problem_id)
         solution = session.get(KnowledgeSolution, solution_id)
@@ -66,6 +83,9 @@ class NumericVerificationRepository:
         context: NumericVerifierContext,
         report: NumericVerificationReport,
     ) -> DomainAdmissionEvidence:
+        """中文：处理“persist·报告”相关操作。
+        English: Handles the persist report operation.
+        """
         self._require_verifier(session, context.verifier_version_id)
         problem = session.scalar(
             select(KnowledgeProblem)
@@ -154,6 +174,9 @@ class NumericVerificationRepository:
         problem: KnowledgeProblem,
         solution: KnowledgeSolution,
     ) -> QuadraticVerificationContext:
+        """中文：处理“构建·context”相关操作。
+        English: Handles the build context operation.
+        """
         return QuadraticVerificationContext(
             problem_id=problem.id,
             solution_id=solution.id,
@@ -175,6 +198,9 @@ class NumericVerificationRepository:
 
     @staticmethod
     def _require_scope(problem: KnowledgeProblem, solution: KnowledgeSolution) -> None:
+        """中文：处理“require·范围”相关操作。
+        English: Handles the require scope operation.
+        """
         if problem.generation_batch_id is None:
             raise NumericVerificationReferenceInvalid("generated candidate batch is required")
         if problem.problem_type != "quadratic_equation":
@@ -202,6 +228,9 @@ class NumericVerificationRepository:
         problem: KnowledgeProblem,
         solution: KnowledgeSolution,
     ) -> None:
+        """中文：处理“require·independent·解答”相关操作。
+        English: Handles the require independent solution operation.
+        """
         evidence = session.scalar(
             select(AdmissionEvidence)
             .where(
@@ -230,6 +259,9 @@ class NumericVerificationRepository:
         problem: KnowledgeProblem,
         evidence: AdmissionEvidence,
     ) -> bool:
+        """中文：处理“predates·revalidation”相关操作。
+        English: Handles the predates revalidation operation.
+        """
         required = (problem.metadata_json or {}).get(
             "revalidation_started_status_version"
         )
@@ -240,6 +272,9 @@ class NumericVerificationRepository:
 
     @staticmethod
     def _require_verifier(session: Session, verifier_version_id: str) -> VerifierVersion:
+        """中文：处理“require·verifier”相关操作。
+        English: Handles the require verifier operation.
+        """
         verifier = session.get(VerifierVersion, verifier_version_id)
         if (
             verifier is None
@@ -257,6 +292,9 @@ class NumericVerificationRepository:
 
     @staticmethod
     def _summary(report: NumericVerificationReport) -> str:
+        """中文：处理“summary”相关操作。
+        English: Handles the summary operation.
+        """
         if report.status.value == "passed":
             return (
                 "有限整数定义域穷举与候选答案一致。"
@@ -269,6 +307,9 @@ class NumericVerificationRepository:
 
     @staticmethod
     def _hash_json(payload: dict) -> str:
+        """中文：处理“hash·json”相关操作。
+        English: Handles the hash json operation.
+        """
         serialized = json.dumps(
             payload,
             ensure_ascii=False,
@@ -279,6 +320,9 @@ class NumericVerificationRepository:
 
     @staticmethod
     def _evidence_to_domain(entity: AdmissionEvidence) -> DomainAdmissionEvidence:
+        """中文：处理“evidence·to·domain”相关操作。
+        English: Handles the evidence to domain operation.
+        """
         return DomainAdmissionEvidence(
             id=entity.id,
             generation_batch_id=entity.generation_batch_id,

@@ -4,6 +4,9 @@ from pydantic import BaseModel, Field
 
 
 class VerificationCheck(BaseModel):
+    """中文：定义“校验·检查”类，封装该职责相关的数据与行为。
+    English: Defines the verification check class and encapsulates data and behavior for that responsibility.
+    """
     id: str
     kind: str
     status: Literal["passed", "failed", "skipped", "not_applicable"]
@@ -14,6 +17,9 @@ class VerificationCheck(BaseModel):
 
 
 class ProofCriterionReview(BaseModel):
+    """中文：定义“proof·criterion·复核”类，封装该职责相关的数据与行为。
+    English: Defines the proof criterion review class and encapsulates data and behavior for that responsibility.
+    """
     criterion: Literal[
         "claim_alignment",
         "condition_usage",
@@ -28,6 +34,9 @@ class ProofCriterionReview(BaseModel):
 
 
 class ProofReview(BaseModel):
+    """中文：定义“proof·复核”类，封装该职责相关的数据与行为。
+    English: Defines the proof review class and encapsulates data and behavior for that responsibility.
+    """
     criteria: list[ProofCriterionReview] = Field(default_factory=list)
     hard_blockers: list[str] = Field(default_factory=list)
     unverified_claims: list[str] = Field(default_factory=list)
@@ -36,6 +45,9 @@ class ProofReview(BaseModel):
 
 
 class RevisionContext(BaseModel):
+    """中文：定义“revision·context”类，封装该职责相关的数据与行为。
+    English: Defines the revision context class and encapsulates data and behavior for that responsibility.
+    """
     attempt: int = Field(default=0, ge=0)
     max_attempts: int = Field(default=2, ge=0, le=3)
     will_retry: bool = False
@@ -49,6 +61,9 @@ class RevisionContext(BaseModel):
 
 
 class VerificationReport(BaseModel):
+    """中文：定义“校验·报告”类，封装该职责相关的数据与行为。
+    English: Defines the verification report class and encapsulates data and behavior for that responsibility.
+    """
     passed: bool = False
     verifier_type: Literal["cas", "model", "hybrid", "unverified"] = "unverified"
     coverage: Literal["full", "partial", "none"] = "none"

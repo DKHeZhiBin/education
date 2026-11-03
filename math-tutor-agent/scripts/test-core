@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd "$(dirname "$0")/.."
+export PYTHONPATH=.
+export RUN_MYSQL_INTEGRATION_TESTS="${RUN_MYSQL_INTEGRATION_TESTS:-1}"
+export RUN_REDIS_INTEGRATION_TESTS="${RUN_REDIS_INTEGRATION_TESTS:-1}"
+
+exec .venv/bin/python -m unittest discover -s tests -v

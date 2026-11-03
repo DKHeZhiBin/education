@@ -9,10 +9,16 @@ from pydantic import BaseModel, Field, model_validator
 
 
 def new_generation_id() -> str:
+    """中文：处理“new·生成·id”相关操作。
+    English: Handles the new generation id operation.
+    """
     return str(uuid4())
 
 
 class GenerationBatchStatus(StrEnum):
+    """中文：定义“生成·批次·状态”类，封装该职责相关的数据与行为。
+    English: Defines the generation batch status class and encapsulates data and behavior for that responsibility.
+    """
     PENDING = "pending"
     RUNNING = "running"
     PAUSED = "paused"
@@ -23,6 +29,9 @@ class GenerationBatchStatus(StrEnum):
 
 
 class EvidenceProducerType(StrEnum):
+    """中文：定义“evidence·producer·type”类，封装该职责相关的数据与行为。
+    English: Defines the evidence producer type class and encapsulates data and behavior for that responsibility.
+    """
     MODEL = "model"
     VERIFIER = "verifier"
     HYBRID = "hybrid"
@@ -30,6 +39,9 @@ class EvidenceProducerType(StrEnum):
 
 
 class AdmissionEvidenceStatus(StrEnum):
+    """中文：定义“admission·evidence·状态”类，封装该职责相关的数据与行为。
+    English: Defines the admission evidence status class and encapsulates data and behavior for that responsibility.
+    """
     PASSED = "passed"
     FAILED = "failed"
     NOT_RUN = "not_run"
@@ -37,6 +49,9 @@ class AdmissionEvidenceStatus(StrEnum):
 
 
 class ModelVersion(BaseModel):
+    """中文：定义“模型·version”类，封装该职责相关的数据与行为。
+    English: Defines the model version class and encapsulates data and behavior for that responsibility.
+    """
     id: str = Field(default_factory=new_generation_id)
     provider: str = Field(min_length=1, max_length=40)
     model_name: str = Field(min_length=1, max_length=100)
@@ -50,6 +65,9 @@ class ModelVersion(BaseModel):
 
 
 class PromptVersion(BaseModel):
+    """中文：定义“提示词·version”类，封装该职责相关的数据与行为。
+    English: Defines the prompt version class and encapsulates data and behavior for that responsibility.
+    """
     id: str = Field(default_factory=new_generation_id)
     prompt_key: str = Field(min_length=1, max_length=100)
     version: str = Field(min_length=1, max_length=32)
@@ -62,6 +80,9 @@ class PromptVersion(BaseModel):
 
 
 class VerifierVersion(BaseModel):
+    """中文：定义“verifier·version”类，封装该职责相关的数据与行为。
+    English: Defines the verifier version class and encapsulates data and behavior for that responsibility.
+    """
     id: str = Field(default_factory=new_generation_id)
     verifier_key: str = Field(min_length=1, max_length=100)
     version: str = Field(min_length=1, max_length=32)
@@ -74,6 +95,9 @@ class VerifierVersion(BaseModel):
 
 
 class GenerationBatch(BaseModel):
+    """中文：定义“生成·批次”类，封装该职责相关的数据与行为。
+    English: Defines the generation batch class and encapsulates data and behavior for that responsibility.
+    """
     id: str = Field(default_factory=new_generation_id)
     batch_key: str = Field(min_length=1, max_length=100)
     purpose: str = Field(min_length=1, max_length=32)
@@ -95,6 +119,9 @@ class GenerationBatch(BaseModel):
 
     @model_validator(mode="after")
     def validate_batch(self) -> GenerationBatch:
+        """中文：处理“验证·批次”相关操作。
+        English: Handles the validate batch operation.
+        """
         if (self.model_version_id is None) != (self.prompt_version_id is None):
             raise ValueError(
                 "model_version_id and prompt_version_id must either both be set or both be null"
@@ -129,6 +156,9 @@ class GenerationBatch(BaseModel):
 
 
 class AdmissionEvidence(BaseModel):
+    """中文：定义“admission·evidence”类，封装该职责相关的数据与行为。
+    English: Defines the admission evidence class and encapsulates data and behavior for that responsibility.
+    """
     id: str = Field(default_factory=new_generation_id)
     generation_batch_id: str
     problem_id: str
@@ -147,6 +177,9 @@ class AdmissionEvidence(BaseModel):
 
     @model_validator(mode="after")
     def validate_producer_versions(self) -> AdmissionEvidence:
+        """中文：处理“验证·producer·versions”相关操作。
+        English: Handles the validate producer versions operation.
+        """
         has_model = self.model_version_id is not None
         has_prompt = self.prompt_version_id is not None
         has_verifier = self.verifier_version_id is not None

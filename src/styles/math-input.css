@@ -1,0 +1,26 @@
+.math-answer-composer{display:flex;flex-direction:column;gap:10px}
+.math-answer-composer>textarea{width:100%;line-height:1.7}
+.visual-math-composer{overflow:hidden;border:1px solid #d8e1e4;border-radius:11px;background:#fff}
+.visual-math-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:10px 12px 8px;background:#f7fafb}
+.visual-math-heading>div{display:flex;flex-direction:column;gap:2px}
+.visual-math-heading strong{font-size:12px;color:var(--ink)}
+.visual-math-heading span{font-size:10px;color:var(--muted)}
+.math-clear-button{border:0;background:none;color:var(--muted);font-size:11px;cursor:pointer}
+.math-clear-button:disabled{cursor:not-allowed;opacity:.4}
+.visual-math-host{padding:0 10px 9px;background:#f7fafb}
+.visual-math-field{display:block;width:100%;min-height:56px;padding:12px 14px;border:1px solid #cbd8dd;border-radius:8px;background:#fff;font-size:22px;--caret-color:var(--blue);--selection-background-color:#dce5ff;--contains-highlight-background-color:#eef2ff}
+.visual-math-field:focus-within{border-color:#7890eb;box-shadow:0 0 0 3px #dfe5fb}
+.visual-math-field::part(menu-toggle){display:none}
+.math-symbol-groups{display:flex;align-items:center;gap:4px;padding:8px 10px 4px;border-top:1px solid #edf1f2}
+.math-symbol-groups button{min-height:28px;padding:0 11px;border:0;border-radius:999px;background:transparent;color:var(--muted);font-size:11px;cursor:pointer}
+.math-symbol-groups button.active{background:#e8eeff;color:var(--blue);font-weight:700}
+.math-symbol-groups button:disabled{cursor:not-allowed;opacity:.5}
+.math-symbol-grid{display:grid;grid-template-columns:repeat(8,minmax(38px,1fr));gap:6px;padding:6px 10px 10px}
+.math-symbol-grid button{height:38px;border:1px solid var(--line);border-radius:7px;background:#fff;color:var(--ink);font:600 16px Georgia,'Times New Roman',serif;cursor:pointer}
+.math-symbol-grid button:hover{border-color:#aebded;background:#f3f6ff;color:var(--blue)}
+.math-symbol-grid button:disabled{cursor:not-allowed;opacity:.45}
+.visual-math-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 10px;border-top:1px solid #edf1f2;background:#fbfcfd}
+.visual-math-footer span{color:var(--muted);font-size:10px;line-height:1.45}
+.math-insert-button{min-height:32px;padding:0 12px;flex:none;border:0;border-radius:6px;background:var(--blue);color:#fff;font-size:11px;font-weight:700;cursor:pointer}
+.math-insert-button:disabled{cursor:not-allowed;opacity:.45}
+@media(max-width:640px){.math-symbol-grid{grid-template-columns:repeat(4,1fr)}.visual-math-footer{align-items:stretch;flex-direction:column}.math-insert-button{width:100%;min-height:38px}.visual-math-heading span{display:none}}

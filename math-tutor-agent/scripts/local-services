@@ -7,13 +7,41 @@ mysql_bin="$service_dir/runtime/mysql/bin"
 mysql_config="$service_dir/config/mysql.cnf"
 mysql_root_client="$service_dir/config/mysql-root-client.cnf"
 mysql_pid="$service_dir/run/mysql.pid"
+redis_runtime_bin="$service_dir/runtime/redis/bin"
+redis_config="$service_dir/config/redis.conf"
+redis_pid="$service_dir/run/redis.pid"
 qdrant_bin="$service_dir/runtime/qdrant-bin/qdrant"
 qdrant_config="$service_dir/config/qdrant.yaml"
 qdrant_pid="$service_dir/run/qdrant.pid"
-launch_agent_dir="/Users/kittle/Library/LaunchAgents"
-launch_domain="gui/501"
+embedding_python="$service_dir/runtime/qwen3-embedding/venv/bin/python"
+embedding_server="$project_dir/services/qwen3_embedding/server.py"
+embedding_pid="$service_dir/run/qwen3-embedding.pid"
+launch_agent_dir="$HOME/Library/LaunchAgents"
+launch_domain="gui/$(id -u)"
 mysql_label="ai.math-tutor.mysql"
+redis_label="ai.math-tutor.redis"
 qdrant_label="ai.math-tutor.qdrant"
+embedding_label="ai.math-tutor.qwen3-embedding"
+
+redis_server_bin() {
+  if [ -x "$redis_runtime_bin/redis-server" ]; then
+    printf '%s\n' "$redis_runtime_bin/redis-server"
+  elif command -v redis-server >/dev/null 2>&1; then
+    command -v redis-server
+  else
+    return 1
+  fi
+}
+
+redis_cli_bin() {
+  if [ -x "$redis_runtime_bin/redis-cli" ]; then
+    printf '%s\n' "$redis_runtime_bin/redis-cli"
+  elif command -v redis-cli >/dev/null 2>&1; then
+    command -v redis-cli
+  else
+    return 1
+  fi
+}
 
 agent_loaded() {
   /bin/launchctl print "$launch_domain/$1" >/dev/null 2>&1
@@ -39,8 +67,18 @@ mysql_ready() {
   fi
 }
 
+redis_ready() {
+  local cli
+  cli="$(redis_cli_bin 2>/dev/null)" || return 1
+  [ "$("$cli" -h 127.0.0.1 -p 6379 ping 2>/dev/null)" = "PONG" ]
+}
+
 qdrant_ready() {
   /usr/bin/curl -fsS --max-time 2 http://127.0.0.1:6333/readyz >/dev/null 2>&1
+}
+
+embedding_ready() {
+  /usr/bin/curl -fsS --max-time 3 http://127.0.0.1:8100/health >/dev/null 2>&1
 }
 
 start_mysql() {
@@ -60,6 +98,76 @@ start_mysql() {
     sleep 1
   done
   echo "MySQL failed to become ready; inspect $service_dir/logs/mysql-error.log" >&2
+  return 1
+}
+
+write_redis_config() {
+  [ -f "$redis_config" ] && return
+  mkdir -p "$service_dir/config" "$service_dir/data/redis" "$service_dir/logs" "$service_dir/run"
+  cat >"$redis_config" <<EOF
+bind 127.0.0.1 ::1
+protected-mode yes
+port 6379
+daemonize no
+pidfile $redis_pid
+dir $service_dir/data/redis
+dbfilename dump.rdb
+appendonly yes
+appendfilename appendonly.aof
+logfile $service_dir/logs/redis.log
+save 900 1
+save 300 10
+save 60 10000
+EOF
+}
+
+write_redis_launch_agent() {
+  local server="$1"
+  local plist="$service_dir/config/$redis_label.plist"
+  mkdir -p "$service_dir/config" "$launch_agent_dir"
+  cat >"$plist" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>$redis_label</string>
+  <key>ProgramArguments</key>
+  <array><string>$server</string><string>$redis_config</string></array>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><true/>
+  <key>ProcessType</key><string>Background</string>
+  <key>StandardOutPath</key><string>$service_dir/logs/redis-launchd.log</string>
+  <key>StandardErrorPath</key><string>$service_dir/logs/redis-launchd.log</string>
+</dict>
+</plist>
+EOF
+  cp "$plist" "$launch_agent_dir/$redis_label.plist"
+}
+
+start_redis() {
+  if redis_ready; then
+    echo "Redis is already running on 127.0.0.1:6379"
+    return
+  fi
+  local server
+  server="$(redis_server_bin 2>/dev/null)" || {
+    echo "Redis is not installed; run ./scripts/install-local-redis once" >&2
+    return 1
+  }
+  write_redis_config
+  write_redis_launch_agent "$server"
+  start_agent "$redis_label" || {
+    /usr/bin/nohup "$server" "$redis_config" >/dev/null 2>&1 &
+    echo $! >"$redis_pid"
+  }
+  for _ in {1..30}; do
+    redis_ready && {
+      echo "Redis started on 127.0.0.1:6379"
+      return
+    }
+    sleep 1
+  done
+  echo "Redis failed to become ready; inspect $service_dir/logs/redis.log" >&2
   return 1
 }
 
@@ -84,6 +192,32 @@ start_qdrant() {
   return 1
 }
 
+start_embedding() {
+  if embedding_ready; then
+    echo "Qwen3 Embedding is already running on 127.0.0.1:8100"
+    return
+  fi
+  if [ ! -x "$embedding_python" ]; then
+    echo "Qwen3 Embedding is not installed; run ./scripts/install-qwen3-embedding" >&2
+    return 1
+  fi
+  start_agent "$embedding_label" || {
+    /usr/bin/nohup "$embedding_python" -m uvicorn server:app \
+      --app-dir "$(dirname "$embedding_server")" --host 127.0.0.1 --port 8100 \
+      >"$service_dir/logs/qwen3-embedding.log" 2>&1 &
+    echo $! >"$embedding_pid"
+  }
+  for _ in {1..180}; do
+    embedding_ready && {
+      echo "Qwen3 Embedding started on 127.0.0.1:8100"
+      return
+    }
+    sleep 1
+  done
+  echo "Qwen3 Embedding failed to become ready; inspect $service_dir/logs/qwen3-embedding.log" >&2
+  return 1
+}
+
 stop_mysql() {
   if ! mysql_ready; then
     echo "MySQL is not running"
@@ -95,6 +229,22 @@ stop_mysql() {
     "$mysql_bin/mysqladmin" --defaults-extra-file="$mysql_root_client" shutdown
   fi
   echo "MySQL stopped"
+}
+
+stop_redis() {
+  if ! redis_ready; then
+    echo "Redis is not running"
+    return
+  fi
+  if agent_loaded "$redis_label"; then
+    /bin/launchctl bootout "$launch_domain/$redis_label"
+    echo "Redis stopped"
+    return
+  fi
+  local cli
+  cli="$(redis_cli_bin)"
+  "$cli" -h 127.0.0.1 -p 6379 shutdown >/dev/null
+  echo "Redis stopped"
 }
 
 stop_qdrant() {
@@ -121,26 +271,56 @@ stop_qdrant() {
   return 1
 }
 
+stop_embedding() {
+  if ! embedding_ready; then
+    echo "Qwen3 Embedding is not running"
+    return
+  fi
+  if agent_loaded "$embedding_label"; then
+    /bin/launchctl bootout "$launch_domain/$embedding_label"
+    echo "Qwen3 Embedding stopped"
+    return
+  fi
+  if [ -f "$embedding_pid" ]; then
+    kill "$(cat "$embedding_pid")"
+  fi
+  echo "Qwen3 Embedding stopped"
+}
+
 show_status() {
   if mysql_ready; then
     echo "MySQL:  ready  mysql://127.0.0.1:3306"
   else
     echo "MySQL:  stopped"
   fi
+  if redis_ready; then
+    echo "Redis:  ready  redis://127.0.0.1:6379/0"
+  else
+    echo "Redis:  stopped"
+  fi
   if qdrant_ready; then
     echo "Qdrant: ready  http://127.0.0.1:6333/dashboard"
   else
     echo "Qdrant: stopped"
+  fi
+  if embedding_ready; then
+    echo "Embedding: ready  http://127.0.0.1:8100/v1"
+  else
+    echo "Embedding: stopped"
   fi
 }
 
 case "${1:-status}" in
   start)
     start_mysql
+    start_redis
     start_qdrant
+    start_embedding
     ;;
   stop)
+    stop_embedding
     stop_qdrant
+    stop_redis
     stop_mysql
     ;;
   restart)

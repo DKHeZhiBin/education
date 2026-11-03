@@ -25,6 +25,9 @@ MAX_EXPRESSION_LENGTH = 1000
 
 @dataclass(frozen=True)
 class DuplicateDetectionPolicy:
+    """中文：定义“重复项·detection·策略”类，封装该职责相关的数据与行为。
+    English: Defines the duplicate detection policy class and encapsulates data and behavior for that responsibility.
+    """
     near_composite_threshold: float = 0.94
     near_text_threshold: float = 0.92
     near_formula_threshold: float = 0.90
@@ -34,25 +37,42 @@ class DuplicateDetectionPolicy:
 
 @dataclass(frozen=True)
 class LayerSignature:
+    """中文：定义“layer·signature”类，封装该职责相关的数据与行为。
+    English: Defines the layer signature class and encapsulates data and behavior for that responsibility.
+    """
     canonical: str | None
     fingerprint: str | None
     features: frozenset[str]
 
     @property
     def available(self) -> bool:
+        """中文：处理“available”相关操作。
+        English: Handles the available operation.
+        """
         return self.canonical is not None
 
 
 class FourLayerDuplicateDetector:
-    """Compare text, formula AST, condition structure, and solution structure."""
+    """中文：定义“four·layer·重复项·detector”类，封装该职责相关的数据与行为。
+    English: Defines the four layer duplicate detector class and encapsulates data and behavior for that responsibility.
+
+    原有说明 / Existing notes:
+    Compare text, formula AST, condition structure, and solution structure.
+    """
 
     name = "four_layer_duplicate"
     schema_version = "1.0"
 
     def __init__(self, policy: DuplicateDetectionPolicy | None = None) -> None:
+        """中文：初始化当前对象及其依赖。
+        English: Initializes the current object and its dependencies.
+        """
         self.policy = policy or DuplicateDetectionPolicy()
 
     def detect(self, context: DuplicateDetectionContext) -> DuplicateDetectionReport:
+        """中文：处理“detect”相关操作。
+        English: Handles the detect operation.
+        """
         candidate_signatures = self._signatures(context.candidate)
         matches = [
             self._compare(context.candidate, reference, candidate_signatures)
@@ -120,6 +140,9 @@ class FourLayerDuplicateDetector:
         reference: DuplicateProblemSnapshot,
         candidate_signatures: dict[str, LayerSignature],
     ) -> DuplicateMatch:
+        """中文：处理“compare”相关操作。
+        English: Handles the compare operation.
+        """
         reference_signatures = self._signatures(reference)
         layers: list[DuplicateLayerResult] = []
         similarities: dict[str, float] = {}
@@ -202,6 +225,9 @@ class FourLayerDuplicateDetector:
         self,
         snapshot: DuplicateProblemSnapshot,
     ) -> dict[str, LayerSignature]:
+        """中文：处理“signatures”相关操作。
+        English: Handles the signatures operation.
+        """
         return {
             "text": self._text_signature(snapshot),
             "formula_ast": self._formula_signature(snapshot),
@@ -210,12 +236,18 @@ class FourLayerDuplicateDetector:
         }
 
     def _text_signature(self, snapshot: DuplicateProblemSnapshot) -> LayerSignature:
+        """中文：处理“text·signature”相关操作。
+        English: Handles the text signature operation.
+        """
         text = self._normalize_text(snapshot.normalized_statement or snapshot.statement)
         if not text:
             return LayerSignature(None, None, frozenset())
         return self._signature(text, self._character_ngrams(text))
 
     def _formula_signature(self, snapshot: DuplicateProblemSnapshot) -> LayerSignature:
+        """中文：处理“formula·signature”相关操作。
+        English: Handles the formula signature operation.
+        """
         expressions = [
             str(item.get("normalized_expression") or item.get("statement") or "").strip()
             for item in [*snapshot.explicit_conditions, *snapshot.implicit_conditions]
@@ -233,6 +265,9 @@ class FourLayerDuplicateDetector:
         return self._signature(joined, features)
 
     def _condition_signature(self, snapshot: DuplicateProblemSnapshot) -> LayerSignature:
+        """中文：处理“condition·signature”相关操作。
+        English: Handles the condition signature operation.
+        """
         if not snapshot.target or not (
             snapshot.explicit_conditions or snapshot.implicit_conditions
         ):
@@ -302,6 +337,9 @@ class FourLayerDuplicateDetector:
         return self._signature(canonical, features)
 
     def _solution_signature(self, snapshot: DuplicateProblemSnapshot) -> LayerSignature:
+        """中文：处理“解答·signature”相关操作。
+        English: Handles the solution signature operation.
+        """
         if not snapshot.solution_id or not snapshot.solution_steps:
             return LayerSignature(None, None, frozenset())
         step_ids = {
@@ -352,6 +390,9 @@ class FourLayerDuplicateDetector:
 
     @classmethod
     def _canonical_relation(cls, value: str) -> str | None:
+        """中文：处理“canonical·relation”相关操作。
+        English: Handles the canonical relation operation.
+        """
         try:
             value = cls._normalize_formula(value)
         except ValueError:
@@ -378,6 +419,9 @@ class FourLayerDuplicateDetector:
 
     @classmethod
     def _canonical_ast(cls, node: ast.AST, names: dict[str, str]) -> str:
+        """中文：处理“canonical·ast”相关操作。
+        English: Handles the canonical ast operation.
+        """
         if isinstance(node, ast.Constant) and isinstance(node.value, (int, float)):
             try:
                 number = Decimal(str(node.value)).normalize()
@@ -427,6 +471,9 @@ class FourLayerDuplicateDetector:
         operator_type: type[ast.operator],
         names: dict[str, str],
     ) -> list[str]:
+        """中文：处理“flatten·commutative”相关操作。
+        English: Handles the flatten commutative operation.
+        """
         if isinstance(node, ast.BinOp) and isinstance(node.op, operator_type):
             return [
                 *cls._flatten_commutative(node.left, operator_type, names),
@@ -441,6 +488,9 @@ class FourLayerDuplicateDetector:
         names: dict[str, str],
         sign: int = 1,
     ) -> list[str]:
+        """中文：处理“flatten·additive”相关操作。
+        English: Handles the flatten additive operation.
+        """
         if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Add):
             return [
                 *cls._flatten_additive(node.left, names, sign),
@@ -458,6 +508,9 @@ class FourLayerDuplicateDetector:
 
     @staticmethod
     def _normalize_formula(value: str) -> str:
+        """中文：处理“规范化·formula”相关操作。
+        English: Handles the normalize formula operation.
+        """
         if not value or len(value) > MAX_EXPRESSION_LENGTH:
             raise ValueError("formula empty or too long")
         normalized = unicodedata.normalize("NFKC", value).strip()
@@ -476,6 +529,9 @@ class FourLayerDuplicateDetector:
 
     @staticmethod
     def _normalize_text(value: str) -> str:
+        """中文：处理“规范化·text”相关操作。
+        English: Handles the normalize text operation.
+        """
         normalized = unicodedata.normalize("NFKC", value).lower()
         normalized = normalized.replace("−", "-").replace("–", "-")
         return "".join(
@@ -486,6 +542,9 @@ class FourLayerDuplicateDetector:
 
     @staticmethod
     def _canonical_symbols(value: Any) -> list[str]:
+        """中文：处理“canonical·symbols”相关操作。
+        English: Handles the canonical symbols operation.
+        """
         if not isinstance(value, list):
             return []
         mapping: dict[str, str] = {}
@@ -498,6 +557,9 @@ class FourLayerDuplicateDetector:
 
     @classmethod
     def _condition_symbols(cls, snapshot: DuplicateProblemSnapshot) -> list[str]:
+        """中文：处理“condition·symbols”相关操作。
+        English: Handles the condition symbols operation.
+        """
         symbols: set[str] = set()
         for item in [*snapshot.explicit_conditions, *snapshot.implicit_conditions]:
             symbols.update(str(value) for value in item.get("related_symbols", []))
@@ -518,6 +580,9 @@ class FourLayerDuplicateDetector:
 
     @classmethod
     def _normalize_with_symbols(cls, value: str, symbols: list[str]) -> str:
+        """中文：处理“规范化·with·symbols”相关操作。
+        English: Handles the normalize with symbols operation.
+        """
         normalized = cls._normalize_text(value)
         for index, symbol in enumerate(symbols):
             normalized_symbol = cls._normalize_text(symbol)
@@ -532,23 +597,35 @@ class FourLayerDuplicateDetector:
 
     @staticmethod
     def _character_ngrams(value: str, size: int = 3) -> set[str]:
+        """中文：处理“character·ngrams”相关操作。
+        English: Handles the character ngrams operation.
+        """
         if len(value) <= size:
             return {value} if value else set()
         return {value[index:index + size] for index in range(len(value) - size + 1)}
 
     @staticmethod
     def _ast_features(canonical: str) -> set[str]:
+        """中文：处理“ast·features”相关操作。
+        English: Handles the ast features operation.
+        """
         tokens = re.findall(r"(?:sqrt|fn|v\d+|n:[^,()]+|[+*/^!=-])", canonical)
         counts = Counter(tokens)
         return {f"{token}:{count}" for token, count in counts.items()}
 
     @staticmethod
     def _signature(canonical: str, features: set[str]) -> LayerSignature:
+        """中文：处理“signature”相关操作。
+        English: Handles the signature operation.
+        """
         fingerprint = sha256(canonical.encode("utf-8")).hexdigest()
         return LayerSignature(canonical, fingerprint, frozenset(features))
 
     @staticmethod
     def _similarity(left: LayerSignature, right: LayerSignature) -> float:
+        """中文：处理“similarity”相关操作。
+        English: Handles the similarity operation.
+        """
         if left.fingerprint == right.fingerprint:
             return 1.0
         union = left.features | right.features
@@ -558,4 +635,7 @@ class FourLayerDuplicateDetector:
 
     @staticmethod
     def _json_sort_key(value: dict[str, Any]) -> str:
+        """中文：处理“json·sort·key”相关操作。
+        English: Handles the json sort key operation.
+        """
         return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))

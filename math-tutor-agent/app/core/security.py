@@ -15,23 +15,38 @@ DUMMY_PASSWORD_HASH = password_hash.hash("dummy-password-for-timing-equalization
 
 
 class InvalidAccessToken(Exception):
+    """中文：定义“invalid·access·令牌”类，封装该职责相关的数据与行为。
+    English: Defines the invalid access token class and encapsulates data and behavior for that responsibility.
+    """
     pass
 
 
 def create_opaque_token() -> tuple[str, str]:
+    """中文：处理“创建·opaque·令牌”相关操作。
+    English: Handles the create opaque token operation.
+    """
     token = secrets.token_urlsafe(48)
     return token, hash_opaque_token(token)
 
 
 def hash_opaque_token(token: str) -> str:
+    """中文：处理“hash·opaque·令牌”相关操作。
+    English: Handles the hash opaque token operation.
+    """
     return hashlib.sha256(token.encode("utf-8")).hexdigest()
 
 
 def hash_password(password: str) -> str:
+    """中文：处理“hash·密码”相关操作。
+    English: Handles the hash password operation.
+    """
     return password_hash.hash(password)
 
 
 def verify_password(password: str, encoded_hash: str | None) -> bool:
+    """中文：处理“校验·密码”相关操作。
+    English: Handles the verify password operation.
+    """
     candidate = encoded_hash if encoded_hash and encoded_hash != "!" else DUMMY_PASSWORD_HASH
     try:
         valid = password_hash.verify(password, candidate)
@@ -42,6 +57,9 @@ def verify_password(password: str, encoded_hash: str | None) -> bool:
 
 
 def create_access_token(user_id: str, role: str, token_version: int) -> tuple[str, int]:
+    """中文：处理“创建·access·令牌”相关操作。
+    English: Handles the create access token operation.
+    """
     now = datetime.now(timezone.utc)
     expires = now + timedelta(minutes=settings.auth_access_token_minutes)
     payload = {
@@ -59,6 +77,9 @@ def create_access_token(user_id: str, role: str, token_version: int) -> tuple[st
 
 
 def decode_access_token(token: str) -> dict:
+    """中文：处理“decode·access·令牌”相关操作。
+    English: Handles the decode access token operation.
+    """
     try:
         return jwt.decode(
             token,

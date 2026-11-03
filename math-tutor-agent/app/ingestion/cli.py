@@ -3,12 +3,17 @@ from __future__ import annotations
 import argparse
 import json
 
+from app.core.logging import configure_cli_logging
 from app.core.database import create_mysql_engine, create_session_factory
 from app.ingestion.pipeline import DocumentIngestionPipeline, load_manifest
 from app.ingestion.repository import DocumentIngestionRepository
 
 
 def main() -> None:
+    """中文：处理“main”相关操作。
+    English: Handles the main operation.
+    """
+    configure_cli_logging()
     parser = argparse.ArgumentParser(
         description="Prepare or import a versioned RAG knowledge document"
     )

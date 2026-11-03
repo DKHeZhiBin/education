@@ -1,13 +1,18 @@
 import argparse
 import json
 
-from app.catalogs.loader import DEFAULT_CATALOG_PATH, import_catalog, load_catalog
+from app.core.logging import configure_cli_logging
+from app.catalogs.loader import catalog_paths, import_catalog, load_catalog
 from app.core.database import create_mysql_engine, create_session_factory
 
 
 def main() -> None:
+    """中文：处理“main”相关操作。
+    English: Handles the main operation.
+    """
+    configure_cli_logging()
     parser = argparse.ArgumentParser(description="Import a versioned curriculum catalog")
-    parser.add_argument("--file", default=str(DEFAULT_CATALOG_PATH), help="Catalog JSON path")
+    parser.add_argument("--file", help="Catalog JSON path; omit to import every bundled catalog")
     parser.add_argument(
         "--validate-only",
         action="store_true",
@@ -15,9 +20,12 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    catalog = load_catalog(args.file)
+    catalogs = [load_catalog(args.file)] if args.file else [
+        load_catalog(path) for path in catalog_paths()
+    ]
+    summaries = []
     if args.validate_only:
-        summary = {
+        summaries = [{
             "catalog_code": catalog.catalog_code,
             "version": catalog.version,
             "knowledge_points": len(catalog.knowledge_points),
@@ -27,11 +35,12 @@ def main() -> None:
             "capability_knowledge_requirements": len(
                 catalog.capability_knowledge_requirements
             ),
-        }
+        } for catalog in catalogs]
     else:
         session_factory = create_session_factory(create_mysql_engine())
         with session_factory.begin() as session:
-            summary = import_catalog(session, catalog).__dict__
+            summaries = [import_catalog(session, catalog).__dict__ for catalog in catalogs]
+    summary = summaries[0] if len(summaries) == 1 else {"catalogs": summaries}
     print(json.dumps(summary, ensure_ascii=False, indent=2))
 
 

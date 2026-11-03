@@ -9,12 +9,32 @@ from app.domain.problem import (
     ProblemTarget,
     QuestionType,
     QuestionTypeCandidate,
+    ThinkingMethodCandidate,
 )
 from app.prompts.policies import PROBLEM_UNDERSTANDING_PROMPT
-from app.providers.llm import OpenAICompatibleProvider
+from app.providers.llm import LLMProvider
 
 
 QUESTION_TYPES = {item.value: item for item in QuestionType}
+METHOD_CATALOG = {
+    "equivalent-transform": ("transformation", "转化与化归", "等价转化"),
+    "middle-substitute": ("transformation", "转化与化归", "换元法"),
+    "reduce-degree": ("transformation", "转化与化归", "降次与结构简化"),
+    "representation-transform": ("transformation", "转化与化归", "表示转换"),
+    "whole-structure": ("whole-local", "整体与局部", "整体结构识别"),
+    "classify-by-sign": ("case-analysis", "分类讨论", "按符号分类"),
+    "classify-by-parameter": ("case-analysis", "分类讨论", "按参数分类"),
+    "boundary-degeneration": ("case-analysis", "分类讨论", "边界与退化检查"),
+    "function-graph": ("number-shape", "数形结合", "函数图像分析"),
+    "coordinate-method": ("number-shape", "数形结合", "坐标化"),
+    "zero-intersection": ("function-equation", "函数与方程", "零点与交点"),
+    "monotonicity-analysis": ("function-equation", "函数与方程", "单调性分析"),
+    "special-case-exploration": ("special-general", "特殊与一般", "特例探索"),
+    "counterexample-check": ("special-general", "特殊与一般", "反例检验"),
+    "auxiliary-line": ("construction-correspondence", "构造与对应", "辅助线构造"),
+    "pairing-mapping": ("construction-correspondence", "构造与对应", "配对与映射"),
+    "successive-approximation": ("limit-approximation", "极限与逼近", "逐次逼近"),
+}
 TARGET_ACTION_CODES = {
     "solve",
     "calculate",
@@ -41,6 +61,9 @@ TARGET_ACTIONS = (
 
 
 def _bounded_confidence(value: object, default: float) -> float:
+    """中文：处理“bounded·confidence”相关操作。
+    English: Handles the bounded confidence operation.
+    """
     try:
         return max(0.0, min(float(value), 1.0))
     except (TypeError, ValueError):
@@ -48,21 +71,35 @@ def _bounded_confidence(value: object, default: float) -> float:
 
 
 def _boolean(value: object) -> bool:
+    """中文：处理“boolean”相关操作。
+    English: Handles the boolean operation.
+    """
     if isinstance(value, bool):
         return value
     return str(value).strip().lower() in {"true", "1", "yes"}
 
 
 def _clean_text(value: object) -> str:
+    """中文：处理“clean·text”相关操作。
+    English: Handles the clean text operation.
+    """
     return re.sub(r"\s+", " ", str(value or "")).strip()
 
 
 class ProblemUnderstandingAgent:
-    """Turns the raw exercise into a validated, non-solving ProblemSpec."""
+    """中文：定义“题目·understanding·智能体”类，封装该职责相关的数据与行为。
+    English: Defines the problem understanding agent class and encapsulates data and behavior for that responsibility.
+
+    原有说明 / Existing notes:
+    Turns the raw exercise into a validated, non-solving ProblemSpec.
+    """
 
     name = "problem_understanding"
 
-    def __init__(self, provider: OpenAICompatibleProvider) -> None:
+    def __init__(self, provider: LLMProvider) -> None:
+        """中文：初始化当前对象及其依赖。
+        English: Initializes the current object and its dependencies.
+        """
         self.provider = provider
 
     def run(
@@ -72,6 +109,9 @@ class ProblemUnderstandingAgent:
         grade_band: str = "未知",
         teaching_context: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
+        """中文：处理“执行”相关操作。
+        English: Handles the run operation.
+        """
         fallback = self._rule_based_spec(question, subject, grade_band)
         result = self.provider.complete_json(
             PROBLEM_UNDERSTANDING_PROMPT,
@@ -92,6 +132,9 @@ class ProblemUnderstandingAgent:
         subject: str,
         grade_band: str,
     ) -> ProblemSpec:
+        """中文：处理“rule·based·spec”相关操作。
+        English: Handles the rule based spec operation.
+        """
         normalized = _clean_text(question)
         primary_type, evidence, type_confidence = self._classify(normalized)
         conditions = self._extract_conditions(normalized)
@@ -117,6 +160,7 @@ class ProblemUnderstandingAgent:
             known_conditions=conditions,
             target=target,
             ambiguities=ambiguities,
+            thinking_methods=self._classify_thinking_methods(normalized),
             needs_clarification=needs_clarification,
             clarification_questions=clarification_questions,
             clarification=clarification_questions[0] if clarification_questions else "",
@@ -124,8 +168,18 @@ class ProblemUnderstandingAgent:
         )
 
     def _merge_provider_result(self, result: dict[str, Any], fallback: ProblemSpec) -> ProblemSpec:
+        """中文：处理“merge·提供方·结果”相关操作。
+        English: Handles the merge provider result operation.
+        """
         normalized = _clean_text(result.get("normalized_question")) or fallback.normalized_question
         question_type = self._question_type(result.get("question_type"), fallback.question_type)
+        # 中文：确定性规则已识别出非线性结构时，不接受模型把它降级成一次方程。
+        # English: Do not let the model downgrade a deterministically detected nonlinear equation to linear.
+        if (
+            fallback.question_type == QuestionType.EQUATION
+            and question_type == QuestionType.LINEAR_EQUATION
+        ):
+            question_type = fallback.question_type
         candidates = self._parse_candidates(result.get("question_type_candidates"))
         if not candidates:
             candidates = fallback.question_type_candidates
@@ -138,6 +192,10 @@ class ProblemUnderstandingAgent:
         target = self._parse_target(result.get("target")) or fallback.target
 
         provider_ambiguities = self._parse_ambiguities(result.get("ambiguities"))
+        thinking_methods = self._merge_thinking_methods(
+            self._parse_thinking_methods(result.get("thinking_methods")),
+            fallback.thinking_methods,
+        )
         fallback_ambiguities = fallback.ambiguities
         if target is not None:
             fallback_ambiguities = [
@@ -173,6 +231,7 @@ class ProblemUnderstandingAgent:
             known_conditions=conditions,
             target=target,
             ambiguities=ambiguities,
+            thinking_methods=thinking_methods,
             needs_clarification=needs_clarification,
             clarification_questions=questions,
             clarification=clarification,
@@ -180,7 +239,100 @@ class ProblemUnderstandingAgent:
         )
 
     @staticmethod
+    def _classify_thinking_methods(question: str) -> list[ThinkingMethodCandidate]:
+        """中文：用确定性结构信号给出保守的方法分类。
+        English: Uses deterministic structural signals for conservative method classification.
+        """
+        candidates: list[ThinkingMethodCandidate] = []
+        if ("√" in question or "根号" in question) and "=" in question:
+            candidates.append(ThinkingMethodCandidate(
+                category_id="transformation",
+                category_name="转化与化归",
+                method_id="equivalent-transform",
+                method_name="等价转化",
+                role="primary",
+                evidence="方程含多个根式，需要在定义域内通过移项、有理化或平方等保持条件的变形推进。",
+                confidence=0.88,
+            ))
+            candidates.append(ThinkingMethodCandidate(
+                category_id="whole-local",
+                category_name="整体与局部",
+                method_id="whole-structure",
+                method_name="整体结构识别",
+                role="related",
+                evidence="等式两侧由多个根式差组成，可先把根式差视为整体并比较结构。",
+                confidence=0.76,
+            ))
+        elif re.search(r"[A-Za-z]\s*(?:\^\s*[34]|[³⁴])", question) and "=" in question:
+            candidates.append(ThinkingMethodCandidate(
+                category_id="transformation", category_name="转化与化归",
+                method_id="reduce-degree", method_name="降次与结构简化", role="primary",
+                evidence="方程含高次幂结构，可先寻找低次整体。", confidence=0.8,
+            ))
+        if not candidates and ("绝对值" in question or "|" in question):
+            candidates.append(ThinkingMethodCandidate(
+                category_id="case-analysis", category_name="分类讨论",
+                method_id="classify-by-sign", method_name="按符号分类", role="primary",
+                evidence="绝对值表达式需要按内部式子的符号分界讨论。", confidence=0.85,
+            ))
+        return candidates
+
+    @staticmethod
+    def _parse_thinking_methods(value: object) -> list[ThinkingMethodCandidate]:
+        """中文：校验模型返回的方法分类并限制到正式目录。
+        English: Validates model classifications against the published method catalog.
+        """
+        if not isinstance(value, list):
+            return []
+        parsed: list[ThinkingMethodCandidate] = []
+        primary_used = False
+        for item in value[:3]:
+            if not isinstance(item, dict):
+                continue
+            method_id = _clean_text(item.get("method_id"))
+            catalog = METHOD_CATALOG.get(method_id)
+            if not catalog:
+                continue
+            category_id, category_name, method_name = catalog
+            requested_role = _clean_text(item.get("role"))
+            role = "primary" if requested_role == "primary" and not primary_used else "related"
+            primary_used = primary_used or role == "primary"
+            parsed.append(ThinkingMethodCandidate(
+                category_id=category_id,
+                category_name=category_name,
+                method_id=method_id,
+                method_name=method_name,
+                role=role,
+                evidence=_clean_text(item.get("evidence")) or "模型识别到对应结构信号。",
+                confidence=_bounded_confidence(item.get("confidence"), 0.6),
+            ))
+        if parsed and not primary_used:
+            parsed[0].role = "primary"
+        return parsed
+
+    @staticmethod
+    def _merge_thinking_methods(
+        provider_items: list[ThinkingMethodCandidate],
+        fallback_items: list[ThinkingMethodCandidate],
+    ) -> list[ThinkingMethodCandidate]:
+        """中文：合并模型与确定性分类，并保留一个主方法。
+        English: Merges model and deterministic classifications with one primary method.
+        """
+        merged: dict[str, ThinkingMethodCandidate] = {}
+        for item in [*provider_items, *fallback_items]:
+            current = merged.get(item.method_id)
+            if current is None or item.confidence > current.confidence:
+                merged[item.method_id] = item.model_copy()
+        ordered = list(merged.values())[:3]
+        for index, item in enumerate(ordered):
+            item.role = "primary" if index == 0 else "related"
+        return ordered
+
+    @staticmethod
     def _classify(question: str) -> tuple[QuestionType, str, float]:
+        """中文：处理“classify”相关操作。
+        English: Handles the classify operation.
+        """
         rules = (
             (QuestionType.PROOF, ("证明", "求证"), "题目要求证明结论"),
             (QuestionType.CALCULUS, ("导数", "微分", "积分", "极限"), "包含微积分关键词"),
@@ -200,6 +352,8 @@ class ProblemUnderstandingAgent:
         for question_type, keywords, evidence in rules:
             if any(keyword in question for keyword in keywords):
                 return question_type, evidence, 0.82
+        if "=" in question and re.search(r"\^\s*(?:\{[^}]*[A-Za-z]|[^\s=]*[A-Za-z])", question):
+            return QuestionType.EQUATION, "未知量出现在指数中，属于非线性指数方程", 0.9
         if re.search(r"[A-Za-z]\s*(?:\^\s*2|[²])", question) and "=" in question:
             return QuestionType.QUADRATIC_EQUATION, "等式中包含未知量的二次项", 0.85
         if "=" in question and re.search(r"[A-Za-z]", question):
@@ -220,6 +374,9 @@ class ProblemUnderstandingAgent:
 
     @staticmethod
     def _extract_conditions(question: str) -> list[ProblemCondition]:
+        """中文：处理“extract·conditions”相关操作。
+        English: Handles the extract conditions operation.
+        """
         conditions: list[ProblemCondition] = []
         segments = [item.strip(" ，。；;：:") for item in re.split(r"[。；;\n]", question)]
         for segment in segments:
@@ -241,6 +398,9 @@ class ProblemUnderstandingAgent:
 
     @staticmethod
     def _extract_target(question: str, question_type: QuestionType) -> ProblemTarget | None:
+        """中文：处理“extract·target”相关操作。
+        English: Handles the extract target operation.
+        """
         for chinese_action, action in TARGET_ACTIONS:
             match = re.search(
                 rf"{chinese_action}(?:出|方程)?\s*([^。；;？?]+)",
@@ -299,6 +459,9 @@ class ProblemUnderstandingAgent:
 
     @staticmethod
     def _detect_ambiguities(question: str, target: ProblemTarget | None) -> list[ProblemAmbiguity]:
+        """中文：处理“detect·ambiguities”相关操作。
+        English: Handles the detect ambiguities operation.
+        """
         ambiguities: list[ProblemAmbiguity] = []
         latest_supplement = (
             question.rpartition("补充信息：")[2].strip()
@@ -356,10 +519,16 @@ class ProblemUnderstandingAgent:
 
     @staticmethod
     def _question_type(value: object, default: QuestionType) -> QuestionType:
+        """中文：处理“问题·type”相关操作。
+        English: Handles the question type operation.
+        """
         normalized = _clean_text(value).lower()
         return QUESTION_TYPES.get(normalized, default)
 
     def _parse_candidates(self, value: object) -> list[QuestionTypeCandidate]:
+        """中文：处理“解析·candidates”相关操作。
+        English: Handles the parse candidates operation.
+        """
         if not isinstance(value, list):
             return []
         candidates: list[QuestionTypeCandidate] = []
@@ -378,6 +547,9 @@ class ProblemUnderstandingAgent:
 
     @staticmethod
     def _parse_conditions(value: object) -> list[ProblemCondition]:
+        """中文：处理“解析·conditions”相关操作。
+        English: Handles the parse conditions operation.
+        """
         if not isinstance(value, list):
             return []
         conditions: list[ProblemCondition] = []
@@ -395,6 +567,9 @@ class ProblemUnderstandingAgent:
 
     @staticmethod
     def _parse_target(value: object) -> ProblemTarget | None:
+        """中文：处理“解析·target”相关操作。
+        English: Handles the parse target operation.
+        """
         if isinstance(value, str) and _clean_text(value):
             return ProblemTarget(action="find", object=_clean_text(value))
         if not isinstance(value, dict) or not _clean_text(value.get("object")):
@@ -409,6 +584,9 @@ class ProblemUnderstandingAgent:
 
     @staticmethod
     def _parse_ambiguities(value: object) -> list[ProblemAmbiguity]:
+        """中文：处理“解析·ambiguities”相关操作。
+        English: Handles the parse ambiguities operation.
+        """
         if not isinstance(value, list):
             return []
         ambiguities: list[ProblemAmbiguity] = []
@@ -435,6 +613,9 @@ class ProblemUnderstandingAgent:
 
     @staticmethod
     def _deduplicate_ambiguities(items: list[ProblemAmbiguity]) -> list[ProblemAmbiguity]:
+        """中文：处理“deduplicate·ambiguities”相关操作。
+        English: Handles the deduplicate ambiguities operation.
+        """
         unique: dict[tuple[str, str], ProblemAmbiguity] = {}
         for item in items:
             unique[(item.kind, item.description)] = item
@@ -442,6 +623,9 @@ class ProblemUnderstandingAgent:
 
     @staticmethod
     def _string_list(value: object) -> list[str]:
+        """中文：处理“string·列出”相关操作。
+        English: Handles the string list operation.
+        """
         if not isinstance(value, list):
             return []
         return [_clean_text(item) for item in value if _clean_text(item)][:10]

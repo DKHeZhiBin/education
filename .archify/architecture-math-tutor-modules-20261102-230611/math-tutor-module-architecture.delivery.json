@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "6f31ff08-b6cd-4aa7-a0d7-8b0e257a22f8",
+  "status": "current",
+  "command": "deliver",
+  "type": "architecture",
+  "input": "/Users/kittle/code/mvp/education/.archify/architecture-math-tutor-modules-20261102-230611/candidate.json",
+  "output": "/Users/kittle/code/mvp/education/.archify/architecture-math-tutor-modules-20261102-230611/math-tutor-module-architecture.html",
+  "specification": {
+    "sha256": "530cae5ae1f5c9435df397a3a6c5492a724455d162e2383648967a7da003a838",
+    "bytes": 11454
+  },
+  "artifact": {
+    "sha256": "ed9d54be1cb8ad0e9b420a78305eacde5b15aa33d1a85431af285c55238095ef",
+    "bytes": 866500
+  }
+}

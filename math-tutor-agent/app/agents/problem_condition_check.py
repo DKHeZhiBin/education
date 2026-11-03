@@ -14,7 +14,7 @@ from app.domain.problem_condition_check import (
     SolutionCountCheck,
 )
 from app.prompts.problem_condition_check import PROBLEM_CONDITION_CHECK_PROMPT
-from app.providers.llm import OpenAICompatibleProvider
+from app.providers.llm import LLMProvider
 
 
 FORBIDDEN_RESULT_KEYS = {
@@ -40,17 +40,31 @@ ALLOWED_TOP_LEVEL_KEYS = {
 
 
 class ProblemConditionCheckError(RuntimeError):
+    """中文：定义“题目·condition·检查·error”类，封装该职责相关的数据与行为。
+    English: Defines the problem condition check error class and encapsulates data and behavior for that responsibility.
+    """
     def __init__(self, code: str, message: str) -> None:
+        """中文：初始化当前对象及其依赖。
+        English: Initializes the current object and its dependencies.
+        """
         super().__init__(message)
         self.code = code
 
 
 class ProblemConditionCheckAgent:
-    """Inspect a generated problem without reading or producing a solution."""
+    """中文：定义“题目·condition·检查·智能体”类，封装该职责相关的数据与行为。
+    English: Defines the problem condition check agent class and encapsulates data and behavior for that responsibility.
+
+    原有说明 / Existing notes:
+    Inspect a generated problem without reading or producing a solution.
+    """
 
     name = "problem_condition_check"
 
-    def __init__(self, provider: OpenAICompatibleProvider) -> None:
+    def __init__(self, provider: LLMProvider) -> None:
+        """中文：初始化当前对象及其依赖。
+        English: Initializes the current object and its dependencies.
+        """
         self.provider = provider
 
     def run(
@@ -60,6 +74,9 @@ class ProblemConditionCheckAgent:
         expected_model_name: str,
         versioned_prompt: str,
     ) -> ProblemConditionCheckReport:
+        """中文：处理“执行”相关操作。
+        English: Handles the run operation.
+        """
         if not self.provider.available:
             raise ProblemConditionCheckError(
                 "provider_unavailable", "LLM provider is unavailable"
@@ -170,6 +187,9 @@ class ProblemConditionCheckAgent:
 
     @staticmethod
     def _system_prompt(versioned_prompt: str) -> str:
+        """中文：处理“system·提示词”相关操作。
+        English: Handles the system prompt operation.
+        """
         bounded = versioned_prompt.strip()
         if not bounded:
             raise ProblemConditionCheckError(
@@ -186,6 +206,9 @@ class ProblemConditionCheckAgent:
         cls,
         context: ProblemConditionCheckContext,
     ) -> dict[str, list[ConditionIssue]]:
+        """中文：处理“deterministic·findings”相关操作。
+        English: Handles the deterministic findings operation.
+        """
         findings: dict[str, list[ConditionIssue]] = {
             "ambiguity": [],
             "condition_completeness": [],
@@ -296,6 +319,9 @@ class ProblemConditionCheckAgent:
         evidence: list[str],
         suggested_revision: str,
     ) -> ConditionIssue:
+        """中文：处理“issue”相关操作。
+        English: Handles the issue operation.
+        """
         return ConditionIssue(
             code=code,
             severity="blocking",
@@ -309,6 +335,9 @@ class ProblemConditionCheckAgent:
         model_dimension: ConditionCheckDimension | SolutionCountCheck,
         deterministic_issues: list[ConditionIssue],
     ) -> ConditionCheckDimension | SolutionCountCheck:
+        """中文：处理“merge·dimension”相关操作。
+        English: Handles the merge dimension operation.
+        """
         issues_by_code = {
             issue.code: issue
             for issue in [*model_dimension.issues, *deterministic_issues]
@@ -323,6 +352,9 @@ class ProblemConditionCheckAgent:
 
     @classmethod
     def _forbidden_keys(cls, value: Any) -> set[str]:
+        """中文：处理“forbidden·keys”相关操作。
+        English: Handles the forbidden keys operation.
+        """
         if isinstance(value, dict):
             found = {
                 str(key).casefold()

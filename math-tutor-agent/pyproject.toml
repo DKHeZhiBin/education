@@ -35,9 +35,15 @@ math-tutor-vector-store = "app.vector_store.cli:main"
 math-tutor-index = "app.search_index.cli:main"
 math-tutor-evals = "app.evaluation.cli:main"
 math-tutor-quality-report = "app.evaluation.quality_cli:main"
+math-tutor-generation-quality = "app.evaluation.generation_quality_cli:main"
 math-tutor-release-gate = "app.evaluation.release_gate_cli:main"
 math-tutor-rag-quality = "app.evaluation.retrieval_quality_cli:main"
 math-tutor-revalidate = "app.evaluation.revalidation_cli:main"
+math-tutor-generate = "app.generation_cli:main"
+math-tutor-llm = "app.llm_cli:main"
+math-tutor-demo-accounts = "app.demo_accounts_cli:main"
+math-tutor-tutoring-e2e = "app.evaluation.tutoring_e2e_cli:main"
+math-tutor-managed-catalog = "app.managed_catalog_cli:main"
 
 [tool.setuptools.packages.find]
 include = ["app*"]

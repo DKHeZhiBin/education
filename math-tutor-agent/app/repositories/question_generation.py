@@ -7,6 +7,8 @@ from hashlib import sha256
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.core.product_scope import MVP_GRADE_BAND
+
 from app.domain.question_generation import (
     CandidateGenerationOutcome,
     GeneratedQuestionDraft,
@@ -29,22 +31,37 @@ from app.models.learning import CapabilityPoint, KnowledgePoint
 
 
 class QuestionGenerationIdempotencyConflict(RuntimeError):
+    """中文：定义“问题·生成·idempotency·conflict”类，封装该职责相关的数据与行为。
+    English: Defines the question generation idempotency conflict class and encapsulates data and behavior for that responsibility.
+    """
     def __init__(self, idempotency_scope: str) -> None:
+        """中文：初始化当前对象及其依赖。
+        English: Initializes the current object and its dependencies.
+        """
         super().__init__(
             f"idempotency key was already used with a different request in {idempotency_scope}"
         )
 
 
 class QuestionGenerationVersionNotFound(LookupError):
+    """中文：定义“问题·生成·version·not·found”类，封装该职责相关的数据与行为。
+    English: Defines the question generation version not found class and encapsulates data and behavior for that responsibility.
+    """
     pass
 
 
 class QuestionGenerationReferenceInvalid(ValueError):
+    """中文：定义“问题·生成·reference·invalid”类，封装该职责相关的数据与行为。
+    English: Defines the question generation reference invalid class and encapsulates data and behavior for that responsibility.
+    """
     pass
 
 
 @dataclass(frozen=True)
 class QuestionGenerationRegistration:
+    """中文：定义“问题·生成·registration”类，封装该职责相关的数据与行为。
+    English: Defines the question generation registration class and encapsulates data and behavior for that responsibility.
+    """
     job: QuestionGenerationJob
     batch: GenerationBatch
     created: bool
@@ -52,9 +69,13 @@ class QuestionGenerationRegistration:
 
 @dataclass(frozen=True)
 class QuestionVariationAgentContext:
+    """中文：定义“问题·variation·智能体·context”类，封装该职责相关的数据与行为。
+    English: Defines the question variation agent context class and encapsulates data and behavior for that responsibility.
+    """
     job_id: str
     generation_batch_id: str
     idempotency_key_hash: str
+    provider_id: str
     model_name: str
     generation_input: QuestionGenerationStoredInput
     versioned_prompt: str
@@ -62,13 +83,21 @@ class QuestionVariationAgentContext:
 
 
 class QuestionGenerationJobRepository:
-    """Register a generation request inside the caller's transaction."""
+    """中文：定义“问题·生成·任务·仓储”类，封装该职责相关的数据与行为。
+    English: Defines the question generation job repository class and encapsulates data and behavior for that responsibility.
+
+    原有说明 / Existing notes:
+    Register a generation request inside the caller's transaction.
+    """
 
     def register(
         self,
         session: Session,
         request: QuestionGenerationJobInput,
     ) -> QuestionGenerationRegistration:
+        """中文：处理“register”相关操作。
+        English: Handles the register operation.
+        """
         idempotency_hash = request.idempotency_key_hash()
         request_hash = request.request_hash()
         existing = session.scalar(
@@ -131,7 +160,12 @@ class QuestionGenerationJobRepository:
         session: Session,
         job_id: str,
     ) -> QuestionVariationAgentContext:
-        """Load solution-free, repository-verified input for the generation agent."""
+        """中文：处理“加载·智能体·context”相关操作。
+        English: Handles the load agent context operation.
+
+        原有说明 / Existing notes:
+        Load solution-free, repository-verified input for the generation agent.
+        """
         job = session.get(QuestionGenerationJob, job_id)
         if job is None:
             raise QuestionGenerationReferenceInvalid("question generation job not found")
@@ -174,6 +208,7 @@ class QuestionGenerationJobRepository:
             job_id=job.id,
             generation_batch_id=job.generation_batch_id,
             idempotency_key_hash=job.idempotency_key_hash,
+            provider_id=model.provider,
             model_name=model.model_name,
             generation_input=generation_input,
             versioned_prompt=prompt.template_text,
@@ -188,8 +223,14 @@ class QuestionGenerationJobRepository:
         ordinal: int,
         mother_problem_id: str,
         draft: GeneratedQuestionDraft,
+        allow_paused_inflight: bool = False,
     ) -> QuestionGenerationCandidateResult:
-        """Persist generated content with candidate status; approval is impossible here."""
+        """中文：处理“persist·候选内容”相关操作。
+        English: Handles the persist candidate operation.
+
+        原有说明 / Existing notes:
+        Persist generated content with candidate status; approval is impossible here.
+        """
         job = session.scalar(
             select(QuestionGenerationJob)
             .where(QuestionGenerationJob.id == job_id)
@@ -204,9 +245,13 @@ class QuestionGenerationJobRepository:
         )
         if batch is None:
             raise QuestionGenerationReferenceInvalid("generation batch not found")
-        if batch.status != "running":
+        allowed_statuses = {"running"}
+        if allow_paused_inflight:
+            allowed_statuses.add("paused")
+        if batch.status not in allowed_statuses:
             raise QuestionGenerationReferenceInvalid(
-                "candidates can only be persisted while the batch is running"
+                "candidates can only be persisted while the batch is running, "
+                "or while completing an in-flight call after a pause"
             )
 
         generation_input = QuestionGenerationStoredInput.model_validate(job.input_json)
@@ -234,6 +279,9 @@ class QuestionGenerationJobRepository:
                 ordinal=ordinal,
                 candidate_identity=identity,
                 generation_input=generation_input,
+            )
+            self._get_or_create_rights_evidence(
+                session, problem=existing, mother_problem_id=mother_problem_id
             )
             return self._candidate_result(existing, draft, ordinal, identity)
 
@@ -321,7 +369,80 @@ class QuestionGenerationJobRepository:
             candidate_identity=identity,
             generation_input=generation_input,
         )
+        self._get_or_create_rights_evidence(
+            session, problem=problem, mother_problem_id=mother.id
+        )
         return self._candidate_result(problem, draft, ordinal, identity)
+
+    @staticmethod
+    def _get_or_create_rights_evidence(
+        session: Session,
+        *,
+        problem: KnowledgeProblem,
+        mother_problem_id: str,
+    ) -> AdmissionEvidence:
+        """中文：处理“获取·or·创建·rights·evidence”相关操作。
+        English: Handles the get or create rights evidence operation.
+        """
+        mother = session.get(KnowledgeProblem, mother_problem_id)
+        if mother is None:
+            raise QuestionGenerationReferenceInvalid("mother problem not found")
+        mother_evidence = session.scalar(
+            select(AdmissionEvidence)
+            .where(
+                AdmissionEvidence.problem_id == mother.id,
+                AdmissionEvidence.evidence_type == "source_rights_clearance",
+                AdmissionEvidence.status == "passed",
+                AdmissionEvidence.producer_type == "system",
+            )
+            .order_by(AdmissionEvidence.created_at.desc(), AdmissionEvidence.id.desc())
+            .limit(1)
+        )
+        if mother_evidence is None:
+            raise QuestionGenerationReferenceInvalid(
+                "trusted mother lacks passed source rights clearance"
+            )
+        source = session.get(SourceReference, problem.source_reference_id)
+        if source is None or not source.license_name or not source.canonical_url:
+            raise QuestionGenerationReferenceInvalid(
+                "candidate source lacks traceable license metadata"
+            )
+        payload = {
+            "schema_version": "1.0",
+            "clearance_kind": "trusted_mother_derivative",
+            "problem_content_hash": problem.content_hash,
+            "mother_problem_id": mother.id,
+            "mother_rights_evidence_id": mother_evidence.id,
+            "source_reference_id": source.id,
+            "license_name": source.license_name,
+            "canonical_url": source.canonical_url,
+            "attribution_required": True,
+            "scope": "ai_generated_math_problem_variation",
+        }
+        evidence_hash = QuestionGenerationJobRepository._hash_json(payload)
+        existing = session.scalar(select(AdmissionEvidence).where(
+            AdmissionEvidence.generation_batch_id == problem.generation_batch_id,
+            AdmissionEvidence.problem_id == problem.id,
+            AdmissionEvidence.evidence_type == "source_rights_clearance",
+            AdmissionEvidence.evidence_hash == evidence_hash,
+        ))
+        if existing is not None:
+            return existing
+        evidence = AdmissionEvidence(
+            generation_batch_id=problem.generation_batch_id,
+            problem_id=problem.id,
+            solution_id=None,
+            evidence_type="source_rights_clearance",
+            producer_type="system",
+            status="passed",
+            is_blocking=True,
+            summary="候选题仅基于具有明确许可证据的可信母题生成，并保留来源与署名链路。",
+            payload_json=payload,
+            evidence_hash=evidence_hash,
+        )
+        session.add(evidence)
+        session.flush()
+        return evidence
 
     @staticmethod
     def _get_or_create_generation_evidence(
@@ -334,6 +455,9 @@ class QuestionGenerationJobRepository:
         candidate_identity: str,
         generation_input: QuestionGenerationStoredInput,
     ) -> AdmissionEvidence:
+        """中文：处理“获取·or·创建·生成·evidence”相关操作。
+        English: Handles the get or create generation evidence operation.
+        """
         payload = {
             "schema_version": "1.0",
             "event": "candidate_generated",
@@ -383,6 +507,9 @@ class QuestionGenerationJobRepository:
         session: Session,
         request: QuestionGenerationJobInput,
     ) -> None:
+        """中文：处理“require·versions”相关操作。
+        English: Handles the require versions operation.
+        """
         model = session.get(ModelVersion, request.model_version_id)
         prompt = session.get(PromptVersion, request.prompt_version_id)
         if model is None or not model.active:
@@ -403,6 +530,9 @@ class QuestionGenerationJobRepository:
         session: Session,
         request: QuestionGenerationJobInput,
     ) -> None:
+        """中文：处理“require·生成·范围”相关操作。
+        English: Handles the require generation scope operation.
+        """
         mother_problems = list(session.scalars(
             select(KnowledgeProblem).where(
                 KnowledgeProblem.id.in_(request.mother_problem_ids)
@@ -421,9 +551,19 @@ class QuestionGenerationJobRepository:
             available_knowledge_codes.update(problem.knowledge_point_codes_json)
             trusted = bool(problem.metadata_json.get("trusted_mother"))
             admitted = problem.content_status in {"approved", "indexed"}
+            rights_cleared = session.scalar(
+                select(AdmissionEvidence.id)
+                .where(
+                    AdmissionEvidence.problem_id == problem.id,
+                    AdmissionEvidence.evidence_type == "source_rights_clearance",
+                    AdmissionEvidence.status == "passed",
+                    AdmissionEvidence.producer_type == "system",
+                )
+                .limit(1)
+            ) is not None
             fully_tagged = bool(
                 problem.grade_band
-                and problem.grade_codes_json
+                and (problem.grade_band == MVP_GRADE_BAND or problem.grade_codes_json)
                 and problem.knowledge_point_codes_json
                 and problem.problem_type
                 and problem.content_type
@@ -437,12 +577,18 @@ class QuestionGenerationJobRepository:
                     or problem.grade_band == request.grade_band
                 )
             )
-            if not trusted or not admitted or not same_scope or not fully_tagged:
+            if (
+                not trusted
+                or not admitted
+                or not rights_cleared
+                or not same_scope
+                or not fully_tagged
+            ):
                 invalid_mothers.append(problem.id)
         if invalid_mothers:
             raise QuestionGenerationReferenceInvalid(
-                "mother problems must be trusted, approved, fully tagged and in the "
-                "requested scope: "
+                "mother problems must be trusted, approved, rights-cleared, fully "
+                "tagged and in the requested scope: "
                 + ", ".join(sorted(invalid_mothers))
             )
 
@@ -492,6 +638,9 @@ class QuestionGenerationJobRepository:
         problem: KnowledgeProblem,
         generation_input: QuestionGenerationStoredInput,
     ) -> TrustedMotherProblemContext:
+        """中文：处理“to·trusted·mother”相关操作。
+        English: Handles the to trusted mother operation.
+        """
         if problem.id not in generation_input.mother_problem_ids:
             raise QuestionGenerationReferenceInvalid(
                 "mother problem is not declared by the generation job"
@@ -544,6 +693,9 @@ class QuestionGenerationJobRepository:
         mother: KnowledgeProblem,
         generation_input: QuestionGenerationStoredInput,
     ) -> None:
+        """中文：处理“require·draft·范围”相关操作。
+        English: Handles the require draft scope operation.
+        """
         if draft.derivation_type not in generation_input.allowed_derivation_types:
             raise QuestionGenerationReferenceInvalid("draft derivation type is not allowed")
         if not (
@@ -569,6 +721,9 @@ class QuestionGenerationJobRepository:
 
     @staticmethod
     def _draft_hash(draft: GeneratedQuestionDraft) -> str:
+        """中文：处理“draft·hash”相关操作。
+        English: Handles the draft hash operation.
+        """
         payload = {
             "statement": draft.normalized_statement or draft.statement,
             "conditions": [
@@ -586,6 +741,9 @@ class QuestionGenerationJobRepository:
 
     @staticmethod
     def _hash_json(payload: dict) -> str:
+        """中文：处理“hash·json”相关操作。
+        English: Handles the hash json operation.
+        """
         serialized = json.dumps(
             payload,
             ensure_ascii=False,
@@ -599,6 +757,9 @@ class QuestionGenerationJobRepository:
         session: Session,
         mother: KnowledgeProblem,
     ) -> SourceReference:
+        """中文：处理“获取·or·创建·候选内容·source”相关操作。
+        English: Handles the get or create candidate source operation.
+        """
         mother_source = session.get(SourceReference, mother.source_reference_id)
         if mother_source is None:
             raise QuestionGenerationReferenceInvalid("mother source reference not found")
@@ -637,6 +798,9 @@ class QuestionGenerationJobRepository:
         ordinal: int,
         identity: str,
     ) -> QuestionGenerationCandidateResult:
+        """中文：处理“候选内容·结果”相关操作。
+        English: Handles the candidate result operation.
+        """
         if problem.mother_problem_id is None or problem.content_status != "candidate":
             raise RuntimeError("generated result must reference a mother and remain candidate")
         return QuestionGenerationCandidateResult(

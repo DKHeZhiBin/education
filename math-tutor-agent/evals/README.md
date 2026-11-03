@@ -1,6 +1,6 @@
 # 冻结评估数据
 
-本目录包含三类互相独立的固定数据：高难数学解题评估、初中一元二次方程题目生成评估、以及使用独立语料的 RAG 检索评估。所有记录都标记为 `evaluation_only=true`，不得进入生产题库、生产 RAG、训练或微调数据。
+本目录包含四类互相独立的固定数据：高难数学解题评估、初中一元二次方程题目生成评估、使用独立语料的 RAG 检索评估，以及多 Agent 教学端到端评估。所有记录都标记为 `evaluation_only=true`，不得进入生产题库、生产 RAG、训练或微调数据。
 
 ## 当前版本
 
@@ -99,7 +99,15 @@ math-tutor-evals
 
 校验器会检查文件 SHA-256、数量、有序 ID、Pydantic 合约、查询所引用的文档及评估命名空间隔离。它只读本地文件，不连接或修改 MySQL、Redis、Qdrant。
 
-详细规则见 `docs/FIXED_EVALUATION_SUITES.md`。
+详细规则见 `docs/module/评估与质量模块/FIXED_EVALUATION_SUITES.md`。
+
+## 多 Agent 教学端到端评估
+
+- 数据：`data/tutoring_e2e_v1.jsonl`
+- 清单：`data/tutoring_e2e_v1.manifest.json`
+- 运行：`./scripts/tutoring-e2e --model deepseek:deepseek-chat`
+
+该套件通过真实 `MathTutorAgentHarness` 执行题意澄清、解法分析、验证、学生状态、四级提示和学习记录流程，并生成发布阻断报告。详细规则见 `docs/module/评估与质量模块/MULTI_AGENT_E2E_EVALUATION.md`。
 
 ## RAG 质量评分
 
@@ -109,4 +117,15 @@ math-tutor-evals
 math-tutor-rag-quality --results /path/to/rag-run.jsonl
 ```
 
-输出包含宏平均 Recall@K、重排 nDCG@K、答案依据一致性和引用正确率。运行记录合约与评分口径见 `docs/RAG_QUALITY_METRICS.md`。
+输出包含宏平均 Recall@K、重排 nDCG@K、答案依据一致性和引用正确率。运行记录合约与评分口径见 `docs/module/RAG与检索模块/RAG_QUALITY_METRICS.md`。
+
+## 题目生成质量评分
+
+将固定案例的隔离流水线结果保存为 JSONL 后执行：
+
+```bash
+./scripts/generation-quality-report --results /path/to/generation-run.jsonl
+```
+
+输出包含错误准入率、答案正确率、确定性验证覆盖率以及逐案例失败原因。评分器会验证固定
+manifest 与数据 SHA-256，并拒绝未知案例、重复案例或混用模型、Prompt、代码版本的运行记录。

@@ -40,6 +40,12 @@
 .orbit-two{width:330px;height:330px;right:-105px;bottom:-35px}
 .card textarea,.text-input{width:100%;border:1px solid var(--line);border-radius:10px;padding:13px 14px;background:#fcfdfd;font-size:14px;resize:vertical}
 .form-foot{margin-top:15px}
+.service-notice{display:flex;flex-direction:column;gap:3px;margin-bottom:12px;padding:12px 14px;border:1px solid transparent;border-radius:11px;font-size:12px;line-height:1.55}
+.service-notice strong{font-size:12px}
+.service-notice span{font-size:11px}
+.service-notice.warning{border-color:#ead08b;background:#fff8e5;color:#745a18}
+.service-notice.error{border-color:#efb4a9;background:#fff2ef;color:#9c3e31}
+.service-notice.info{border-color:#b9caf7;background:var(--pale-blue);color:#3452a4}
 .small-equation{font-size:23px}
 .list-heading{align-items:flex-end}
 .mastery-row{font-size:11px;color:var(--muted);margin-bottom:7px}

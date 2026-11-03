@@ -21,11 +21,17 @@ MAX_POWER = 12
 
 
 class UnsafeNumericExpression(ValueError):
+    """中文：定义“unsafe·numeric·expression”类，封装该职责相关的数据与行为。
+    English: Defines the unsafe numeric expression class and encapsulates data and behavior for that responsibility.
+    """
     pass
 
 
 @dataclass(frozen=True)
 class NumericVerificationPolicy:
+    """中文：定义“numeric·校验·策略”类，封装该职责相关的数据与行为。
+    English: Defines the numeric verification policy class and encapsulates data and behavior for that responsibility.
+    """
     precision: int = 50
     absolute_tolerance: Decimal = Decimal("1e-20")
     relative_tolerance: Decimal = Decimal("1e-18")
@@ -33,9 +39,17 @@ class NumericVerificationPolicy:
 
 
 class DecimalExpression:
-    """Evaluate a small arithmetic AST without SymPy or Python eval."""
+    """中文：定义“decimal·expression”类，封装该职责相关的数据与行为。
+    English: Defines the decimal expression class and encapsulates data and behavior for that responsibility.
+
+    原有说明 / Existing notes:
+    Evaluate a small arithmetic AST without SymPy or Python eval.
+    """
 
     def __init__(self, source: str) -> None:
+        """中文：初始化当前对象及其依赖。
+        English: Initializes the current object and its dependencies.
+        """
         normalized = self._normalize(source)
         try:
             self.tree = ast.parse(normalized, mode="eval")
@@ -46,12 +60,18 @@ class DecimalExpression:
             raise UnsafeNumericExpression("表达式结构过于复杂")
 
     def evaluate(self, variables: dict[str, Decimal]) -> Decimal:
+        """中文：处理“评估”相关操作。
+        English: Handles the evaluate operation.
+        """
         try:
             return self._visit(self.tree.body, variables)
         except (DivisionByZero, InvalidOperation, ZeroDivisionError) as error:
             raise UnsafeNumericExpression("表达式在该采样点无定义") from error
 
     def names(self) -> set[str]:
+        """中文：处理“names”相关操作。
+        English: Handles the names operation.
+        """
         return {
             node.id for node in ast.walk(self.tree)
             if isinstance(node, ast.Name) and node.id != "sqrt"
@@ -59,6 +79,9 @@ class DecimalExpression:
 
     @staticmethod
     def _normalize(value: str) -> str:
+        """中文：处理“规范化”相关操作。
+        English: Handles the normalize operation.
+        """
         if not value or not value.strip() or len(value) > MAX_EXPRESSION_LENGTH:
             raise UnsafeNumericExpression("表达式为空或过长")
         normalized = (
@@ -80,6 +103,9 @@ class DecimalExpression:
         return normalized
 
     def _visit(self, node: ast.AST, variables: dict[str, Decimal]) -> Decimal:
+        """中文：处理“visit”相关操作。
+        English: Handles the visit operation.
+        """
         if isinstance(node, ast.Constant):
             if isinstance(node.value, bool) or not isinstance(node.value, (int, float)):
                 raise UnsafeNumericExpression("只允许数字常量")
@@ -133,26 +159,43 @@ class DecimalExpression:
 
 @dataclass(frozen=True)
 class DecimalEquation:
+    """中文：定义“decimal·equation”类，封装该职责相关的数据与行为。
+    English: Defines the decimal equation class and encapsulates data and behavior for that responsibility.
+    """
     source: str
     variable: str
     left: DecimalExpression
     right: DecimalExpression
 
     def residual(self, value: Decimal) -> Decimal:
+        """中文：处理“residual”相关操作。
+        English: Handles the residual operation.
+        """
         variables = {self.variable: value}
         return self.left.evaluate(variables) - self.right.evaluate(variables)
 
 
 class QuadraticNumericVerifier:
-    """Independent Decimal sampling and bounded enumeration for quadratic equations."""
+    """中文：定义“quadratic·numeric·verifier”类，封装该职责相关的数据与行为。
+    English: Defines the quadratic numeric verifier class and encapsulates data and behavior for that responsibility.
+
+    原有说明 / Existing notes:
+    Independent Decimal sampling and bounded enumeration for quadratic equations.
+    """
 
     name = "quadratic_numeric"
     schema_version = "1.0"
 
     def __init__(self, policy: NumericVerificationPolicy | None = None) -> None:
+        """中文：初始化当前对象及其依赖。
+        English: Initializes the current object and its dependencies.
+        """
         self.policy = policy or NumericVerificationPolicy()
 
     def verify(self, context: QuadraticVerificationContext) -> NumericVerificationReport:
+        """中文：处理“校验”相关操作。
+        English: Handles the verify operation.
+        """
         with localcontext() as decimal_context:
             decimal_context.prec = self.policy.precision
             try:
@@ -188,6 +231,9 @@ class QuadraticNumericVerifier:
         equation: DecimalEquation,
         claimed: tuple[Decimal, ...],
     ) -> NumericVerificationReport:
+        """中文：处理“校验·sampling”相关操作。
+        English: Handles the verify sampling operation.
+        """
         checks: list[NumericVerificationCheck] = []
         try:
             f0 = equation.residual(Decimal(0))
@@ -288,6 +334,9 @@ class QuadraticNumericVerifier:
         claimed: tuple[Decimal, ...],
         bounds: tuple[int, int],
     ) -> NumericVerificationReport:
+        """中文：处理“校验·exhaustive”相关操作。
+        English: Handles the verify exhaustive operation.
+        """
         lower, upper = bounds
         solutions: list[Decimal] = []
         evaluations: list[dict[str, str | bool]] = []
@@ -330,6 +379,9 @@ class QuadraticNumericVerifier:
         )
 
     def _parse_equation(self, context: QuadraticVerificationContext) -> DecimalEquation:
+        """中文：处理“解析·equation”相关操作。
+        English: Handles the parse equation operation.
+        """
         if context.problem_type != "quadratic_equation":
             raise UnsafeNumericExpression("数值验证器只接受 quadratic_equation")
         equations = [
@@ -353,6 +405,9 @@ class QuadraticNumericVerifier:
         return DecimalEquation(source, next(iter(names)), left, right)
 
     def _claimed_roots(self, answer: str, variable: str) -> tuple[Decimal, ...]:
+        """中文：处理“claimed·roots”相关操作。
+        English: Handles the claimed roots operation.
+        """
         lowered = answer.strip().lower()
         if any(marker in lowered for marker in EMPTY_ANSWER_MARKERS):
             return ()
@@ -386,6 +441,9 @@ class QuadraticNumericVerifier:
         context: QuadraticVerificationContext,
         variable: str,
     ) -> tuple[int, int] | None:
+        """中文：处理“integer·bounds”相关操作。
+        English: Handles the integer bounds operation.
+        """
         texts = [
             str(item.get("normalized_expression") or item.get("statement") or "")
             for item in [*context.explicit_conditions, *context.implicit_conditions]
@@ -411,6 +469,9 @@ class QuadraticNumericVerifier:
         variable: str,
         roots: tuple[Decimal, ...],
     ) -> tuple[Decimal, ...]:
+        """中文：处理“filter·real·domain”相关操作。
+        English: Handles the filter real domain operation.
+        """
         texts = [
             str(item.get("normalized_expression") or item.get("statement") or "").strip()
             for item in [*context.explicit_conditions, *context.implicit_conditions]
@@ -455,6 +516,9 @@ class QuadraticNumericVerifier:
             predicates.append((operator, expression.evaluate({})))
 
         def allowed(root: Decimal) -> bool:
+            """中文：处理“allowed”相关操作。
+            English: Handles the allowed operation.
+            """
             for operator, bound in predicates:
                 if operator == ">" and not root > bound:
                     return False
@@ -475,6 +539,9 @@ class QuadraticNumericVerifier:
         equation: DecimalEquation,
         claimed: tuple[Decimal, ...],
     ) -> NumericVerificationCheck:
+        """中文：处理“substitution·检查”相关操作。
+        English: Handles the substitution check operation.
+        """
         substitutions = []
         passed = True
         for root in claimed:
@@ -500,6 +567,9 @@ class QuadraticNumericVerifier:
         )
 
     def _close(self, left: Decimal, right: Decimal) -> bool:
+        """中文：处理“关闭”相关操作。
+        English: Handles the close operation.
+        """
         difference = abs(left - right)
         scale = max(abs(left), abs(right), Decimal(1))
         return difference <= max(
@@ -512,6 +582,9 @@ class QuadraticNumericVerifier:
         expected: tuple[Decimal, ...],
         actual: tuple[Decimal, ...],
     ) -> bool:
+        """中文：处理“sets·关闭”相关操作。
+        English: Handles the sets close operation.
+        """
         if len(expected) != len(actual):
             return False
         unmatched = list(actual)
@@ -533,6 +606,9 @@ class QuadraticNumericVerifier:
         *,
         mode: str = "numeric_sampling",
     ) -> NumericVerificationReport:
+        """中文：处理“finish”相关操作。
+        English: Handles the finish operation.
+        """
         if any(item.status == NumericCheckStatus.FAILED for item in checks):
             status = NumericCheckStatus.FAILED
             confidence = 0.98
@@ -577,6 +653,9 @@ class QuadraticNumericVerifier:
         *,
         mode: str = "numeric_sampling",
     ) -> NumericVerificationReport:
+        """中文：处理“inconclusive”相关操作。
+        English: Handles the inconclusive operation.
+        """
         checks = list(existing_checks or [])
         checks.append(NumericVerificationCheck(
             check_type=(

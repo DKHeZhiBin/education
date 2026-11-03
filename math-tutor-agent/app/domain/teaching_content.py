@@ -10,6 +10,9 @@ from app.domain.tutoring import HintLevel
 
 
 class HintStage(StrEnum):
+    """中文：定义“提示·stage”类，封装该职责相关的数据与行为。
+    English: Defines the hint stage class and encapsulates data and behavior for that responsibility.
+    """
     DIRECTION = "direction"
     KEY_RELATION = "key_relation"
     LOCAL_STEP = "local_step"
@@ -17,6 +20,9 @@ class HintStage(StrEnum):
 
 
 class RevealScope(StrEnum):
+    """中文：定义“reveal·范围”类，封装该职责相关的数据与行为。
+    English: Defines the reveal scope class and encapsulates data and behavior for that responsibility.
+    """
     DIRECTION_ONLY = "direction_only"
     RELATION_ONLY = "relation_only"
     SINGLE_STEP = "single_step"
@@ -24,12 +30,18 @@ class RevealScope(StrEnum):
 
 
 class HintReviewStatus(StrEnum):
+    """中文：定义“提示·复核·状态”类，封装该职责相关的数据与行为。
+    English: Defines the hint review status class and encapsulates data and behavior for that responsibility.
+    """
     CANDIDATE = "candidate"
     APPROVED = "approved"
     RETIRED = "retired"
 
 
 class HintSourceType(StrEnum):
+    """中文：定义“提示·source·type”类，封装该职责相关的数据与行为。
+    English: Defines the hint source type class and encapsulates data and behavior for that responsibility.
+    """
     AUTHORED = "authored"
     AI_CANDIDATE = "ai_candidate"
     IMPORTED = "imported"
@@ -47,6 +59,9 @@ HINT_BOUNDARIES: dict[int, tuple[HintStage, RevealScope]] = {
 
 
 class ErrorPatternDefinition(BaseModel):
+    """中文：定义“error·pattern·definition”类，封装该职责相关的数据与行为。
+    English: Defines the error pattern definition class and encapsulates data and behavior for that responsibility.
+    """
     code: str = Field(min_length=1, max_length=120, pattern=r"^[a-z0-9][a-z0-9._-]*$")
     title: str = Field(min_length=1, max_length=200)
     description: str = Field(min_length=1, max_length=1000)
@@ -56,6 +71,9 @@ class ErrorPatternDefinition(BaseModel):
 
 
 class ProblemErrorPatternUpsert(BaseModel):
+    """中文：定义“题目·error·pattern·upsert”类，封装该职责相关的数据与行为。
+    English: Defines the problem error pattern upsert class and encapsulates data and behavior for that responsibility.
+    """
     solution_id: str
     solution_step_key: str = Field(min_length=1, max_length=64)
     pattern: ErrorPatternDefinition
@@ -67,6 +85,9 @@ class ProblemErrorPatternUpsert(BaseModel):
 
 
 class HintBlueprintUpsert(BaseModel):
+    """中文：定义“提示·blueprint·upsert”类，封装该职责相关的数据与行为。
+    English: Defines the hint blueprint upsert class and encapsulates data and behavior for that responsibility.
+    """
     solution_id: str
     solution_step_key: str | None = Field(default=None, max_length=64)
     problem_error_pattern_id: str | None = None
@@ -81,6 +102,9 @@ class HintBlueprintUpsert(BaseModel):
 
     @model_validator(mode="after")
     def validate_hint_scope(self) -> "HintBlueprintUpsert":
+        """中文：处理“验证·提示·范围”相关操作。
+        English: Handles the validate hint scope operation.
+        """
         if (
             self.hint_level == HintLevel.LOCAL_STEP
             and not self.solution_step_key
@@ -95,6 +119,9 @@ class HintBlueprintUpsert(BaseModel):
 
 
 class SolutionStepView(BaseModel):
+    """中文：定义“解答·step·view”类，封装该职责相关的数据与行为。
+    English: Defines the solution step view class and encapsulates data and behavior for that responsibility.
+    """
     id: str
     problem_id: str
     solution_id: str
@@ -112,6 +139,9 @@ class SolutionStepView(BaseModel):
 
 
 class ErrorPatternLinkView(BaseModel):
+    """中文：定义“error·pattern·link·view”类，封装该职责相关的数据与行为。
+    English: Defines the error pattern link view class and encapsulates data and behavior for that responsibility.
+    """
     id: str
     problem_id: str
     solution_id: str
@@ -133,6 +163,9 @@ class ErrorPatternLinkView(BaseModel):
 
 
 class HintBlueprintView(BaseModel):
+    """中文：定义“提示·blueprint·view”类，封装该职责相关的数据与行为。
+    English: Defines the hint blueprint view class and encapsulates data and behavior for that responsibility.
+    """
     id: str
     problem_id: str
     solution_id: str
@@ -154,6 +187,9 @@ class HintBlueprintView(BaseModel):
 
 
 class TeachingSolutionView(BaseModel):
+    """中文：定义“教学·解答·view”类，封装该职责相关的数据与行为。
+    English: Defines the teaching solution view class and encapsulates data and behavior for that responsibility.
+    """
     solution_id: str
     method_name: str
     verification_status: str
@@ -162,6 +198,9 @@ class TeachingSolutionView(BaseModel):
 
 
 class ProblemTeachingMap(BaseModel):
+    """中文：定义“题目·教学·map”类，封装该职责相关的数据与行为。
+    English: Defines the problem teaching map class and encapsulates data and behavior for that responsibility.
+    """
     problem_id: str
     problem_status: str
     solutions: list[TeachingSolutionView]

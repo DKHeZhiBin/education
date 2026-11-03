@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from datetime import date, datetime, time, timezone
+from datetime import date, datetime, time, timedelta, timezone
 from decimal import Decimal
 from hashlib import sha256
 
@@ -10,8 +10,14 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, selectinload, sessionmaker
 
+from app.core.product_scope import (
+    MVP_GRADE_BAND,
+    MVP_GRADE_LABEL,
+    MVP_SUBJECT_CODE,
+)
 from app.domain.schemas import (
     AgentArtifact as DomainAgentArtifact,
+    KnowledgeLearningEvidence,
     LearnerProfile,
     LearningRecord as DomainLearningRecord,
     Message,
@@ -29,40 +35,41 @@ from app.models import (
     SessionMessage,
     StudentProfile,
 )
+from app.mcp_tools.review_tools import calculate_initial_review_schedule
 from app.repositories.base import SessionVersionConflict
 
 
-GRADE_TO_BAND = {
-    "小学低年级": "primary_lower",
-    "小学高年级": "primary_upper",
-    "小学": "primary_upper",
-    "初中": "middle",
-    "高中": "high",
-}
 BAND_TO_GRADE = {
-    "primary_lower": "小学低年级",
-    "primary_upper": "小学高年级",
-    "middle": "初中",
-    "high": "高中",
+    MVP_GRADE_BAND: MVP_GRADE_LABEL,
 }
-SUBJECT_TO_CODE = {"数学": "math", "math": "math"}
 CODE_TO_SUBJECT = {"math": "数学"}
 MASTERY_TO_CODE = {"待巩固": "to_review", "巩固中": "reviewing", "已掌握": "mastered"}
 CODE_TO_MASTERY = {value: key for key, value in MASTERY_TO_CODE.items()}
 
 
 class MySQLSessionRepository:
-    """Persists the complete tutoring-session aggregate in normalized MySQL tables."""
+    """中文：定义“my·sqlsession·仓储”类，封装该职责相关的数据与行为。
+    English: Defines the my sqlsession repository class and encapsulates data and behavior for that responsibility.
+
+    原有说明 / Existing notes:
+    Persists the complete tutoring-session aggregate in normalized MySQL tables.
+    """
 
     def __init__(
         self,
         engine: Engine,
         session_factory: sessionmaker[Session],
     ) -> None:
+        """中文：初始化当前对象及其依赖。
+        English: Initializes the current object and its dependencies.
+        """
         self.engine = engine
         self.session_factory = session_factory
 
     def save(self, tutoring_session: TutoringSession) -> TutoringSession:
+        """中文：处理“保存”相关操作。
+        English: Handles the save operation.
+        """
         next_version: int
         with self.session_factory.begin() as db:
             grade_band = self._grade_band(tutoring_session.profile.grade)
@@ -144,6 +151,9 @@ class MySQLSessionRepository:
 
     @classmethod
     def _session_values(cls, tutoring_session: TutoringSession, grade_band: str) -> dict:
+        """中文：处理“会话·values”相关操作。
+        English: Handles the session values operation.
+        """
         problem_spec = next(
             (
                 artifact.payload
@@ -154,10 +164,8 @@ class MySQLSessionRepository:
         )
         return {
             "knowledge_problem_id": tutoring_session.knowledge_problem_id,
-            "subject": SUBJECT_TO_CODE.get(
-                tutoring_session.profile.subject,
-                tutoring_session.profile.subject,
-            ),
+            "llm_model_id": tutoring_session.llm_model_id,
+            "subject": MVP_SUBJECT_CODE,
             "grade_band": grade_band,
             "question_text": tutoring_session.question,
             "normalized_question": problem_spec.get("normalized_question"),
@@ -168,11 +176,17 @@ class MySQLSessionRepository:
         }
 
     def get(self, session_id: str) -> TutoringSession | None:
+        """中文：处理“获取”相关操作。
+        English: Handles the get operation.
+        """
         with self.session_factory() as db:
             entity = db.scalar(self._aggregate_query().where(LearningSession.id == session_id))
             return self._to_domain(entity) if entity is not None else None
 
     def list(self, student_user_id: str) -> list[TutoringSession]:
+        """中文：处理“列出”相关操作。
+        English: Handles the list operation.
+        """
         with self.session_factory() as db:
             entities = db.scalars(
                 self._aggregate_query()
@@ -182,10 +196,16 @@ class MySQLSessionRepository:
             return [self._to_domain(entity) for entity in entities]
 
     def close(self) -> None:
+        """中文：处理“关闭”相关操作。
+        English: Handles the close operation.
+        """
         self.engine.dispose()
 
     @staticmethod
     def _aggregate_query():
+        """中文：处理“aggregate·query”相关操作。
+        English: Handles the aggregate query operation.
+        """
         return select(LearningSession).options(
             selectinload(LearningSession.messages),
             selectinload(LearningSession.student),
@@ -199,6 +219,9 @@ class MySQLSessionRepository:
 
     @staticmethod
     def _sync_messages(entity: LearningSession, messages: list[Message]) -> None:
+        """中文：处理“同步·messages”相关操作。
+        English: Handles the sync messages operation.
+        """
         existing = {message.id: message for message in entity.messages}
         incoming_ids = {message.id for message in messages}
         entity.messages[:] = [message for message in entity.messages if message.id in incoming_ids]
@@ -223,11 +246,18 @@ class MySQLSessionRepository:
         entity: LearningSession,
         artifacts: list[DomainAgentArtifact],
     ) -> None:
+        """中文：处理“replace·智能体·runs”相关操作。
+        English: Handles the replace agent runs operation.
+        """
         if entity.agent_runs:
             entity.agent_runs.clear()
             db.flush()
 
         artifacts_by_run: dict[str, list[DomainAgentArtifact]] = defaultdict(list)
+        model_provider, separator, model_name = (entity.llm_model_id or "").partition("/")
+        if not separator:
+            model_provider = ""
+            model_name = ""
         for artifact in artifacts:
             artifacts_by_run[artifact.run_id].append(artifact)
 
@@ -256,6 +286,8 @@ class MySQLSessionRepository:
                     artifact_kind=domain_artifact.kind,
                     confidence=Decimal(str(domain_artifact.confidence)),
                     duration_ms=domain_artifact.duration_ms,
+                    model_provider=model_provider or None,
+                    model_name=model_name or None,
                     created_at=MySQLSessionRepository._to_mysql_datetime(
                         domain_artifact.created_at
                     ),
@@ -277,6 +309,9 @@ class MySQLSessionRepository:
         entity: LearningSession,
         domain_record: DomainLearningRecord | None,
     ) -> None:
+        """中文：处理“同步·学习·记录”相关操作。
+        English: Handles the sync learning record operation.
+        """
         if domain_record is None:
             if entity.learning_record is not None:
                 entity.learning_record = None
@@ -293,25 +328,68 @@ class MySQLSessionRepository:
 
         record.question_snapshot = domain_record.question
         record.learner_answer = domain_record.learner_answer or None
+        record.error_category = domain_record.error_category or None
         record.error_reason = domain_record.error_reason or None
         record.correct_approach = domain_record.correct_approach
         record.difficulty = domain_record.difficulty
         record.mastery_status = MASTERY_TO_CODE.get(domain_record.mastery, domain_record.mastery)
         record.review_count = domain_record.review_count
+        if record.next_review_at is None:
+            reference_at = entity.completed_at or entity.updated_at
+            schedule = calculate_initial_review_schedule(
+                record.mastery_status,
+                reference_at.date(),
+            )
+            if schedule.ok and schedule.interval_days is not None:
+                record.next_review_at = reference_at + timedelta(days=schedule.interval_days)
 
         if record.knowledge_links:
             record.knowledge_links.clear()
             db.flush()
-        for tag in dict.fromkeys(domain_record.knowledge_tags):
+        observations = domain_record.knowledge_points or [
+            KnowledgeLearningEvidence(
+                name=tag,
+                mistake_detected=domain_record.error_category == "misconception",
+                error_category=(
+                    domain_record.error_category
+                    if domain_record.error_category == "misconception"
+                    else ""
+                ),
+                error_reason=(
+                    domain_record.error_reason
+                    if domain_record.error_category == "misconception"
+                    else ""
+                ),
+                hint_level=domain_record.hint_level,
+                effective_attempt_count=domain_record.attempt_count,
+                mastery=domain_record.mastery,
+            )
+            for tag in dict.fromkeys(domain_record.knowledge_tags)
+        ]
+        seen: set[tuple[int, str]] = set()
+        for observation in observations:
             knowledge_point = self._get_or_create_knowledge_point(
                 db,
-                tag,
+                observation.code or observation.name,
                 entity.subject,
                 entity.grade_band,
             )
+            key = (knowledge_point.id, observation.relation_type)
+            if key in seen:
+                continue
+            seen.add(key)
             record.knowledge_links.append(LearningRecordKnowledge(
                 knowledge_point=knowledge_point,
-                relation_type="primary",
+                relation_type=observation.relation_type,
+                evidence=observation.evidence or observation.error_reason or None,
+                mistake_detected=observation.mistake_detected,
+                error_category=observation.error_category or None,
+                hint_level=observation.hint_level,
+                effective_attempt_count=observation.effective_attempt_count,
+                mastery_status=MASTERY_TO_CODE.get(
+                    observation.mastery,
+                    observation.mastery,
+                ),
             ))
 
     @staticmethod
@@ -321,6 +399,29 @@ class MySQLSessionRepository:
         subject: str,
         grade_band: str,
     ) -> KnowledgePoint:
+        """中文：处理“获取·or·创建·知识·point”相关操作。
+        English: Handles the get or create knowledge point operation.
+        """
+        knowledge_point = db.scalar(
+            select(KnowledgePoint).where(
+                (KnowledgePoint.code == name) | (KnowledgePoint.name == name)
+            )
+        )
+        if knowledge_point is not None:
+            return knowledge_point
+
+        catalog_aliases = {
+            "分配律": "MS.ALG.EXPR.DISTRIBUTIVE",
+            "等式性质": "MS.EQ.TRANSFORM.EQUIVALENT",
+        }
+        alias_code = catalog_aliases.get(name)
+        if alias_code is not None:
+            knowledge_point = db.scalar(
+                select(KnowledgePoint).where(KnowledgePoint.code == alias_code)
+            )
+            if knowledge_point is not None:
+                return knowledge_point
+
         digest = sha256(f"{subject}:{grade_band}:{name}".encode("utf-8")).hexdigest()[:24]
         code = f"auto:{subject}:{grade_band}:{digest}"
         knowledge_point = db.scalar(select(KnowledgePoint).where(KnowledgePoint.code == code))
@@ -337,6 +438,9 @@ class MySQLSessionRepository:
 
     @staticmethod
     def _to_domain(entity: LearningSession) -> TutoringSession:
+        """中文：处理“to·domain”相关操作。
+        English: Handles the to domain operation.
+        """
         artifacts: list[DomainAgentArtifact] = []
         for run in sorted(entity.agent_runs, key=lambda item: item.started_at):
             for step in sorted(run.steps, key=lambda item: item.step_no):
@@ -363,12 +467,40 @@ class MySQLSessionRepository:
                 grade=BAND_TO_GRADE.get(entity.grade_band, entity.grade_band),
                 question=record.question_snapshot,
                 learner_answer=record.learner_answer or "",
+                error_category=record.error_category or "",
                 error_reason=record.error_reason or "",
                 correct_approach=record.correct_approach,
                 knowledge_tags=[link.knowledge_point.name for link in record.knowledge_links],
+                knowledge_points=[
+                    KnowledgeLearningEvidence(
+                        code=link.knowledge_point.code,
+                        name=link.knowledge_point.name,
+                        relation_type=link.relation_type,
+                        mistake_detected=link.mistake_detected,
+                        error_category=link.error_category or "",
+                        error_reason=(
+                            (link.evidence or "") if link.mistake_detected else ""
+                        ),
+                        hint_level=link.hint_level,
+                        effective_attempt_count=link.effective_attempt_count,
+                        mastery=CODE_TO_MASTERY.get(
+                            link.mastery_status,
+                            link.mastery_status,
+                        ),
+                        evidence=link.evidence or "",
+                    )
+                    for link in record.knowledge_links
+                ],
                 difficulty=record.difficulty,
                 mastery=CODE_TO_MASTERY.get(record.mastery_status, record.mastery_status),
+                hint_level=entity.hint_level,
+                attempt_count=entity.attempt_count,
                 review_count=record.review_count,
+                next_review_at=(
+                    MySQLSessionRepository._to_utc(record.next_review_at)
+                    if record.next_review_at is not None
+                    else None
+                ),
             )
 
         return TutoringSession(
@@ -376,6 +508,7 @@ class MySQLSessionRepository:
             version=entity.version,
             student_user_id=entity.student_user_id,
             knowledge_problem_id=entity.knowledge_problem_id,
+            llm_model_id=entity.llm_model_id,
             profile=LearnerProfile(
                 grade=BAND_TO_GRADE.get(entity.grade_band, entity.grade_band),
                 subject=CODE_TO_SUBJECT.get(entity.subject, entity.subject),
@@ -403,18 +536,31 @@ class MySQLSessionRepository:
 
     @staticmethod
     def _grade_band(grade: str) -> str:
-        return GRADE_TO_BAND.get(grade, grade if grade in BAND_TO_GRADE else "middle")
+        """中文：处理“grade·band”相关操作。
+        English: Handles the grade band operation.
+        """
+        del grade
+        return MVP_GRADE_BAND
 
     @staticmethod
     def _to_mysql_datetime(value: datetime) -> datetime:
+        """中文：处理“to·MySQL·datetime”相关操作。
+        English: Handles the to mysql datetime operation.
+        """
         if value.tzinfo is None:
             return value
         return value.astimezone(timezone.utc).replace(tzinfo=None)
 
     @staticmethod
     def _to_utc(value: datetime) -> datetime:
+        """中文：处理“to·utc”相关操作。
+        English: Handles the to utc operation.
+        """
         return value.replace(tzinfo=timezone.utc) if value.tzinfo is None else value.astimezone(timezone.utc)
 
     @staticmethod
     def _record_datetime(value: str) -> datetime:
+        """中文：处理“记录·datetime”相关操作。
+        English: Handles the record datetime operation.
+        """
         return datetime.combine(date.fromisoformat(value), time.min)

@@ -5,9 +5,25 @@
 .camera-card p{color:#c7d8de;margin-bottom:20px}
 .file-button{position:relative;overflow:hidden}
 .file-button input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.file-button.is-disabled{opacity:.65;pointer-events:none}
+.problem-image-preview{display:block;width:100%;max-height:260px;object-fit:contain;margin:0 0 16px;border-radius:12px;background:#fff;border:1px solid #ffffff2e}
+.image-upload-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.image-status-refresh{border:0;background:transparent;color:#d5e7ec;text-decoration:underline;cursor:pointer;font:inherit}
+.image-status-refresh:disabled{opacity:.55;cursor:default}
+.image-upload-status{display:flex;align-items:flex-start;gap:9px;margin-top:16px;padding:12px 14px;border-radius:11px;background:#ffffff12;color:#edf7f9}
+.image-upload-status div{display:grid;gap:3px}
+.image-upload-status strong{font-size:13px}
+.image-upload-status small{font-size:11px;line-height:1.5;color:#c7d8de}
+.status-dot{width:9px;height:9px;margin-top:4px;border-radius:50%;background:#e3b458;box-shadow:0 0 0 4px #e3b45824;flex:0 0 auto}
+.status-dot.active,.status-dot.processing{animation:pulse-status 1.1s ease-in-out infinite}
+.status-dot.ready{background:#65d39a;box-shadow:0 0 0 4px #65d39a24}
+.status-dot.failed{background:#ff7c72;box-shadow:0 0 0 4px #ff7c7224}
+@keyframes pulse-status{50%{opacity:.42;transform:scale(.82)}}
 .input-divider{display:flex;align-items:center;gap:12px;margin:20px 0;color:#86949a;font-size:11px}
 .input-divider span{height:1px;background:var(--line);flex:1}
 .field-label{display:block;font-size:12px;font-weight:700;margin-bottom:10px}
+.model-label{margin-top:18px}
+.model-help{display:block;margin-top:8px}
 .privacy-note,.center-note{text-align:center;color:#819097;font-size:11px;margin-top:18px}
 .step-progress{display:flex;align-items:center;gap:12px;margin:-6px 0 17px}
 .step-progress .progress-track{flex:1}
@@ -31,6 +47,13 @@
 .text-button{border:0;background:none;color:var(--blue);font-size:12px;font-weight:600;cursor:pointer}
 .question-card{background:var(--pale-blue);border-color:var(--pale-blue);margin-bottom:15px}
 .question-card .tiny-muted{display:block;margin-top:12px}
+.learning-status-card{position:sticky;top:86px;z-index:4;margin-bottom:15px;padding:15px;background:#fffffff2;backdrop-filter:blur(12px);box-shadow:0 8px 24px #18323b0b}
+.learning-status-metrics{display:grid;grid-template-columns:1.2fr .8fr 1fr;gap:10px}
+.learning-status-metrics>div{display:flex;flex-direction:column;gap:4px;padding:9px 10px;border-radius:9px;background:var(--pale-blue)}
+.learning-status-metrics span{font-size:10px;color:#6c7b82}
+.learning-status-metrics strong{font-size:12px;color:var(--ink)}
+.next-step-guidance{margin-top:11px;padding-top:11px;border-top:1px solid var(--line)}
+.next-step-guidance p{margin-top:4px;font-size:12px;line-height:1.55;color:#46575e}
 .answer-input{min-height:54px;font-size:16px}
 .math-keypad{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:10px}
 .math-keypad button{height:35px;border:1px solid var(--line);border-radius:7px;background:white;cursor:pointer}
@@ -40,6 +63,12 @@
 .inline-feedback strong{font-size:12px}
 .inline-feedback p{font-size:11px}
 .form-error{margin-top:10px!important;color:#b54736!important;font-size:12px!important}
+.pending-turn{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:12px;padding:12px;border:1px solid #e9c46a;border-radius:10px;background:#fff9e9}
+.pending-turn>div:first-child{min-width:0;display:flex;flex-direction:column;gap:4px}
+.pending-turn strong{font-size:12px;color:#7b5a14}
+.pending-turn span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;color:#74694f}
+.pending-turn .button{flex:none}
+.pending-turn-actions{display:flex;align-items:center;gap:9px;flex:none}
 .coach-prompt{display:flex;align-items:flex-start;gap:12px;margin-bottom:18px;padding-bottom:17px;border-bottom:1px solid var(--line)}
 .coach-prompt p{white-space:pre-line;color:var(--ink)}
 .conversation{display:flex;flex-direction:column;gap:12px;margin:14px 0 18px}
@@ -48,6 +77,23 @@
 .message-bubble{max-width:82%;padding:13px 15px;border-radius:14px;background:white;border:1px solid var(--line);font-size:13px;line-height:1.65;white-space:pre-line}
 .message-row.assistant .message-bubble{background:var(--pale-blue);border-color:var(--pale-blue);border-top-left-radius:5px}
 .message-row.student .message-bubble{background:var(--deep);border-color:var(--deep);color:white;border-top-right-radius:5px}
+.streaming-reply .message-bubble{white-space:pre-wrap}
+.streaming-cursor{display:inline-block;width:2px;height:1em;margin-left:3px;vertical-align:-2px;background:currentColor;animation:streaming-blink .9s steps(1,end) infinite}
+@keyframes streaming-blink{50%{opacity:0}}
+.content-issue-reporter{margin:14px 0}
+.content-issue-trigger{display:block;margin-left:auto;border:0;background:transparent;color:#7a878d;font:inherit;font-size:11px;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.content-issue-trigger:hover{color:#b54736}
+.content-issue-form-card{border-color:#efd8d2;background:#fffdfc}
+.content-issue-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:15px;margin-bottom:16px}
+.content-issue-heading h3{margin:0}
+.content-issue-close{width:30px;height:30px;border:0;border-radius:50%;background:#f6eeee;color:#84645e;font-size:20px;line-height:1;cursor:pointer}
+.content-issue-description-label{margin-top:15px}
+.content-issue-form-meta{display:flex;justify-content:space-between;gap:16px;margin-top:7px;color:var(--muted);font-size:10px}
+.content-issue-actions{display:flex;align-items:center;justify-content:flex-end;gap:12px;margin-top:16px}
+.content-issue-success{display:flex;align-items:flex-start;gap:10px;margin:14px 0;padding:13px 15px;border:1px solid #bde2cf;border-radius:11px;background:var(--pale-green);color:var(--teal)}
+.content-issue-success>span{font-weight:700}
+.content-issue-success strong{display:block;font-size:12px}
+.content-issue-success p{margin-top:3px;color:#357660;font-size:11px}
 .coach-composer{position:sticky;bottom:10px;background:#ffffffef;backdrop-filter:blur(12px)}
 .coach-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:13px}
 .coach-actions .button{margin-left:auto}

@@ -15,6 +15,9 @@ MAX_CANDIDATE_REVISION_ATTEMPTS = 2
 
 
 class RevisionFailureEvidence(BaseModel):
+    """中文：定义“revision·failure·evidence”类，封装该职责相关的数据与行为。
+    English: Defines the revision failure evidence class and encapsulates data and behavior for that responsibility.
+    """
     model_config = ConfigDict(extra="forbid")
 
     evidence_id: str
@@ -27,7 +30,12 @@ class RevisionFailureEvidence(BaseModel):
 
 
 class CandidateRevisionContext(BaseModel):
-    """Only the current candidate and explicit gate failures visible to the reviser."""
+    """中文：定义“候选内容·revision·context”类，封装该职责相关的数据与行为。
+    English: Defines the candidate revision context class and encapsulates data and behavior for that responsibility.
+
+    原有说明 / Existing notes:
+    Only the current candidate and explicit gate failures visible to the reviser.
+    """
 
     model_config = ConfigDict(extra="forbid")
 
@@ -66,6 +74,9 @@ class CandidateRevisionContext(BaseModel):
 
     @model_validator(mode="after")
     def validate_contract(self) -> CandidateRevisionContext:
+        """中文：处理“验证·contract”相关操作。
+        English: Handles the validate contract operation.
+        """
         if self.allowed_difficulty_minimum > self.allowed_difficulty_maximum:
             raise ValueError("revision difficulty range is invalid")
         if self.revision_attempt > self.max_revision_attempts:
@@ -78,6 +89,9 @@ class CandidateRevisionContext(BaseModel):
         return self
 
     def fingerprint(self) -> str:
+        """中文：处理“fingerprint”相关操作。
+        English: Handles the fingerprint operation.
+        """
         serialized = json.dumps(
             self.model_dump(mode="json"),
             ensure_ascii=False,
@@ -88,6 +102,9 @@ class CandidateRevisionContext(BaseModel):
 
 
 class FailureRepair(BaseModel):
+    """中文：定义“failure·repair”类，封装该职责相关的数据与行为。
+    English: Defines the failure repair class and encapsulates data and behavior for that responsibility.
+    """
     model_config = ConfigDict(extra="forbid")
 
     evidence_id: str
@@ -95,6 +112,9 @@ class FailureRepair(BaseModel):
 
 
 class CandidateRevisionDraft(BaseModel):
+    """中文：定义“候选内容·revision·draft”类，封装该职责相关的数据与行为。
+    English: Defines the candidate revision draft class and encapsulates data and behavior for that responsibility.
+    """
     model_config = ConfigDict(extra="forbid")
 
     schema_version: Literal["1.0"] = "1.0"
@@ -106,6 +126,9 @@ class CandidateRevisionDraft(BaseModel):
 
     @model_validator(mode="after")
     def validate_repairs(self) -> CandidateRevisionDraft:
+        """中文：处理“验证·repairs”相关操作。
+        English: Handles the validate repairs operation.
+        """
         repair_ids = [item.evidence_id for item in self.repairs]
         if len(repair_ids) != len(set(repair_ids)):
             raise ValueError("each failure evidence may be repaired only once")
@@ -113,6 +136,9 @@ class CandidateRevisionDraft(BaseModel):
 
 
 class PersistedCandidateRevision(BaseModel):
+    """中文：定义“persisted·候选内容·revision”类，封装该职责相关的数据与行为。
+    English: Defines the persisted candidate revision class and encapsulates data and behavior for that responsibility.
+    """
     source_problem_id: str
     revised_problem_id: str
     generation_batch_id: str

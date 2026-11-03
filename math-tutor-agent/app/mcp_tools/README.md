@@ -12,6 +12,7 @@
 | `compare_solution_steps` | 判断前后两个步骤是否等价 | 校验 Agent、学情诊断 Agent |
 | `create_similar_linear_problem` | 生成结果已知的相似练习题 | 练习生成流程 |
 | `schedule_question_review` | 计算下一次错题复习日期 | 学习记录 Agent |
+| `schedule_initial_question_review` | 根据完成时掌握状态计算首次复习日期 | 学习记录 Agent |
 
 ## 安全边界
 
@@ -38,4 +39,4 @@ mcp run app/mcp_tools/server.py
 
 ## Harness 集成
 
-`SolutionVerificationAgent` 在进程内直接复用本目录的安全工具函数，完成一元实方程独立求解、推荐步骤等价比较、候选答案代回和解集完整性检查。这样与 MCP Server 共用同一套实现和白名单，同时避免内部校验产生额外传输开销。校验顺序、报告对象和当前覆盖边界见 `docs/SOLUTION_VERIFICATION.md`。
+`SolutionVerificationAgent` 在进程内直接复用本目录的安全工具函数，完成一元实方程独立求解、推荐步骤等价比较、候选答案代回和解集完整性检查。这样与 MCP Server 共用同一套实现和白名单，同时避免内部校验产生额外传输开销。校验顺序、报告对象和当前覆盖边界见 `docs/agent/解答校验Agent/SOLUTION_VERIFICATION.md`。

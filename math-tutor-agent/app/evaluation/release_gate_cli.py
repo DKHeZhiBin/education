@@ -4,11 +4,15 @@ import argparse
 import json
 from datetime import datetime
 
+from app.core.logging import configure_cli_logging
 from app.domain.generation_quality import GenerationQualityScope
 from app.services.generation_quality import generation_quality_service
 
 
 def _datetime(value: str) -> datetime:
+    """中文：处理“datetime”相关操作。
+    English: Handles the datetime operation.
+    """
     try:
         return datetime.fromisoformat(value.replace("Z", "+00:00"))
     except ValueError as exc:
@@ -16,6 +20,10 @@ def _datetime(value: str) -> datetime:
 
 
 def main() -> None:
+    """中文：处理“main”相关操作。
+    English: Handles the main operation.
+    """
+    configure_cli_logging()
     parser = argparse.ArgumentParser(
         description="Block production release when erroneous automatic admission is unsafe"
     )

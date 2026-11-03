@@ -1,0 +1,20 @@
+import { FormEvent, useEffect, useState } from "react";
+import { api } from "../../api/client";
+import { Modal } from "../../components/Modal";
+import { PRODUCT_GRADE_BAND, PRODUCT_SCOPE_LABEL, PRODUCT_SUBJECT_CODE } from "../../config/productScope";
+import type { Catalog } from "../../types";
+
+const empty = { code: "", version: "2026.1", title: "", subject: PRODUCT_SUBJECT_CODE, grade_band: PRODUCT_GRADE_BAND, topic: "", sort_order: 0, status: "draft" };
+
+export function CatalogsPage() {
+  const [items, setItems] = useState<Catalog[]>([]); const [editing, setEditing] = useState<Catalog | null | undefined>(); const [form, setForm] = useState(empty); const [error, setError] = useState("");
+  const load = () => api<Catalog[]>("/admin/curriculum/catalogs").then(setItems).catch(reason => setError(reason.message));
+  useEffect(() => { void load(); }, []);
+  function open(item?: Catalog) { setEditing(item ?? null); setForm(item ? { code: item.code, version: item.version, title: item.title, subject: item.subject, grade_band: item.grade_band, topic: item.topic, sort_order: item.sort_order, status: item.status } : empty); }
+  async function save(event: FormEvent) { event.preventDefault(); setError(""); try { await api(editing ? `/admin/curriculum/catalogs/${editing.id}` : "/admin/curriculum/catalogs", { method: editing ? "PUT" : "POST", body: JSON.stringify({ ...form, expected_version: editing?.version_lock }) }); setEditing(undefined); load(); } catch (reason) { setError(reason instanceof Error ? reason.message : "保存失败"); } }
+  async function remove(item: Catalog) { if (!window.confirm(`确定删除目录“${item.title}”吗？\n\n只有不包含知识点的空目录可以删除。`)) return; setError(""); try { await api(`/admin/curriculum/catalogs/${item.id}`, { method: "DELETE" }); await load(); } catch (reason) { setError(reason instanceof Error ? reason.message : "删除失败"); } }
+  return <div className="page"><header className="page-header"><div><p className="eyebrow">CURRICULUM CATALOGS</p><h1>知识目录</h1><p>管理{PRODUCT_SCOPE_LABEL}的主题、版本和知识星图</p></div><button className="primary" onClick={() => open()}>＋ 新建目录</button></header>
+    {error && <div className="error-banner">{error}</div>}<section className="panel table-panel"><table><thead><tr><th>目录</th><th>主题</th><th>版本</th><th>节点</th><th>状态</th><th></th></tr></thead><tbody>{items.map(item => <tr key={item.id}><td><strong>{item.title}</strong><small>{item.code}</small></td><td>{item.topic}</td><td>{item.version}</td><td>{item.knowledge_point_count}</td><td><span className={`status ${item.status}`}>{item.status === "published" ? "已发布" : item.status === "draft" ? "草稿" : "已归档"}</span></td><td><div className="row-actions"><button className="text-button" onClick={() => open(item)}>编辑</button><button className="text-button danger" onClick={() => remove(item)}>删除</button></div></td></tr>)}</tbody></table>{!items.length && <div className="empty">尚未创建目录</div>}</section>
+    {editing !== undefined && <Modal title={editing ? "编辑知识目录" : "新建知识目录"} onClose={() => setEditing(undefined)}><form className="form-grid" onSubmit={save}><label>目录名称<input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} required /></label><label>目录编码<input value={form.code} onChange={e => setForm({ ...form, code: e.target.value })} required /></label><label>版本<input value={form.version} onChange={e => setForm({ ...form, version: e.target.value })} required /></label><label>显示顺序<input type="number" min="0" value={form.sort_order} onChange={e => setForm({ ...form, sort_order: Number(e.target.value) })} /></label><label>状态<select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })}><option value="draft">草稿</option><option value="published">已发布</option><option value="archived">已归档</option></select></label><label className="full">主题<input value={form.topic} onChange={e => setForm({ ...form, topic: e.target.value })} required /></label><footer className="form-actions full"><button type="button" onClick={() => setEditing(undefined)}>取消</button><button className="primary">保存目录</button></footer></form></Modal>}
+  </div>;
+}

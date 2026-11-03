@@ -34,6 +34,9 @@ IMMEDIATE_QUARANTINE_EVIDENCE_TYPES = frozenset({
 
 
 class AdmissionGateDecision(StrEnum):
+    """中文：定义“admission·准入门·decision”类，封装该职责相关的数据与行为。
+    English: Defines the admission gate decision class and encapsulates data and behavior for that responsibility.
+    """
     APPROVE = "approve"
     REVISE = "revise"
     QUARANTINE = "quarantine"
@@ -41,6 +44,9 @@ class AdmissionGateDecision(StrEnum):
 
 
 class AdmissionGateContext(BaseModel):
+    """中文：定义“admission·准入门·context”类，封装该职责相关的数据与行为。
+    English: Defines the admission gate context class and encapsulates data and behavior for that responsibility.
+    """
     problem_id: str
     generation_batch_id: str
     problem_content_hash: str = Field(pattern=r"^[0-9a-f]{64}$")
@@ -64,6 +70,9 @@ class AdmissionGateContext(BaseModel):
 
     @model_validator(mode="after")
     def validate_scope(self) -> AdmissionGateContext:
+        """中文：处理“验证·范围”相关操作。
+        English: Handles the validate scope operation.
+        """
         if self.current_status != ProblemContentStatus.VALIDATING:
             raise ValueError("automatic admission gate requires validating status")
         if (self.selected_solution_id is None) != (
@@ -81,6 +90,9 @@ class AdmissionGateContext(BaseModel):
 
 
 class AdmissionGateResult(BaseModel):
+    """中文：定义“admission·准入门·结果”类，封装该职责相关的数据与行为。
+    English: Defines the admission gate result class and encapsulates data and behavior for that responsibility.
+    """
     problem_id: str
     decision: AdmissionGateDecision
     target_status: ProblemContentStatus | None = None
@@ -95,6 +107,9 @@ class AdmissionGateResult(BaseModel):
 
     @model_validator(mode="after")
     def validate_decision(self) -> AdmissionGateResult:
+        """中文：处理“验证·decision”相关操作。
+        English: Handles the validate decision operation.
+        """
         expected_target = {
             AdmissionGateDecision.APPROVE: ProblemContentStatus.APPROVED,
             AdmissionGateDecision.REVISE: ProblemContentStatus.REVISION_REQUIRED,
@@ -112,6 +127,9 @@ class AdmissionGateResult(BaseModel):
 
 
 class PersistedAdmissionGateResult(BaseModel):
+    """中文：定义“persisted·admission·准入门·结果”类，封装该职责相关的数据与行为。
+    English: Defines the persisted admission gate result class and encapsulates data and behavior for that responsibility.
+    """
     gate_result: AdmissionGateResult
     decision_evidence: AdmissionEvidence
     transition: ProblemTransitionResult | None = None
@@ -119,9 +137,17 @@ class PersistedAdmissionGateResult(BaseModel):
 
 
 class RuleBasedAdmissionGate:
-    """Choose the admission outcome without accepting a model-selected target status."""
+    """中文：定义“rule·based·admission·准入门”类，封装该职责相关的数据与行为。
+    English: Defines the rule based admission gate class and encapsulates data and behavior for that responsibility.
+
+    原有说明 / Existing notes:
+    Choose the admission outcome without accepting a model-selected target status.
+    """
 
     def evaluate(self, context: AdmissionGateContext) -> AdmissionGateResult:
+        """中文：处理“评估”相关操作。
+        English: Handles the evaluate operation.
+        """
         latest = self._latest_by_type(context.evidence)
         checked_ids = sorted(item.id for item in latest.values())
         deterministic_failures = sorted(
@@ -259,6 +285,9 @@ class RuleBasedAdmissionGate:
     def _latest_by_type(
         evidence: list[AdmissionEvidence],
     ) -> dict[str, AdmissionEvidence]:
+        """中文：处理“latest·by·type”相关操作。
+        English: Handles the latest by type operation.
+        """
         latest: dict[str, AdmissionEvidence] = {}
         for item in sorted(evidence, key=lambda value: (value.created_at, value.id)):
             if item.evidence_type != "admission_decision":
@@ -269,12 +298,18 @@ class RuleBasedAdmissionGate:
     def _revision_or_quarantine(
         context: AdmissionGateContext,
     ) -> AdmissionGateDecision:
+        """中文：处理“revision·or·quarantine”相关操作。
+        English: Handles the revision or quarantine operation.
+        """
         if context.revision_attempts >= context.max_revision_attempts:
             return AdmissionGateDecision.QUARANTINE
         return AdmissionGateDecision.REVISE
 
     @staticmethod
     def _failure_reason(prefix: str, failures: list[str]) -> str:
+        """中文：处理“failure·reason”相关操作。
+        English: Handles the failure reason operation.
+        """
         return f"{prefix}：{', '.join(failures)}。"
 
     @staticmethod
@@ -284,6 +319,9 @@ class RuleBasedAdmissionGate:
         reason: str,
         **details,
     ) -> AdmissionGateResult:
+        """中文：处理“结果”相关操作。
+        English: Handles the result operation.
+        """
         target = {
             AdmissionGateDecision.APPROVE: ProblemContentStatus.APPROVED,
             AdmissionGateDecision.REVISE: ProblemContentStatus.REVISION_REQUIRED,

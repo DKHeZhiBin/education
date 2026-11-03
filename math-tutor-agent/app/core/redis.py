@@ -7,7 +7,12 @@ from app.core.config import settings
 
 @lru_cache(maxsize=1)
 def get_redis_client() -> Redis:
-    """Return the process-wide Redis client and its shared connection pool."""
+    """中文：处理“获取·Redis·客户端”相关操作。
+    English: Handles the get redis client operation.
+
+    原有说明 / Existing notes:
+    Return the process-wide Redis client and its shared connection pool.
+    """
     return Redis.from_url(
         settings.redis_url,
         decode_responses=True,

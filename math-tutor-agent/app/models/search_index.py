@@ -17,7 +17,12 @@ from app.models.base import (
 
 
 class KnowledgeIndexState(Base):
-    """Durable generation for retrieval cache namespace invalidation."""
+    """中文：定义“知识·索引·state”类，封装该职责相关的数据与行为。
+    English: Defines the knowledge index state class and encapsulates data and behavior for that responsibility.
+
+    原有说明 / Existing notes:
+    Durable generation for retrieval cache namespace invalidation.
+    """
 
     __tablename__ = "knowledge_index_states"
 
@@ -32,7 +37,12 @@ class KnowledgeIndexState(Base):
 
 
 class KnowledgeSearchDocument(UuidPrimaryKeyMixin, TimestampMixin, Base):
-    """Canonical MySQL projection shared by keyword and vector indexes."""
+    """中文：定义“知识·搜索·文档”类，封装该职责相关的数据与行为。
+    English: Defines the knowledge search document class and encapsulates data and behavior for that responsibility.
+
+    原有说明 / Existing notes:
+    Canonical MySQL projection shared by keyword and vector indexes.
+    """
 
     __tablename__ = "knowledge_search_documents"
     __table_args__ = (
@@ -122,7 +132,12 @@ class KnowledgeSearchDocument(UuidPrimaryKeyMixin, TimestampMixin, Base):
 
 
 class SearchIndexMaintenanceJob(UuidPrimaryKeyMixin, TimestampMixin, Base):
-    """Persistent outbox for removing and rebuilding external search indexes."""
+    """中文：定义“搜索·索引·maintenance·任务”类，封装该职责相关的数据与行为。
+    English: Defines the search index maintenance job class and encapsulates data and behavior for that responsibility.
+
+    原有说明 / Existing notes:
+    Persistent outbox for removing and rebuilding external search indexes.
+    """
 
     __tablename__ = "search_index_maintenance_jobs"
     __table_args__ = (

@@ -10,6 +10,9 @@ from app.models.base import Base, MYSQL_DATETIME, TimestampMixin, UuidPrimaryKey
 
 
 class ContentRevalidationPolicy(UuidPrimaryKeyMixin, TimestampMixin, Base):
+    """中文：定义“内容·revalidation·策略”类，封装该职责相关的数据与行为。
+    English: Defines the content revalidation policy class and encapsulates data and behavior for that responsibility.
+    """
     __tablename__ = "content_revalidation_policies"
     __table_args__ = (
         UniqueConstraint("policy_key", name="content_revalidation_policy_key"),
@@ -58,6 +61,9 @@ class ContentRevalidationPolicy(UuidPrimaryKeyMixin, TimestampMixin, Base):
 
 
 class ContentRevalidationRun(UuidPrimaryKeyMixin, TimestampMixin, Base):
+    """中文：定义“内容·revalidation·执行”类，封装该职责相关的数据与行为。
+    English: Defines the content revalidation run class and encapsulates data and behavior for that responsibility.
+    """
     __tablename__ = "content_revalidation_runs"
     __table_args__ = (
         UniqueConstraint("run_key", name="content_revalidation_run_key"),
@@ -91,6 +97,9 @@ class ContentRevalidationRun(UuidPrimaryKeyMixin, TimestampMixin, Base):
 
 
 class ContentRevalidationItem(UuidPrimaryKeyMixin, TimestampMixin, Base):
+    """中文：定义“内容·revalidation·item”类，封装该职责相关的数据与行为。
+    English: Defines the content revalidation item class and encapsulates data and behavior for that responsibility.
+    """
     __tablename__ = "content_revalidation_items"
     __table_args__ = (
         UniqueConstraint("run_id", "problem_id", name="revalidation_run_problem"),

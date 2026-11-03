@@ -14,6 +14,9 @@ if TYPE_CHECKING:
 
 
 class ParentReport(UuidPrimaryKeyMixin, Base):
+    """中文：定义“parent·报告”类，封装该职责相关的数据与行为。
+    English: Defines the parent report class and encapsulates data and behavior for that responsibility.
+    """
     __tablename__ = "parent_reports"
     __table_args__ = (
         UniqueConstraint(

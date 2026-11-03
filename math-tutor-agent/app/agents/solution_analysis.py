@@ -9,14 +9,20 @@ from app.domain.solution import (
     SolutionStep,
 )
 from app.prompts.policies import SOLUTION_ANALYSIS_PROMPT, SOLUTION_REVISION_PROMPT
-from app.providers.llm import OpenAICompatibleProvider
+from app.providers.llm import LLMProvider
 
 
 def _clean_text(value: object) -> str:
+    """中文：处理“clean·text”相关操作。
+    English: Handles the clean text operation.
+    """
     return re.sub(r"\s+", " ", str(value or "")).strip()
 
 
 def _string_list(value: object, limit: int = 20) -> list[str]:
+    """中文：处理“string·列出”相关操作。
+    English: Handles the string list operation.
+    """
     if not isinstance(value, list):
         return []
     return list(dict.fromkeys(
@@ -25,6 +31,9 @@ def _string_list(value: object, limit: int = 20) -> list[str]:
 
 
 def _bounded_number(value: object, default: float) -> float:
+    """中文：处理“bounded·number”相关操作。
+    English: Handles the bounded number operation.
+    """
     try:
         return max(0.0, min(float(value), 1.0))
     except (TypeError, ValueError):
@@ -32,6 +41,9 @@ def _bounded_number(value: object, default: float) -> float:
 
 
 def _difficulty(value: object) -> int:
+    """中文：处理“difficulty”相关操作。
+    English: Handles the difficulty operation.
+    """
     try:
         return max(1, min(int(value), 3))
     except (TypeError, ValueError):
@@ -39,11 +51,19 @@ def _difficulty(value: object) -> int:
 
 
 class SolutionAnalysisAgent:
-    """Builds alternative solution routes and teachable breakthrough points."""
+    """中文：定义“解答·analysis·智能体”类，封装该职责相关的数据与行为。
+    English: Defines the solution analysis agent class and encapsulates data and behavior for that responsibility.
+
+    原有说明 / Existing notes:
+    Builds alternative solution routes and teachable breakthrough points.
+    """
 
     name = "solution_analysis"
 
-    def __init__(self, provider: OpenAICompatibleProvider) -> None:
+    def __init__(self, provider: LLMProvider) -> None:
+        """中文：初始化当前对象及其依赖。
+        English: Initializes the current object and its dependencies.
+        """
         self.provider = provider
 
     def run(
@@ -52,6 +72,9 @@ class SolutionAnalysisAgent:
         problem: dict | None = None,
         teaching_context: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
+        """中文：处理“执行”相关操作。
+        English: Handles the run operation.
+        """
         problem = problem or {}
         if problem.get("needs_clarification"):
             return self._empty_plan(
@@ -88,6 +111,9 @@ class SolutionAnalysisAgent:
         attempt: int,
         max_attempts: int,
     ) -> dict[str, Any]:
+        """中文：处理“revise”相关操作。
+        English: Handles the revise operation.
+        """
         result = self.provider.complete_json(
             SOLUTION_REVISION_PROMPT,
             json.dumps({
@@ -111,6 +137,9 @@ class SolutionAnalysisAgent:
 
     @staticmethod
     def _revision_reason(verification: dict) -> str:
+        """中文：处理“revision·reason”相关操作。
+        English: Handles the revision reason operation.
+        """
         issues = _string_list(verification.get("issues"), 6)
         if issues:
             return "；".join(issues)
@@ -121,6 +150,9 @@ class SolutionAnalysisAgent:
 
     @staticmethod
     def _demo_plan() -> SolutionPlan:
+        """中文：处理“demo·plan”相关操作。
+        English: Handles the demo plan operation.
+        """
         methods = [
             SolutionMethod(
                 id="distribute_then_collect",
@@ -223,6 +255,9 @@ class SolutionAnalysisAgent:
         )
 
     def _normalize_result(self, result: dict[str, Any]) -> SolutionPlan:
+        """中文：处理“规范化·结果”相关操作。
+        English: Handles the normalize result operation.
+        """
         methods = self._parse_methods(result.get("methods"))
         if not methods:
             legacy_steps = self._parse_steps(result.get("steps"))
@@ -282,6 +317,9 @@ class SolutionAnalysisAgent:
         )
 
     def _parse_methods(self, value: object) -> list[SolutionMethod]:
+        """中文：处理“解析·methods”相关操作。
+        English: Handles the parse methods operation.
+        """
         if not isinstance(value, list):
             return []
         methods: list[SolutionMethod] = []
@@ -311,6 +349,9 @@ class SolutionAnalysisAgent:
 
     @staticmethod
     def _parse_steps(value: object) -> list[SolutionStep]:
+        """中文：处理“解析·steps”相关操作。
+        English: Handles the parse steps operation.
+        """
         if not isinstance(value, list):
             return []
         steps: list[SolutionStep] = []
@@ -341,6 +382,9 @@ class SolutionAnalysisAgent:
         value: object,
         method_ids: set[str],
     ) -> list[KeyBreakthrough]:
+        """中文：处理“解析·breakthroughs”相关操作。
+        English: Handles the parse breakthroughs operation.
+        """
         if not isinstance(value, list):
             return []
         breakthroughs: list[KeyBreakthrough] = []
@@ -385,6 +429,9 @@ class SolutionAnalysisAgent:
         confidence: float,
         note: str = "",
     ) -> SolutionPlan:
+        """中文：处理“构建·plan”相关操作。
+        English: Handles the build plan operation.
+        """
         selected = next(
             method for method in methods if method.id == recommended_method_id
         )
@@ -433,6 +480,9 @@ class SolutionAnalysisAgent:
 
     @staticmethod
     def _empty_plan(note: str) -> SolutionPlan:
+        """中文：处理“empty·plan”相关操作。
+        English: Handles the empty plan operation.
+        """
         return SolutionPlan(
             knowledge_points=["待识别"],
             confidence=0.25,
@@ -441,10 +491,16 @@ class SolutionAnalysisAgent:
 
     @staticmethod
     def _safe_id(value: object, default: str) -> str:
+        """中文：处理“safe·id”相关操作。
+        English: Handles the safe id operation.
+        """
         candidate = re.sub(r"[^a-zA-Z0-9_-]+", "_", _clean_text(value)).strip("_")
         return candidate[:64] or default
 
     @staticmethod
     def _optional_text(value: object) -> str | None:
+        """中文：处理“optional·text”相关操作。
+        English: Handles the optional text operation.
+        """
         text = _clean_text(value)
         return text or None

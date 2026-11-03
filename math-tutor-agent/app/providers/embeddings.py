@@ -8,38 +8,85 @@ from app.core.config import Settings, settings
 
 
 class EmbeddingProviderError(RuntimeError):
+    """中文：定义“嵌入·提供方·error”类，封装该职责相关的数据与行为。
+    English: Defines the embedding provider error class and encapsulates data and behavior for that responsibility.
+    """
     pass
 
 
 @runtime_checkable
 class EmbeddingProvider(Protocol):
-    @property
-    def name(self) -> str: ...
+    """中文：定义“嵌入·提供方”类，封装该职责相关的数据与行为。
+    English: Defines the embedding provider class and encapsulates data and behavior for that responsibility.
+    """
 
     @property
-    def model_name(self) -> str: ...
+    def name(self) -> str:
+        """中文：处理“name”相关操作。
+        English: Handles the name operation.
+        """
+        ...
 
     @property
-    def dimensions(self) -> int: ...
+    def model_name(self) -> str:
+        """中文：处理“模型·name”相关操作。
+        English: Handles the model name operation.
+        """
+        ...
 
     @property
-    def available(self) -> bool: ...
+    def dimensions(self) -> int:
+        """中文：处理“dimensions”相关操作。
+        English: Handles the dimensions operation.
+        """
+        ...
 
-    def embed_query(self, text: str) -> list[float]: ...
+    @property
+    def available(self) -> bool:
+        """中文：处理“available”相关操作。
+        English: Handles the available operation.
+        """
+        ...
 
-    def embed_documents(self, texts: list[str]) -> list[list[float]]: ...
+    def embed_query(self, text: str) -> list[float]:
+        """中文：处理“embed·query”相关操作。
+        English: Handles the embed query operation.
+        """
+        ...
 
-    def check_readiness(self) -> tuple[bool, str]: ...
+    def embed_documents(self, texts: list[str]) -> list[list[float]]:
+        """中文：处理“embed·documents”相关操作。
+        English: Handles the embed documents operation.
+        """
+        ...
 
-    def close(self) -> None: ...
+    def check_readiness(self) -> tuple[bool, str]:
+        """中文：处理“检查·就绪状态”相关操作。
+        English: Handles the check readiness operation.
+        """
+        ...
+
+    def close(self) -> None:
+        """中文：处理“关闭”相关操作。
+        English: Handles the close operation.
+        """
+        ...
 
 
 class OpenAICompatibleEmbeddingProvider:
-    """Embedding adapter for APIs implementing POST /embeddings."""
+    """中文：定义“打开·aicompatible·嵌入·提供方”类，封装该职责相关的数据与行为。
+    English: Defines the open aicompatible embedding provider class and encapsulates data and behavior for that responsibility.
+
+    原有说明 / Existing notes:
+    Embedding adapter for APIs implementing POST /embeddings.
+    """
 
     name = "openai_compatible"
 
     def __init__(self, config: Settings = settings) -> None:
+        """中文：初始化当前对象及其依赖。
+        English: Initializes the current object and its dependencies.
+        """
         self.config = config
         self._client = httpx.Client(
             base_url=config.embedding_base_url.rstrip("/"),
@@ -49,21 +96,42 @@ class OpenAICompatibleEmbeddingProvider:
 
     @property
     def model_name(self) -> str:
+        """中文：处理“模型·name”相关操作。
+        English: Handles the model name operation.
+        """
         return self.config.embedding_model
 
     @property
     def dimensions(self) -> int:
+        """中文：处理“dimensions”相关操作。
+        English: Handles the dimensions operation.
+        """
         return self.config.embedding_dimensions
 
     @property
     def available(self) -> bool:
+        """中文：处理“available”相关操作。
+        English: Handles the available operation.
+        """
         return bool(self.config.embedding_base_url and self.model_name)
 
     def embed_query(self, text: str) -> list[float]:
-        vectors = self.embed_documents([text])
+        """中文：处理“embed·query”相关操作。
+        English: Handles the embed query operation.
+        """
+        vectors = self._embed([text], input_type="query")
         return vectors[0]
 
     def embed_documents(self, texts: list[str]) -> list[list[float]]:
+        """中文：处理“embed·documents”相关操作。
+        English: Handles the embed documents operation.
+        """
+        return self._embed(texts, input_type="document")
+
+    def _embed(self, texts: list[str], *, input_type: str) -> list[list[float]]:
+        """中文：处理“embed”相关操作。
+        English: Handles the embed operation.
+        """
         if not self.available:
             raise EmbeddingProviderError("embedding provider is not configured")
         if not texts or any(not text.strip() for text in texts):
@@ -71,7 +139,11 @@ class OpenAICompatibleEmbeddingProvider:
         try:
             response = self._client.post(
                 "/embeddings",
-                json={"model": self.model_name, "input": texts},
+                json={
+                    "model": self.model_name,
+                    "input": texts,
+                    "input_type": input_type,
+                },
             )
             response.raise_for_status()
             rows = response.json()["data"]
@@ -88,6 +160,9 @@ class OpenAICompatibleEmbeddingProvider:
         return vectors
 
     def check_readiness(self) -> tuple[bool, str]:
+        """中文：处理“检查·就绪状态”相关操作。
+        English: Handles the check readiness operation.
+        """
         if not self.available:
             return False, "not_configured"
         if not self.config.embedding_readiness_path:
@@ -104,10 +179,16 @@ class OpenAICompatibleEmbeddingProvider:
             return False, "connection_failed"
 
     def close(self) -> None:
+        """中文：处理“关闭”相关操作。
+        English: Handles the close operation.
+        """
         self._client.close()
 
     @staticmethod
     def _headers(config: Settings) -> dict[str, str]:
+        """中文：处理“headers”相关操作。
+        English: Handles the headers operation.
+        """
         headers = {"Content-Type": "application/json"}
         if config.embedding_api_key:
             headers["Authorization"] = f"Bearer {config.embedding_api_key}"
@@ -115,4 +196,7 @@ class OpenAICompatibleEmbeddingProvider:
 
 
 def build_embedding_provider(config: Settings = settings) -> EmbeddingProvider:
+    """中文：处理“构建·嵌入·提供方”相关操作。
+    English: Handles the build embedding provider operation.
+    """
     return OpenAICompatibleEmbeddingProvider(config)

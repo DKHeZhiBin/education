@@ -1,0 +1,358 @@
+#!/bin/bash
+set -euo pipefail
+
+backend_dir="$(cd "$(dirname "$0")/.." && pwd)"
+project_dir="$(cd "$backend_dir/.." && pwd)"
+admin_dir="$project_dir/knowledge-admin"
+service_dir="$backend_dir/.local-services"
+run_dir="$service_dir/run"
+log_dir="$service_dir/logs"
+api_pid_file="$run_dir/api.pid"
+frontend_pid_file="$run_dir/frontend.pid"
+admin_pid_file="$run_dir/admin.pid"
+launch_agent_dir="$HOME/Library/LaunchAgents"
+launch_domain="gui/$(id -u)"
+api_label="ai.math-tutor.api"
+frontend_label="ai.math-tutor.frontend"
+admin_label="ai.math-tutor.admin"
+api_url="http://127.0.0.1:8000/v1"
+frontend_url="http://127.0.0.1:5173"
+admin_url="http://127.0.0.1:5174"
+
+ok() { printf '✓ %s\n' "$1"; }
+warn() { printf '! %s\n' "$1" >&2; }
+fail() { printf '✗ %s\n' "$1" >&2; exit 1; }
+
+env_value() {
+  local key="$1"
+  /usr/bin/awk -F= -v key="$key" '$1 == key { sub(/^[^=]*=/, ""); print; exit }' "$backend_dir/.env"
+}
+
+require_env() {
+  local key="$1"
+  [ -n "$(env_value "$key")" ] || fail "$key is missing or empty in math-tutor-agent/.env"
+}
+
+redis_available() {
+  [ -x "$service_dir/runtime/redis/bin/redis-server" ] || command -v redis-server >/dev/null 2>&1
+}
+
+preflight() {
+  [ -f "$backend_dir/.env" ] || fail "Missing math-tutor-agent/.env; copy .env.example and fill local values"
+  [ -x "$backend_dir/.venv/bin/python" ] || fail "Missing backend virtual environment; create .venv and install the project"
+  [ -x "$backend_dir/.venv/bin/uvicorn" ] || fail "uvicorn is not installed in math-tutor-agent/.venv"
+  [ -x "$backend_dir/.venv/bin/alembic" ] || fail "alembic is not installed in math-tutor-agent/.venv"
+  command -v npm >/dev/null 2>&1 || fail "npm is not installed"
+  command -v curl >/dev/null 2>&1 || fail "curl is not installed"
+  [ -d "$project_dir/node_modules" ] || fail "Frontend dependencies are missing; run npm install in the repository root"
+  [ -d "$admin_dir/node_modules" ] || fail "Admin dependencies are missing; run npm install in knowledge-admin"
+[ -x "$service_dir/runtime/mysql/bin/mysqld" ] || fail "Local MySQL is missing; see docs/02-platform/LOCAL_SERVICES.md"
+[ -x "$service_dir/runtime/qdrant-bin/qdrant" ] || fail "Local Qdrant is missing; see docs/02-platform/LOCAL_SERVICES.md"
+  [ -x "$service_dir/runtime/qwen3-embedding/venv/bin/python" ] || fail "Embedding runtime is missing; run ./scripts/install-qwen3-embedding"
+  redis_available || fail "Local Redis is missing; run ./scripts/install-local-redis"
+
+  require_env DATABASE_URL
+  require_env AUTH_JWT_SECRET
+  require_env REDIS_URL
+
+  if [ "$(env_value RAG_ENABLED)" = "true" ]; then
+    require_env RAG_PROVIDER
+    case "$(env_value RAG_PROVIDER)" in
+      qdrant|hybrid)
+        require_env QDRANT_URL
+        require_env QDRANT_COLLECTION
+        require_env QDRANT_VECTOR_NAME
+        require_env EMBEDDING_BASE_URL
+        require_env EMBEDDING_MODEL
+        ;;
+    esac
+  fi
+
+  (
+    cd "$backend_dir"
+    "$backend_dir/.venv/bin/python" -c 'from app.core.config import settings; print(settings.app_env)' >/dev/null
+  ) || fail "Backend configuration cannot be loaded"
+
+  if ! (
+    cd "$backend_dir"
+    "$backend_dir/.venv/bin/python" -c 'from app.providers.llm import llm_provider; raise SystemExit(0 if llm_provider.available else 1)'
+  ); then
+    warn "No external LLM Provider is available; only the built-in demo fallback can be accepted"
+  fi
+
+  ok "Configuration and local runtimes are complete"
+}
+
+wait_http() {
+  local name="$1"
+  local url="$2"
+  local attempts="$3"
+  for ((i = 1; i <= attempts; i++)); do
+    if /usr/bin/curl -fsS --max-time 3 "$url" >/dev/null 2>&1; then
+      ok "$name is ready at $url"
+      return 0
+    fi
+    sleep 1
+  done
+  fail "$name did not become ready at $url"
+}
+
+process_running() {
+  local pid_file="$1"
+  [ -f "$pid_file" ] && kill -0 "$(cat "$pid_file")" >/dev/null 2>&1
+}
+
+agent_loaded() {
+  /bin/launchctl print "$launch_domain/$1" >/dev/null 2>&1
+}
+
+start_agent() {
+  local label="$1"
+  local plist="$launch_agent_dir/$label.plist"
+  if agent_loaded "$label"; then
+    /bin/launchctl bootout "$launch_domain/$label"
+  fi
+  /bin/launchctl bootstrap "$launch_domain" "$plist"
+}
+
+write_api_launch_agent() {
+  local plist="$service_dir/config/$api_label.plist"
+  mkdir -p "$service_dir/config" "$launch_agent_dir"
+  cat >"$plist" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>$api_label</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>$backend_dir/.venv/bin/uvicorn</string><string>app.main:app</string>
+    <string>--host</string><string>127.0.0.1</string><string>--port</string><string>8000</string>
+  </array>
+  <key>WorkingDirectory</key><string>$backend_dir</string>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><true/>
+  <key>ProcessType</key><string>Interactive</string>
+  <key>StandardOutPath</key><string>$log_dir/api.log</string>
+  <key>StandardErrorPath</key><string>$log_dir/api.log</string>
+</dict>
+</plist>
+EOF
+  cp "$plist" "$launch_agent_dir/$api_label.plist"
+}
+
+write_frontend_launch_agent() {
+  local npm_bin
+  npm_bin="$(command -v npm)"
+  local node_bin_dir
+  node_bin_dir="$(dirname "$npm_bin")"
+  local plist="$service_dir/config/$frontend_label.plist"
+  mkdir -p "$service_dir/config" "$launch_agent_dir"
+  cat >"$plist" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>$frontend_label</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>$npm_bin</string><string>run</string><string>dev</string><string>--</string>
+    <string>--host</string><string>127.0.0.1</string><string>--port</string><string>5173</string>
+  </array>
+  <key>WorkingDirectory</key><string>$project_dir</string>
+  <key>EnvironmentVariables</key>
+  <dict><key>PATH</key><string>$node_bin_dir:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string></dict>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><true/>
+  <key>ProcessType</key><string>Interactive</string>
+  <key>StandardOutPath</key><string>$log_dir/frontend.log</string>
+  <key>StandardErrorPath</key><string>$log_dir/frontend.log</string>
+</dict>
+</plist>
+EOF
+  cp "$plist" "$launch_agent_dir/$frontend_label.plist"
+}
+
+write_admin_launch_agent() {
+  local npm_bin
+  npm_bin="$(command -v npm)"
+  local node_bin_dir
+  node_bin_dir="$(dirname "$npm_bin")"
+  local plist="$service_dir/config/$admin_label.plist"
+  mkdir -p "$service_dir/config" "$launch_agent_dir"
+  cat >"$plist" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>$admin_label</string>
+  <key>ProgramArguments</key>
+  <array><string>$npm_bin</string><string>run</string><string>dev</string></array>
+  <key>WorkingDirectory</key><string>$admin_dir</string>
+  <key>EnvironmentVariables</key>
+  <dict><key>PATH</key><string>$node_bin_dir:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string></dict>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><true/>
+  <key>ProcessType</key><string>Interactive</string>
+  <key>StandardOutPath</key><string>$log_dir/admin.log</string>
+  <key>StandardErrorPath</key><string>$log_dir/admin.log</string>
+</dict>
+</plist>
+EOF
+  cp "$plist" "$launch_agent_dir/$admin_label.plist"
+}
+
+start_api() {
+  if /usr/bin/curl -fsS --max-time 2 "$api_url/health/live" >/dev/null 2>&1; then
+    ok "API is already running at $api_url"
+    return
+  fi
+  write_api_launch_agent
+  start_agent "$api_label" || (
+      cd "$backend_dir"
+      /usr/bin/nohup "$backend_dir/.venv/bin/uvicorn" app.main:app \
+        --host 127.0.0.1 --port 8000 >"$log_dir/api.log" 2>&1 &
+      echo $! >"$api_pid_file"
+    )
+  wait_http "API" "$api_url/health/live" 60
+}
+
+start_frontend() {
+  if /usr/bin/curl -fsS --max-time 2 "$frontend_url" >/dev/null 2>&1; then
+    ok "Frontend is already running at $frontend_url"
+    return
+  fi
+  write_frontend_launch_agent
+  start_agent "$frontend_label" || (
+      cd "$project_dir"
+      /usr/bin/nohup npm run dev -- --host 127.0.0.1 --port 5173 \
+        >"$log_dir/frontend.log" 2>&1 &
+      echo $! >"$frontend_pid_file"
+    )
+  wait_http "Frontend" "$frontend_url" 60
+}
+
+start_admin() {
+  if /usr/bin/curl -fsS --max-time 2 "$admin_url" >/dev/null 2>&1; then
+    ok "Admin is already running at $admin_url"
+    return
+  fi
+  write_admin_launch_agent
+  start_agent "$admin_label" || (
+      cd "$admin_dir"
+      /usr/bin/nohup npm run dev >"$log_dir/admin.log" 2>&1 &
+      echo $! >"$admin_pid_file"
+    )
+  wait_http "Admin" "$admin_url" 60
+}
+
+stop_process() {
+  local name="$1"
+  local pid_file="$2"
+  local label="$3"
+  if agent_loaded "$label"; then
+    /bin/launchctl bootout "$launch_domain/$label"
+    echo "$name stopped"
+    return
+  fi
+  if process_running "$pid_file"; then
+    kill "$(cat "$pid_file")"
+    rm -f "$pid_file"
+    echo "$name stopped"
+  else
+    echo "$name is not managed by dev-stack or is already stopped"
+  fi
+}
+
+show_status() {
+  "$backend_dir/scripts/local-services" status
+  if /usr/bin/curl -fsS --max-time 2 "$api_url/health/live" >/dev/null 2>&1; then
+    echo "API:      ready  $api_url"
+    /usr/bin/curl -fsS --max-time 5 "$api_url/health/ready" || true
+    echo
+  else
+    echo "API:      stopped"
+  fi
+  if /usr/bin/curl -fsS --max-time 2 "$frontend_url" >/dev/null 2>&1; then
+    echo "Frontend: ready  $frontend_url"
+  else
+    echo "Frontend: stopped"
+  fi
+  if /usr/bin/curl -fsS --max-time 2 "$admin_url" >/dev/null 2>&1; then
+    echo "Admin:    ready  $admin_url"
+  else
+    echo "Admin:    stopped"
+  fi
+}
+
+start_stack() {
+  preflight
+  mkdir -p "$run_dir" "$log_dir"
+  echo "[1/9] Starting MySQL, Redis, Qdrant and Embedding dependencies"
+  "$backend_dir/scripts/local-services" start
+  echo "[2/9] Applying MySQL migrations"
+  (cd "$backend_dir" && "$backend_dir/.venv/bin/alembic" upgrade head)
+  echo "[3/9] Initializing development demo accounts"
+  (cd "$backend_dir" && "$backend_dir/.venv/bin/python" -m app.demo_accounts_cli)
+  echo "[4/9] Synchronizing the curriculum catalog"
+  (cd "$backend_dir" && "$backend_dir/.venv/bin/math-tutor-catalog")
+  echo "[5/9] Ensuring the Qdrant collection exists"
+  (cd "$backend_dir" && "$backend_dir/.venv/bin/math-tutor-vector-store" ensure-collection)
+  echo "[6/9] Starting the API"
+  start_api
+  echo "[7/9] Checking API dependency readiness"
+  /usr/bin/curl -fsS --max-time 10 "$api_url/health/ready" >/dev/null \
+    || fail "API readiness failed; inspect $log_dir/api.log and run ./scripts/dev-stack status"
+  ok "API dependencies are ready"
+  echo "[8/9] Starting the frontend"
+  start_frontend
+  echo "[9/9] Starting the knowledge administration frontend"
+  start_admin
+  echo
+  echo "Local stack is ready: $frontend_url"
+  echo "Knowledge admin: $admin_url"
+  echo "API docs: http://127.0.0.1:8000/docs"
+  echo "Qdrant:  http://127.0.0.1:6333/dashboard"
+}
+
+case "${1:-start}" in
+  start)
+    start_stack
+    ;;
+  check)
+    preflight
+    ;;
+  status)
+    show_status
+    ;;
+  start-admin)
+    mkdir -p "$run_dir" "$log_dir"
+    [ -d "$admin_dir/node_modules" ] || fail "Admin dependencies are missing; run npm install in knowledge-admin"
+    start_admin
+    ;;
+  stop)
+    stop_process "Admin" "$admin_pid_file" "$admin_label"
+    stop_process "Frontend" "$frontend_pid_file" "$frontend_label"
+    stop_process "API" "$api_pid_file" "$api_label"
+    "$backend_dir/scripts/local-services" stop
+    ;;
+  restart)
+    "$0" stop
+    "$0" start
+    ;;
+  logs)
+    echo "App log:       $log_dir/app.log"
+    echo "Error log:     $log_dir/error.log"
+    echo "API launcher:  $log_dir/api.log"
+    echo "Frontend log:  $log_dir/frontend.log"
+    echo "Admin log:     $log_dir/admin.log"
+    echo "MySQL log:     $log_dir/mysql-error.log"
+    echo "Redis log:     $log_dir/redis.log"
+    echo "Qdrant log:    $log_dir/qdrant.log"
+    echo "Embedding log: $log_dir/qwen3-embedding.log"
+    ;;
+  *)
+    echo "Usage: $0 {start|start-admin|check|status|stop|restart|logs}" >&2
+    exit 2
+    ;;
+esac

@@ -24,21 +24,50 @@ logger = logging.getLogger(__name__)
 
 
 class RetrieverLike(Protocol):
-    @property
-    def name(self) -> str: ...
+    """中文：定义“retriever·like”类，封装该职责相关的数据与行为。
+    English: Defines the retriever like class and encapsulates data and behavior for that responsibility.
+    """
 
     @property
-    def available(self) -> bool: ...
+    def name(self) -> str:
+        """中文：处理“name”相关操作。
+        English: Handles the name operation.
+        """
+        ...
 
-    def retrieve(self, query: KnowledgeQuery) -> RetrievedTeachingContext: ...
+    @property
+    def available(self) -> bool:
+        """中文：处理“available”相关操作。
+        English: Handles the available operation.
+        """
+        ...
 
-    def check_readiness(self) -> tuple[bool, str]: ...
+    def retrieve(self, query: KnowledgeQuery) -> RetrievedTeachingContext:
+        """中文：处理“检索”相关操作。
+        English: Handles the retrieve operation.
+        """
+        ...
 
-    def close(self) -> None: ...
+    def check_readiness(self) -> tuple[bool, str]:
+        """中文：处理“检查·就绪状态”相关操作。
+        English: Handles the check readiness operation.
+        """
+        ...
+
+    def close(self) -> None:
+        """中文：处理“关闭”相关操作。
+        English: Handles the close operation.
+        """
+        ...
 
 
 class KnowledgeIndexVersion:
-    """Durable MySQL generation used to invalidate all retrieval cache keys."""
+    """中文：定义“知识·索引·version”类，封装该职责相关的数据与行为。
+    English: Defines the knowledge index version class and encapsulates data and behavior for that responsibility.
+
+    原有说明 / Existing notes:
+    Durable MySQL generation used to invalidate all retrieval cache keys.
+    """
 
     def __init__(
         self,
@@ -47,6 +76,9 @@ class KnowledgeIndexVersion:
         client: Redis | None = None,
         session_factory: sessionmaker[Session] | None = None,
     ) -> None:
+        """中文：初始化当前对象及其依赖。
+        English: Initializes the current object and its dependencies.
+        """
         self.config = config
         self.client = client or get_redis_client()
         self.keys = RedisKeys(config.redis_key_prefix)
@@ -64,6 +96,9 @@ class KnowledgeIndexVersion:
         )
 
     def current(self) -> str | None:
+        """中文：处理“current”相关操作。
+        English: Handles the current operation.
+        """
         try:
             with self.session_factory.begin() as session:
                 state = session.get(KnowledgeIndexState, self.scope)
@@ -88,6 +123,9 @@ class KnowledgeIndexVersion:
             return None
 
     def bump(self, session: Session, reason: str) -> int:
+        """中文：处理“bump”相关操作。
+        English: Handles the bump operation.
+        """
         state = session.execute(
             select(KnowledgeIndexState)
             .where(KnowledgeIndexState.scope == self.scope)
@@ -109,6 +147,9 @@ class KnowledgeIndexVersion:
         return state.generation
 
     def publish(self, generation: int, reason: str) -> str:
+        """中文：处理“发布”相关操作。
+        English: Handles the publish operation.
+        """
         self._mirror(generation)
         version = self._token(generation)
         logger.info(
@@ -118,6 +159,9 @@ class KnowledgeIndexVersion:
         return version
 
     def _mirror(self, generation: int) -> None:
+        """中文：处理“mirror”相关操作。
+        English: Handles the mirror operation.
+        """
         if not self.config.redis_enabled or not self.config.rag_cache_enabled:
             return
         try:
@@ -129,11 +173,19 @@ class KnowledgeIndexVersion:
             )
 
     def _token(self, generation: int) -> str:
+        """中文：处理“令牌”相关操作。
+        English: Handles the token operation.
+        """
         return f"{self.config.production_index_version}.{generation}"
 
 
 class CachedKnowledgeRetriever:
-    """Fail-open Redis cache around a provider-neutral knowledge retriever."""
+    """中文：定义“cached·知识·retriever”类，封装该职责相关的数据与行为。
+    English: Defines the cached knowledge retriever class and encapsulates data and behavior for that responsibility.
+
+    原有说明 / Existing notes:
+    Fail-open Redis cache around a provider-neutral knowledge retriever.
+    """
 
     def __init__(
         self,
@@ -143,6 +195,9 @@ class CachedKnowledgeRetriever:
         client: Redis | None = None,
         version: KnowledgeIndexVersion | None = None,
     ) -> None:
+        """中文：初始化当前对象及其依赖。
+        English: Initializes the current object and its dependencies.
+        """
         self.delegate = delegate
         self.config = config
         self.client = client or get_redis_client()
@@ -151,13 +206,22 @@ class CachedKnowledgeRetriever:
 
     @property
     def name(self) -> str:
+        """中文：处理“name”相关操作。
+        English: Handles the name operation.
+        """
         return self.delegate.name
 
     @property
     def available(self) -> bool:
+        """中文：处理“available”相关操作。
+        English: Handles the available operation.
+        """
         return self.delegate.available
 
     def retrieve(self, query: KnowledgeQuery) -> RetrievedTeachingContext:
+        """中文：处理“检索”相关操作。
+        English: Handles the retrieve operation.
+        """
         knowledge_version = self.version.current()
         if knowledge_version is None:
             return self.delegate.retrieve(query)
@@ -189,9 +253,15 @@ class CachedKnowledgeRetriever:
         return context
 
     def check_readiness(self) -> tuple[bool, str]:
+        """中文：处理“检查·就绪状态”相关操作。
+        English: Handles the check readiness operation.
+        """
         return self.delegate.check_readiness()
 
     def close(self) -> None:
+        """中文：处理“关闭”相关操作。
+        English: Handles the close operation.
+        """
         self.delegate.close()
 
     def _read(
@@ -200,6 +270,9 @@ class CachedKnowledgeRetriever:
         query: KnowledgeQuery,
         knowledge_version: str,
     ) -> RetrievedTeachingContext | None:
+        """中文：处理“读取”相关操作。
+        English: Handles the read operation.
+        """
         try:
             payload = self.client.get(key)
         except RedisError:
@@ -233,6 +306,9 @@ class CachedKnowledgeRetriever:
         ttl_seconds: int,
         context: RetrievedTeachingContext,
     ) -> None:
+        """中文：处理“写入”相关操作。
+        English: Handles the write operation.
+        """
         try:
             self.client.setex(key, ttl_seconds, context.model_dump_json())
         except RedisError:
@@ -240,6 +316,9 @@ class CachedKnowledgeRetriever:
 
     @staticmethod
     def _query_digest(query: KnowledgeQuery) -> str:
+        """中文：处理“query·digest”相关操作。
+        English: Handles the query digest operation.
+        """
         canonical = json.dumps(
             query.model_dump(mode="json"),
             ensure_ascii=False,

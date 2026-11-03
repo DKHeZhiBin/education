@@ -1,0 +1,421 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "finalize",
+  "status": "fail",
+  "type": "architecture",
+  "quality": "showcase",
+  "startedAt": "2026-11-02T14:08:09.801Z",
+  "specification": {
+    "path": "/Users/kittle/code/mvp/education/.archify/architecture-math-tutor-modules-20261102-230611/candidate.json",
+    "sha256": "530cae5ae1f5c9435df397a3a6c5492a724455d162e2383648967a7da003a838",
+    "bytes": 11454
+  },
+  "artifact": {
+    "path": "/Users/kittle/code/mvp/education/.archify/architecture-math-tutor-modules-20261102-230611/math-tutor-module-architecture.html",
+    "sha256": "ed9d54be1cb8ad0e9b420a78305eacde5b15aa33d1a85431af285c55238095ef",
+    "bytes": 866500
+  },
+  "stages": {
+    "validate": {
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": null,
+      "execution": "embedded-in-deliver",
+      "command": [
+        "/Users/kittle/.nvm/versions/node/v26.10.0/bin/node",
+        "/Users/kittle/.codex/skills/archify/bin/archify.mjs",
+        "deliver",
+        "architecture",
+        "/Users/kittle/code/mvp/education/.archify/architecture-math-tutor-modules-20261102-230611/candidate.json",
+        "/Users/kittle/code/mvp/education/.archify/architecture-math-tutor-modules-20261102-230611/math-tutor-module-architecture.html",
+        "--quality",
+        "showcase",
+        "--repo-root",
+        "/Users/kittle/code/mvp/education",
+        "--json"
+      ],
+      "receipt": {
+        "schemaVersion": 1,
+        "ok": true,
+        "command": "validate",
+        "specification": {
+          "sha256": "530cae5ae1f5c9435df397a3a6c5492a724455d162e2383648967a7da003a838",
+          "bytes": 11454
+        },
+        "validation": {
+          "checksPassed": 9,
+          "checkCount": 9,
+          "compositionProfile": "showcase",
+          "compositionStatus": "pass",
+          "errors": 0,
+          "warnings": 0
+        }
+      }
+    },
+    "deliver": {
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": 362,
+      "command": [
+        "/Users/kittle/.nvm/versions/node/v26.10.0/bin/node",
+        "/Users/kittle/.codex/skills/archify/bin/archify.mjs",
+        "deliver",
+        "architecture",
+        "/Users/kittle/code/mvp/education/.archify/architecture-math-tutor-modules-20261102-230611/candidate.json",
+        "/Users/kittle/code/mvp/education/.archify/architecture-math-tutor-modules-20261102-230611/math-tutor-module-architecture.html",
+        "--quality",
+        "showcase",
+        "--repo-root",
+        "/Users/kittle/code/mvp/education",
+        "--json"
+      ],
+      "receipt": {
+        "schemaVersion": 1,
+        "receiptId": "fb6e85b6-3e49-4c4f-ac60-d7f00b3cbd30",
+        "ok": true,
+        "command": "deliver",
+        "type": "architecture",
+        "input": "/Users/kittle/code/mvp/education/.archify/architecture-math-tutor-modules-20261102-230611/candidate.json",
+        "output": "/Users/kittle/code/mvp/education/.archify/architecture-math-tutor-modules-20261102-230611/math-tutor-module-architecture.html",
+        "specification": {
+          "sha256": "530cae5ae1f5c9435df397a3a6c5492a724455d162e2383648967a7da003a838",
+          "bytes": 11454
+        },
+        "artifact": {
+          "sha256": "ed9d54be1cb8ad0e9b420a78305eacde5b15aa33d1a85431af285c55238095ef",
+          "bytes": 866500
+        },
+        "validation": {
+          "checksPassed": 9,
+          "checkCount": 9,
+          "compositionProfile": "showcase",
+          "compositionStatus": "pass",
+          "errors": 0,
+          "warnings": 0
+        },
+        "evidence": {
+          "verified": true,
+          "repository": "https://github.com/DKHeZhiBin/education",
+          "revision": "abd58c83350e3378aa9c4eeb99bf42bd67fae49f",
+          "references": 31
+        },
+        "update": {
+          "status": "unavailable",
+          "installedVersion": null,
+          "availableVersion": null,
+          "releaseNotes": null,
+          "checkedAt": null,
+          "source": null,
+          "noticeRequired": false,
+          "noticeText": null,
+          "reason": "disabled"
+        }
+      }
+    },
+    "check": {
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": 92,
+      "command": [
+        "/Users/kittle/.nvm/versions/node/v26.10.0/bin/node",
+        "/Users/kittle/.codex/skills/archify/bin/archify.mjs",
+        "check",
+        "/Users/kittle/code/mvp/education/.archify/architecture-math-tutor-modules-20261102-230611/math-tutor-module-architecture.html",
+        "--require-provenance"
+      ],
+      "receipt": {
+        "ok": true,
+        "file": "/Users/kittle/code/mvp/education/.archify/architecture-math-tutor-modules-20261102-230611/math-tutor-module-architecture.html",
+        "artifact": {
+          "sha256": "ed9d54be1cb8ad0e9b420a78305eacde5b15aa33d1a85431af285c55238095ef",
+          "bytes": 866500
+        },
+        "checks": [
+          {
+            "name": "single_svg",
+            "ok": true,
+            "details": [
+              "found 1 <svg> block(s)"
+            ]
+          },
+          {
+            "name": "finite_svg",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "orthogonal_arrows",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "label_route_clearance",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "relationship_crossings",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "relationship_corridors",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "container_border_runs",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "route_rhythm",
+            "ok": true,
+            "details": []
+          },
+          {
+            "name": "legend_clearance",
+            "ok": true,
+            "details": []
+          }
+        ],
+        "composition": {
+          "schemaVersion": 1,
+          "profile": "showcase",
+          "status": "pass",
+          "summary": {
+            "errors": 0,
+            "warnings": 0
+          },
+          "metrics": {
+            "properCrossings": 0,
+            "resolvedCrossovers": 1,
+            "ambiguousCorridors": 0,
+            "arrowheadCollisions": 0,
+            "containerBorderRuns": 0,
+            "labelRouteClearanceIssues": 0,
+            "labelCanvasOverflowIssues": 0,
+            "minLabelRouteClearance": 11.5,
+            "desktopReadabilityIssues": 0,
+            "viewportHeightIssues": 0,
+            "minProjectedNodeTextPx": 7.5,
+            "maxBends": 3,
+            "routesOverSuggestedBends": 1,
+            "maxStretch": 1.258,
+            "routesOverSuggestedStretch": 0,
+            "minSegmentPx": 24,
+            "minInteriorSegmentPx": 82,
+            "shortSegmentCount": 0,
+            "shortEndpointSegmentCount": 0,
+            "shortInteriorSegmentCount": 0,
+            "microSegmentCount": 0
+          },
+          "suggestedLimits": {
+            "bendsPerRelationship": 2,
+            "stretch": 1.35,
+            "segmentPx": 16,
+            "microSegmentPx": 8
+          },
+          "routeReview": {
+            "crossings": [
+              {
+                "left": {
+                  "id": "governanceToMysql",
+                  "from": "questionGovernance",
+                  "to": "mysql",
+                  "label": "状态与证据",
+                  "collectionIndex": 12,
+                  "artifactIndex": 13
+                },
+                "right": {
+                  "id": "indexToRedis",
+                  "from": "productionIndex",
+                  "to": "redis",
+                  "label": "版本失效",
+                  "collectionIndex": 15,
+                  "artifactIndex": 16
+                },
+                "point": [
+                  475.00000000000006,
+                  358.00000000000006
+                ]
+              }
+            ],
+            "detours": [
+              {
+                "relationship": {
+                  "id": "governanceToMysql",
+                  "from": "questionGovernance",
+                  "to": "mysql",
+                  "label": "状态与证据",
+                  "collectionIndex": 12,
+                  "artifactIndex": 13
+                },
+                "bends": 3,
+                "stretch": 1
+              }
+            ]
+          },
+          "leadingSpace": {
+            "measured": true,
+            "emptyTopPx": 60,
+            "emptyTopRatio": 0.099,
+            "occupiedTop": 60,
+            "viewBoxTop": 0,
+            "canvasHeight": 608,
+            "typicalNodeHeight": 72,
+            "reviewSuggested": false
+          },
+          "desktopReadability": {
+            "budgetBasis": "recognized-declared-wide",
+            "readerContract": "declared-wide-v1",
+            "availableDiagramWidth": 1162.5,
+            "actualBudgetPx": 1162.5,
+            "actualReaderWidth": 1192.5,
+            "desiredReaderWidth": 1192.5,
+            "viewportCap": 1376,
+            "limit": "source-size",
+            "requestedTargetPx": 7.5,
+            "requestedTargetMet": true,
+            "hardFloorPx": 6,
+            "hardFloorMet": true,
+            "minimumOwner": {
+              "kind": "edge",
+              "id": "studentToApi",
+              "from": "studentWeb",
+              "to": "fastapi"
+            },
+            "minimumSourceTextPx": 8,
+            "minimumProjectedTextPx": 7.5,
+            "semanticTextCount": 39
+          },
+          "issues": []
+        },
+        "provenance": "current",
+        "deliveryReceiptId": "fb6e85b6-3e49-4c4f-ac60-d7f00b3cbd30"
+      }
+    },
+    "browser-check": {
+      "status": "fail",
+      "exitCode": 1,
+      "durationMs": 3925,
+      "command": [
+        "/Users/kittle/.nvm/versions/node/v26.10.0/bin/node",
+        "/Users/kittle/.codex/skills/archify/bin/archify.mjs",
+        "browser-check",
+        "/Users/kittle/code/mvp/education/.archify/architecture-math-tutor-modules-20261102-230611/math-tutor-module-architecture.html",
+        "--json",
+        "--require-provenance"
+      ],
+      "execution": "in-process",
+      "receipt": {
+        "schemaVersion": 1,
+        "ok": false,
+        "command": "browser-check",
+        "evidenceKind": "automated-browser",
+        "status": "fail",
+        "visualReview": "not-requested",
+        "provenance": "current",
+        "deliveryReceiptId": "fb6e85b6-3e49-4c4f-ac60-d7f00b3cbd30",
+        "artifact": {
+          "path": "/Users/kittle/code/mvp/education/.archify/architecture-math-tutor-modules-20261102-230611/math-tutor-module-architecture.html",
+          "sha256": "ed9d54be1cb8ad0e9b420a78305eacde5b15aa33d1a85431af285c55238095ef",
+          "bytes": 866500
+        },
+        "state": {
+          "detail": "read",
+          "motion": "still"
+        },
+        "chrome": {
+          "status": "available",
+          "executable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+        },
+        "diagnostics": [
+          {
+            "code": "viewer/browser-check-runtime",
+            "severity": "error",
+            "message": "browser-check could not complete its Chrome inspection.",
+            "subject": {
+              "artifact": "/Users/kittle/code/mvp/education/.archify/architecture-math-tutor-modules-20261102-230611/math-tutor-module-architecture.html"
+            },
+            "evidence": {
+              "reason": "Chrome DevTools read pipe failed: stream ended\nChrome process: still running.\nChrome transport: Node v26.10.0, libuv 1.52.1, darwin; pid=56715, exitCode=null, signalCode=null.\nChrome read pipe: readable=false, ended=true, destroyed=false, receivedBytes=0, messages=0, bufferedBytes=0.\nChrome write pipe: writable=true, ended=false, destroyed=false, completedWrites=1, writtenBytes=50, bufferedBytes=0."
+            },
+            "supportedFixes": [
+              "resolve the reported Chrome inspection error, then rerun browser-check"
+            ]
+          }
+        ],
+        "containment": {
+          "status": "fail",
+          "policy": "fit-or-reader-declared-readable-vertical-scroll",
+          "viewports": []
+        },
+        "themeStates": {
+          "status": "fail",
+          "viewports": []
+        },
+        "readability": {
+          "status": "fail",
+          "minimumProjectedNodeTextPx": 6,
+          "viewports": []
+        },
+        "viewerChrome": {
+          "status": "fail",
+          "viewports": []
+        },
+        "captures": {
+          "status": "not-requested",
+          "screenshots": [],
+          "contactSheet": null
+        },
+        "sidecars": {
+          "receipt": "math-tutor-module-architecture.browser-check.json",
+          "files": []
+        },
+        "error": "Chrome DevTools read pipe failed: stream ended\nChrome process: still running.\nChrome transport: Node v26.10.0, libuv 1.52.1, darwin; pid=56715, exitCode=null, signalCode=null.\nChrome read pipe: readable=false, ended=true, destroyed=false, receivedBytes=0, messages=0, bufferedBytes=0.\nChrome write pipe: writable=true, ended=false, destroyed=false, completedWrites=1, writtenBytes=50, bufferedBytes=0."
+      }
+    }
+  },
+  "browserCheck": {
+    "requested": true,
+    "ran": false
+  },
+  "diagnostics": [
+    {
+      "code": "viewer/browser-check-runtime",
+      "severity": "error",
+      "message": "browser-check could not complete its Chrome inspection.",
+      "subject": {
+        "artifact": "/Users/kittle/code/mvp/education/.archify/architecture-math-tutor-modules-20261102-230611/math-tutor-module-architecture.html"
+      },
+      "evidence": {
+        "reason": "Chrome DevTools read pipe failed: stream ended\nChrome process: still running.\nChrome transport: Node v26.10.0, libuv 1.52.1, darwin; pid=56715, exitCode=null, signalCode=null.\nChrome read pipe: readable=false, ended=true, destroyed=false, receivedBytes=0, messages=0, bufferedBytes=0.\nChrome write pipe: writable=true, ended=false, destroyed=false, completedWrites=1, writtenBytes=50, bufferedBytes=0."
+      },
+      "supportedFixes": [
+        "resolve the reported Chrome inspection error, then rerun browser-check"
+      ]
+    }
+  ],
+  "evidence": {
+    "receipt": "/Users/kittle/code/mvp/education/.archify/architecture-math-tutor-modules-20261102-230611/math-tutor-module-architecture.finalize.json",
+    "summaryReceipt": "/Users/kittle/code/mvp/education/.archify/architecture-math-tutor-modules-20261102-230611/math-tutor-module-architecture.finalize-summary.json",
+    "browserCheckReceipt": "/Users/kittle/code/mvp/education/.archify/architecture-math-tutor-modules-20261102-230611/math-tutor-module-architecture.browser-check.json"
+  },
+  "visualReview": "not-requested",
+  "failedStage": "browser-check",
+  "finishedAt": "2026-11-02T14:08:14.284Z",
+  "durationMs": 4483,
+  "update": {
+    "status": "unavailable",
+    "installedVersion": null,
+    "availableVersion": null,
+    "releaseNotes": null,
+    "checkedAt": null,
+    "source": null,
+    "noticeRequired": false,
+    "noticeText": null,
+    "reason": "cache-unavailable"
+  }
+}

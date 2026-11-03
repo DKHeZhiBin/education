@@ -25,6 +25,7 @@ from app.models.identity import (
     StudentProfile,
     User,
 )
+from app.models.human_review import HumanContentReview, HumanReviewTask
 from app.models.generation import (
     AdmissionEvidence,
     GenerationBatch,
@@ -53,6 +54,11 @@ from app.models.knowledge import (
     ProblemStatusTransition,
     SourceReference,
 )
+from app.models.knowledge_content import (
+    KnowledgeAdminAudit,
+    KnowledgeCatalog,
+    KnowledgePointContent,
+)
 from app.models.media import MediaAsset
 from app.models.reporting import ParentReport
 from app.models.revalidation import (
@@ -72,6 +78,7 @@ from app.models.teaching import (
     KnowledgeSolutionStep,
     ProblemErrorPattern,
 )
+from app.models.thinking_method import ThinkingMethod, ThinkingMethodCategory
 
 __all__ = [
     "AgentArtifact",
@@ -95,7 +102,12 @@ __all__ = [
     "GenerationBatchManagementEvent",
     "GuardianProfile",
     "GuardianStudentLink",
+    "HumanContentReview",
+    "HumanReviewTask",
     "KnowledgePoint",
+    "KnowledgeCatalog",
+    "KnowledgePointContent",
+    "KnowledgeAdminAudit",
     "KnowledgePointPrerequisite",
     "KnowledgeDocument",
     "KnowledgeProblem",
@@ -135,4 +147,6 @@ __all__ = [
     "HintBlueprint",
     "KnowledgeSolutionStep",
     "ProblemErrorPattern",
+    "ThinkingMethod",
+    "ThinkingMethodCategory",
 ]

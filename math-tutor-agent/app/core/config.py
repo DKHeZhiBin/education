@@ -3,13 +3,33 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
+    """中文：定义“settings”类，封装该职责相关的数据与行为。
+    English: Defines the settings class and encapsulates data and behavior for that responsibility.
+    """
     app_env: str = "development"
+    log_level: str = "INFO"
+    log_console_enabled: bool = True
+    log_file_enabled: bool = True
+    log_json_file: bool = True
+    log_directory: str = ".local-services/logs"
+    log_max_bytes: int = 10 * 1024 * 1024
+    log_backup_count: int = 5
+    log_slow_request_ms: int = 1500
+    log_health_requests: bool = False
     llm_base_url: str = ""
     llm_api_key: str = ""
     llm_model: str = ""
-    llm_timeout_seconds: float = 30.0
+    llm_default_model: str = ""
+    llm_max_output_tokens: int = 8192
+    llm_timeout_seconds: float = 60.0
     llm_readiness_path: str = "/models"
     llm_required_for_readiness: bool = False
+    deepseek_base_url: str = "https://api.deepseek.com"
+    deepseek_api_key: str = ""
+    deepseek_models: str = "deepseek-flash,deepseek-v4-pro"
+    gemini_base_url: str = "https://generativelanguage.googleapis.com/v1beta/openai"
+    gemini_api_key: str = ""
+    gemini_models: str = "gemini-3.8-flash,gemini-3.5-flash-lite"
     readiness_timeout_seconds: float = 2.0
     database_url: str = "mysql+pymysql://math_tutor:math_tutor@localhost:3306/math_tutor?charset=utf8mb4"
     database_pool_size: int = 10
@@ -98,6 +118,23 @@ class Settings(BaseSettings):
     production_index_timeout_seconds: float = 30.0
     production_index_maintenance_max_attempts: int = 5
     production_index_maintenance_lease_seconds: int = 300
+    problem_image_storage_dir: str = ".local-uploads/problem-images"
+    problem_image_max_bytes: int = 10 * 1024 * 1024
+    problem_image_retention_days: int = 7
+    ocr_provider: str = ""
+    ocr_base_url: str = ""
+    ocr_api_key: str = ""
+    ocr_model: str = "gemini-3.8-flash"
+    ocr_timeout_seconds: float = 45.0
+    ocr_readiness_path: str = "/models"
+    ocr_max_output_tokens: int = 4096
+    ocr_required_for_readiness: bool = False
+    asr_audio_max_bytes: int = 25 * 1024 * 1024
+    asr_timeout_seconds: float = 60.0
+    asr_required_for_readiness: bool = False
+    tts_max_input_characters: int = 5000
+    tts_timeout_seconds: float = 30.0
+    tts_required_for_readiness: bool = False
     quality_max_erroneous_admission_rate: float = 0.0
     quality_release_min_auto_admissions: int = 1
 
@@ -105,6 +142,9 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def validate_auth_secret(self):
+        """中文：处理“验证·auth·secret”相关操作。
+        English: Handles the validate auth secret operation.
+        """
         if self.auth_jwt_algorithm != "HS256":
             raise ValueError("AUTH_JWT_ALGORITHM currently supports HS256 only")
         weak_secret = (
@@ -152,6 +192,7 @@ class Settings(BaseSettings):
             "AUTH_EMAIL_VERIFICATION_MINUTES": self.auth_email_verification_minutes,
             "AUTH_PASSWORD_RESET_MINUTES": self.auth_password_reset_minutes,
             "READINESS_TIMEOUT_SECONDS": self.readiness_timeout_seconds,
+            "LLM_MAX_OUTPUT_TOKENS": self.llm_max_output_tokens,
             "HARNESS_MAX_AGENT_CALLS": self.harness_max_agent_calls,
             "HARNESS_MAX_DURATION_MS": self.harness_max_duration_ms,
             "RAG_TOP_K": self.rag_top_k,
@@ -170,10 +211,33 @@ class Settings(BaseSettings):
             "PRODUCTION_INDEX_TIMEOUT_SECONDS": self.production_index_timeout_seconds,
             "PRODUCTION_INDEX_MAINTENANCE_MAX_ATTEMPTS": self.production_index_maintenance_max_attempts,
             "PRODUCTION_INDEX_MAINTENANCE_LEASE_SECONDS": self.production_index_maintenance_lease_seconds,
+            "PROBLEM_IMAGE_MAX_BYTES": self.problem_image_max_bytes,
+            "PROBLEM_IMAGE_RETENTION_DAYS": self.problem_image_retention_days,
+            "OCR_TIMEOUT_SECONDS": self.ocr_timeout_seconds,
+            "OCR_MAX_OUTPUT_TOKENS": self.ocr_max_output_tokens,
+            "ASR_AUDIO_MAX_BYTES": self.asr_audio_max_bytes,
+            "ASR_TIMEOUT_SECONDS": self.asr_timeout_seconds,
+            "TTS_MAX_INPUT_CHARACTERS": self.tts_max_input_characters,
+            "TTS_TIMEOUT_SECONDS": self.tts_timeout_seconds,
+            "LOG_MAX_BYTES": self.log_max_bytes,
+            "LOG_BACKUP_COUNT": self.log_backup_count,
+            "LOG_SLOW_REQUEST_MS": self.log_slow_request_ms,
         }
         invalid_values = [name for name, value in positive_values.items() if value <= 0]
         if invalid_values:
             raise ValueError(f"Configuration values must be greater than zero: {', '.join(invalid_values)}")
+        normalized_log_level = self.log_level.strip().upper()
+        if normalized_log_level not in {"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"}:
+            raise ValueError("LOG_LEVEL must be DEBUG, INFO, WARNING, ERROR or CRITICAL")
+        self.log_level = normalized_log_level
+        if self.log_file_enabled and not self.log_directory.strip():
+            raise ValueError("LOG_DIRECTORY is required when LOG_FILE_ENABLED=true")
+        normalized_ocr_provider = self.ocr_provider.strip().lower()
+        if normalized_ocr_provider not in {"", "gemini", "openai-compatible", "custom"}:
+            raise ValueError("OCR_PROVIDER must be gemini, openai-compatible, custom or empty")
+        if self.ocr_required_for_readiness and not normalized_ocr_provider:
+            raise ValueError("OCR_PROVIDER is required when OCR_REQUIRED_FOR_READINESS=true")
+        self.ocr_provider = normalized_ocr_provider
         rerank_weights = {
             "RAG_RERANK_FUSION_WEIGHT": self.rag_rerank_fusion_weight,
             "RAG_RERANK_CONDITION_WEIGHT": self.rag_rerank_condition_weight,
@@ -186,6 +250,8 @@ class Settings(BaseSettings):
             raise ValueError("At least one RAG rerank weight must be greater than zero")
         if self.llm_readiness_path and not self.llm_readiness_path.startswith("/"):
             raise ValueError("LLM_READINESS_PATH must start with /")
+        if self.llm_default_model and "/" not in self.llm_default_model:
+            raise ValueError("LLM_DEFAULT_MODEL must use provider/model format")
         if not 0 <= self.solution_max_revision_attempts <= 3:
             raise ValueError("SOLUTION_MAX_REVISION_ATTEMPTS must be between 0 and 3")
         minimum_agent_calls = 4 + 2 * self.solution_max_revision_attempts

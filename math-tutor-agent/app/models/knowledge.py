@@ -21,6 +21,9 @@ if TYPE_CHECKING:
 
 
 class SourceReference(UuidPrimaryKeyMixin, TimestampMixin, Base):
+    """中文：定义“source·reference”类，封装该职责相关的数据与行为。
+    English: Defines the source reference class and encapsulates data and behavior for that responsibility.
+    """
     __tablename__ = "source_references"
     __table_args__ = (
         Index("idx_source_references_type_title", "source_type", "title"),
@@ -47,6 +50,9 @@ class SourceReference(UuidPrimaryKeyMixin, TimestampMixin, Base):
 
 
 class CurriculumVersion(UuidPrimaryKeyMixin, TimestampMixin, Base):
+    """中文：定义“课程·version”类，封装该职责相关的数据与行为。
+    English: Defines the curriculum version class and encapsulates data and behavior for that responsibility.
+    """
     __tablename__ = "curriculum_versions"
     __table_args__ = (
         UniqueConstraint(
@@ -80,6 +86,9 @@ class CurriculumVersion(UuidPrimaryKeyMixin, TimestampMixin, Base):
 
 
 class KnowledgeDocument(UuidPrimaryKeyMixin, TimestampMixin, Base):
+    """中文：定义“知识·文档”类，封装该职责相关的数据与行为。
+    English: Defines the knowledge document class and encapsulates data and behavior for that responsibility.
+    """
     __tablename__ = "knowledge_documents"
     __table_args__ = (
         UniqueConstraint(
@@ -135,6 +144,9 @@ class KnowledgeDocument(UuidPrimaryKeyMixin, TimestampMixin, Base):
 
 
 class DocumentChunk(UuidPrimaryKeyMixin, TimestampMixin, Base):
+    """中文：定义“文档·切片”类，封装该职责相关的数据与行为。
+    English: Defines the document chunk class and encapsulates data and behavior for that responsibility.
+    """
     __tablename__ = "document_chunks"
     __table_args__ = (
         UniqueConstraint("document_id", "ordinal", name="document_chunk_ordinal"),
@@ -180,6 +192,9 @@ class DocumentChunk(UuidPrimaryKeyMixin, TimestampMixin, Base):
 
 
 class KnowledgeProblem(UuidPrimaryKeyMixin, TimestampMixin, Base):
+    """中文：定义“知识·题目”类，封装该职责相关的数据与行为。
+    English: Defines the knowledge problem class and encapsulates data and behavior for that responsibility.
+    """
     __tablename__ = "knowledge_problems"
     __table_args__ = (
         CheckConstraint("difficulty BETWEEN 1 AND 5", name="difficulty_range"),
@@ -344,6 +359,9 @@ class KnowledgeProblem(UuidPrimaryKeyMixin, TimestampMixin, Base):
 
 
 class ProblemStatusTransition(UuidPrimaryKeyMixin, Base):
+    """中文：定义“题目·状态·transition”类，封装该职责相关的数据与行为。
+    English: Defines the problem status transition class and encapsulates data and behavior for that responsibility.
+    """
     __tablename__ = "problem_status_transitions"
     __table_args__ = (
         CheckConstraint(
@@ -388,6 +406,9 @@ class ProblemStatusTransition(UuidPrimaryKeyMixin, Base):
 
 
 class KnowledgeSolution(UuidPrimaryKeyMixin, TimestampMixin, Base):
+    """中文：定义“知识·解答”类，封装该职责相关的数据与行为。
+    English: Defines the knowledge solution class and encapsulates data and behavior for that responsibility.
+    """
     __tablename__ = "knowledge_solutions"
     __table_args__ = (
         CheckConstraint(

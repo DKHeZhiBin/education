@@ -7,6 +7,9 @@ from pydantic import BaseModel, Field, model_validator
 
 
 class AnswerClaimAssessment(BaseModel):
+    """中文：定义“答案·claim·assessment”类，封装该职责相关的数据与行为。
+    English: Defines the answer claim assessment class and encapsulates data and behavior for that responsibility.
+    """
     claim_id: str = Field(min_length=1, max_length=100)
     text: str = Field(min_length=1, max_length=2000)
     evidence_document_ids: list[str] = Field(default_factory=list, max_length=20)
@@ -15,6 +18,9 @@ class AnswerClaimAssessment(BaseModel):
 
 
 class AnswerCitationAssessment(BaseModel):
+    """中文：定义“答案·citation·assessment”类，封装该职责相关的数据与行为。
+    English: Defines the answer citation assessment class and encapsulates data and behavior for that responsibility.
+    """
     claim_id: str = Field(min_length=1, max_length=100)
     document_id: str = Field(min_length=1, max_length=100)
     source_version: str = Field(min_length=1, max_length=100)
@@ -22,6 +28,9 @@ class AnswerCitationAssessment(BaseModel):
 
 
 class RetrievalEvaluationRunRecord(BaseModel):
+    """中文：定义“retrieval·evaluation·执行·记录”类，封装该职责相关的数据与行为。
+    English: Defines the retrieval evaluation run record class and encapsulates data and behavior for that responsibility.
+    """
     schema_version: Literal["1.0"] = "1.0"
     run_id: str = Field(min_length=1, max_length=100)
     query_id: str = Field(min_length=1, max_length=100)
@@ -39,6 +48,9 @@ class RetrievalEvaluationRunRecord(BaseModel):
 
     @model_validator(mode="after")
     def validate_record(self) -> "RetrievalEvaluationRunRecord":
+        """中文：处理“验证·记录”相关操作。
+        English: Handles the validate record operation.
+        """
         if len(self.initial_document_ids) != len(set(self.initial_document_ids)):
             raise ValueError("initial_document_ids must be unique")
         if len(self.reranked_document_ids) != len(set(self.reranked_document_ids)):
@@ -61,6 +73,9 @@ class RetrievalEvaluationRunRecord(BaseModel):
 
 
 class RetrievalQueryQuality(BaseModel):
+    """中文：定义“retrieval·query·质量”类，封装该职责相关的数据与行为。
+    English: Defines the retrieval query quality class and encapsulates data and behavior for that responsibility.
+    """
     query_id: str
     k: int = Field(ge=1, le=20)
     recall_at_k: float = Field(ge=0, le=1)
@@ -78,6 +93,9 @@ class RetrievalQueryQuality(BaseModel):
 
 
 class RetrievalQualityMetric(BaseModel):
+    """中文：定义“retrieval·质量·指标”类，封装该职责相关的数据与行为。
+    English: Defines the retrieval quality metric class and encapsulates data and behavior for that responsibility.
+    """
     key: Literal[
         "retrieval_recall_at_k",
         "rerank_ndcg_at_k",
@@ -95,6 +113,9 @@ class RetrievalQualityMetric(BaseModel):
 
 
 class RetrievalQualityReport(BaseModel):
+    """中文：定义“retrieval·质量·报告”类，封装该职责相关的数据与行为。
+    English: Defines the retrieval quality report class and encapsulates data and behavior for that responsibility.
+    """
     schema_version: Literal["1.0"] = "1.0"
     generated_at: datetime
     suite_name: str

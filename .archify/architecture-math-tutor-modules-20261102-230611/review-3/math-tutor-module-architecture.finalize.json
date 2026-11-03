@@ -1,0 +1,223 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "finalize",
+  "status": "fail",
+  "type": "architecture",
+  "quality": "showcase",
+  "startedAt": "2026-11-02T14:11:52.394Z",
+  "specification": {
+    "path": "/Users/kittle/code/mvp/education/.archify/architecture-math-tutor-modules-20261102-230611/candidate.json",
+    "sha256": "314413c882587cf03c92ca648138bb15c39591eaaae7d2b06c4d8f1bbe2706ea",
+    "bytes": 11455
+  },
+  "artifact": {
+    "path": "/Users/kittle/code/mvp/education/.archify/architecture-math-tutor-modules-20261102-230611/math-tutor-module-architecture.html",
+    "sha256": "ed9d54be1cb8ad0e9b420a78305eacde5b15aa33d1a85431af285c55238095ef",
+    "bytes": 866500
+  },
+  "stages": {
+    "validate": {
+      "status": "fail",
+      "exitCode": 1,
+      "durationMs": null,
+      "command": [
+        "/Users/kittle/.nvm/versions/node/v26.10.0/bin/node",
+        "/Users/kittle/.codex/skills/archify/bin/archify.mjs",
+        "deliver",
+        "architecture",
+        "/Users/kittle/code/mvp/education/.archify/architecture-math-tutor-modules-20261102-230611/candidate.json",
+        "/Users/kittle/code/mvp/education/.archify/architecture-math-tutor-modules-20261102-230611/math-tutor-module-architecture.html",
+        "--quality",
+        "showcase",
+        "--repo-root",
+        "/Users/kittle/code/mvp/education",
+        "--json"
+      ],
+      "receipt": {
+        "schemaVersion": 1,
+        "ok": false,
+        "command": "deliver",
+        "receiptId": "0720421d-2bf8-4a75-99ff-50a8ddf52f3a",
+        "stage": "render",
+        "type": "architecture",
+        "input": "/Users/kittle/code/mvp/education/.archify/architecture-math-tutor-modules-20261102-230611/candidate.json",
+        "output": "/Users/kittle/code/mvp/education/.archify/architecture-math-tutor-modules-20261102-230611/math-tutor-module-architecture.html",
+        "error": "Architecture layout validation failed:\n- [clean-flow/endpoint-side-direction] architecture connections[14] id \"indexToQdrant\" \"productionIndex\" -> \"qdrant\" first segment 0 [485, 492] -> [605, 540] does not honor fromSide \"bottom\" — it must run vertical downward; keep automatic routing so the renderer can use a side-aware bridge, or set truthful fromSide/toSide with perpendicular via segments.\n- [composition/proper-crossing] showcase architecture connections[12] id \"governanceToMysql\" \"questionGovernance\" -> \"mysql\" crosses connections[14] id \"indexToQdrant\" \"productionIndex\" -> \"qdrant\" at [677, 540] (segments 0 and 1) — if the authored via/fromSide/toSide are not required by the user, remove them so the renderer can re-plan; otherwise preserve that intent and adjust route/via or fromSide/toSide so the connections use separate corridors.",
+        "diagnostics": [
+          {
+            "code": "clean-flow/endpoint-side-direction",
+            "severity": "error",
+            "message": "[clean-flow/endpoint-side-direction] architecture connections[14] id \"indexToQdrant\" \"productionIndex\" -> \"qdrant\" first segment 0 [485, 492] -> [605, 540] does not honor fromSide \"bottom\" — it must run vertical downward; keep automatic routing so the renderer can use a side-aware bridge, or set truthful fromSide/toSide with perpendicular via segments.",
+            "subject": {
+              "diagramType": "architecture",
+              "collection": "connections",
+              "index": 14,
+              "id": "indexToQdrant",
+              "from": "productionIndex",
+              "to": "qdrant"
+            },
+            "evidence": {
+              "endpoint": "source",
+              "authoredField": "fromSide",
+              "sideOrigin": "authored",
+              "side": "bottom",
+              "segmentIndex": 0,
+              "from": [
+                485,
+                492
+              ],
+              "to": [
+                605,
+                540
+              ],
+              "expectedAxis": "vertical",
+              "expectedDirection": "downward"
+            },
+            "supportedFixes": [
+              "keep automatic routing so the renderer can use a side-aware bridge, or set truthful fromSide/toSide with perpendicular via segments"
+            ]
+          },
+          {
+            "code": "composition/proper-crossing",
+            "severity": "error",
+            "message": "[composition/proper-crossing] showcase architecture connections[12] id \"governanceToMysql\" \"questionGovernance\" -> \"mysql\" crosses connections[14] id \"indexToQdrant\" \"productionIndex\" -> \"qdrant\" at [677, 540] (segments 0 and 1) — if the authored via/fromSide/toSide are not required by the user, remove them so the renderer can re-plan; otherwise preserve that intent and adjust route/via or fromSide/toSide so the connections use separate corridors.",
+            "subject": {
+              "diagramType": "architecture",
+              "collection": "connections",
+              "index": 12,
+              "id": "governanceToMysql",
+              "from": "questionGovernance",
+              "to": "mysql"
+            },
+            "evidence": {
+              "otherRelationship": {
+                "diagramType": "architecture",
+                "collection": "connections",
+                "index": 14,
+                "id": "indexToQdrant",
+                "from": "productionIndex",
+                "to": "qdrant"
+              },
+              "point": [
+                677,
+                540
+              ],
+              "segmentIndex": 0,
+              "otherSegmentIndex": 1
+            },
+            "supportedFixes": [
+              "if the authored via/fromSide/toSide are not required by the user, remove them so the renderer can re-plan; otherwise preserve that intent and adjust route/via or fromSide/toSide so the connections use separate corridors"
+            ]
+          }
+        ],
+        "provenance": "failed",
+        "update": {
+          "status": "unavailable",
+          "installedVersion": null,
+          "availableVersion": null,
+          "releaseNotes": null,
+          "checkedAt": null,
+          "source": null,
+          "noticeRequired": false,
+          "noticeText": null,
+          "reason": "disabled"
+        }
+      },
+      "execution": "embedded-in-deliver"
+    },
+    "deliver": {
+      "status": "not-run",
+      "execution": "blocked-by-validate"
+    }
+  },
+  "browserCheck": {
+    "requested": true,
+    "ran": false
+  },
+  "diagnostics": [
+    {
+      "code": "clean-flow/endpoint-side-direction",
+      "severity": "error",
+      "message": "[clean-flow/endpoint-side-direction] architecture connections[14] id \"indexToQdrant\" \"productionIndex\" -> \"qdrant\" first segment 0 [485, 492] -> [605, 540] does not honor fromSide \"bottom\" — it must run vertical downward; keep automatic routing so the renderer can use a side-aware bridge, or set truthful fromSide/toSide with perpendicular via segments.",
+      "subject": {
+        "diagramType": "architecture",
+        "collection": "connections",
+        "index": 14,
+        "id": "indexToQdrant",
+        "from": "productionIndex",
+        "to": "qdrant"
+      },
+      "evidence": {
+        "endpoint": "source",
+        "authoredField": "fromSide",
+        "sideOrigin": "authored",
+        "side": "bottom",
+        "segmentIndex": 0,
+        "from": [
+          485,
+          492
+        ],
+        "to": [
+          605,
+          540
+        ],
+        "expectedAxis": "vertical",
+        "expectedDirection": "downward"
+      },
+      "supportedFixes": [
+        "keep automatic routing so the renderer can use a side-aware bridge, or set truthful fromSide/toSide with perpendicular via segments"
+      ]
+    },
+    {
+      "code": "composition/proper-crossing",
+      "severity": "error",
+      "message": "[composition/proper-crossing] showcase architecture connections[12] id \"governanceToMysql\" \"questionGovernance\" -> \"mysql\" crosses connections[14] id \"indexToQdrant\" \"productionIndex\" -> \"qdrant\" at [677, 540] (segments 0 and 1) — if the authored via/fromSide/toSide are not required by the user, remove them so the renderer can re-plan; otherwise preserve that intent and adjust route/via or fromSide/toSide so the connections use separate corridors.",
+      "subject": {
+        "diagramType": "architecture",
+        "collection": "connections",
+        "index": 12,
+        "id": "governanceToMysql",
+        "from": "questionGovernance",
+        "to": "mysql"
+      },
+      "evidence": {
+        "otherRelationship": {
+          "diagramType": "architecture",
+          "collection": "connections",
+          "index": 14,
+          "id": "indexToQdrant",
+          "from": "productionIndex",
+          "to": "qdrant"
+        },
+        "point": [
+          677,
+          540
+        ],
+        "segmentIndex": 0,
+        "otherSegmentIndex": 1
+      },
+      "supportedFixes": [
+        "if the authored via/fromSide/toSide are not required by the user, remove them so the renderer can re-plan; otherwise preserve that intent and adjust route/via or fromSide/toSide so the connections use separate corridors"
+      ]
+    }
+  ],
+  "evidence": {
+    "receipt": "/Users/kittle/code/mvp/education/.archify/architecture-math-tutor-modules-20261102-230611/review-3/math-tutor-module-architecture.finalize.json",
+    "summaryReceipt": "/Users/kittle/code/mvp/education/.archify/architecture-math-tutor-modules-20261102-230611/review-3/math-tutor-module-architecture.finalize-summary.json"
+  },
+  "visualReview": "not-requested",
+  "failedStage": "validate",
+  "finishedAt": "2026-11-02T14:11:52.771Z",
+  "durationMs": 377,
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-11-02T14:08:50.479Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  }
+}

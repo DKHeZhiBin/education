@@ -18,6 +18,9 @@ target_metadata = Base.metadata
 
 
 def run_migrations_offline() -> None:
+    """中文：处理“执行·migrations·offline”相关操作。
+    English: Handles the run migrations offline operation.
+    """
     context.configure(
         url=settings.database_url,
         target_metadata=target_metadata,
@@ -33,6 +36,9 @@ def run_migrations_offline() -> None:
 
 
 def run_migrations_online() -> None:
+    """中文：处理“执行·migrations·online”相关操作。
+    English: Handles the run migrations online operation.
+    """
     connectable = engine_from_config(
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",

@@ -9,12 +9,18 @@ from pydantic import BaseModel, Field, model_validator
 
 
 class DuplicateDetectionStatus(StrEnum):
+    """中文：定义“重复项·detection·状态”类，封装该职责相关的数据与行为。
+    English: Defines the duplicate detection status class and encapsulates data and behavior for that responsibility.
+    """
     PASSED = "passed"
     FAILED = "failed"
     INCONCLUSIVE = "inconclusive"
 
 
 class DuplicateProblemSnapshot(BaseModel):
+    """中文：定义“重复项·题目·snapshot”类，封装该职责相关的数据与行为。
+    English: Defines the duplicate problem snapshot class and encapsulates data and behavior for that responsibility.
+    """
     problem_id: str
     content_hash: str = Field(min_length=64, max_length=64)
     statement: str
@@ -37,12 +43,18 @@ class DuplicateProblemSnapshot(BaseModel):
 
 
 class DuplicateDetectionContext(BaseModel):
+    """中文：定义“重复项·detection·context”类，封装该职责相关的数据与行为。
+    English: Defines the duplicate detection context class and encapsulates data and behavior for that responsibility.
+    """
     candidate: DuplicateProblemSnapshot
     references: list[DuplicateProblemSnapshot] = Field(default_factory=list)
     comparison_scope_total: int = Field(ge=0)
     comparison_scope_complete: bool = True
 
     def fingerprint(self) -> str:
+        """中文：处理“fingerprint”相关操作。
+        English: Handles the fingerprint operation.
+        """
         payload = json.dumps(
             self.model_dump(mode="json"),
             ensure_ascii=False,
@@ -53,6 +65,9 @@ class DuplicateDetectionContext(BaseModel):
 
 
 class DuplicateLayerResult(BaseModel):
+    """中文：定义“重复项·layer·结果”类，封装该职责相关的数据与行为。
+    English: Defines the duplicate layer result class and encapsulates data and behavior for that responsibility.
+    """
     layer: Literal["text", "formula_ast", "condition", "solution_structure"]
     available: bool
     exact: bool = False
@@ -63,6 +78,9 @@ class DuplicateLayerResult(BaseModel):
 
 
 class DuplicateMatch(BaseModel):
+    """中文：定义“重复项·match”类，封装该职责相关的数据与行为。
+    English: Defines the duplicate match class and encapsulates data and behavior for that responsibility.
+    """
     reference_problem_id: str
     reference_solution_id: str | None = None
     relationship: Literal["mother", "same_batch_peer", "existing_problem"]
@@ -73,6 +91,9 @@ class DuplicateMatch(BaseModel):
 
 
 class DuplicateDetectionReport(BaseModel):
+    """中文：定义“重复项·detection·报告”类，封装该职责相关的数据与行为。
+    English: Defines the duplicate detection report class and encapsulates data and behavior for that responsibility.
+    """
     schema_version: Literal["1.0"] = "1.0"
     problem_id: str
     solution_id: str
@@ -90,6 +111,9 @@ class DuplicateDetectionReport(BaseModel):
 
     @model_validator(mode="after")
     def validate_outcome(self) -> DuplicateDetectionReport:
+        """中文：处理“验证·outcome”相关操作。
+        English: Handles the validate outcome operation.
+        """
         blocking = self.exact_duplicate_count + self.near_duplicate_count
         if self.status == DuplicateDetectionStatus.FAILED and blocking == 0:
             raise ValueError("failed duplicate detection requires a duplicate match")

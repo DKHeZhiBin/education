@@ -26,24 +26,39 @@ from app.models.knowledge import KnowledgeProblem, KnowledgeSolution
 
 
 class IndependentReviewReferenceInvalid(ValueError):
+    """中文：定义“independent·复核·reference·invalid”类，封装该职责相关的数据与行为。
+    English: Defines the independent review reference invalid class and encapsulates data and behavior for that responsibility.
+    """
     pass
 
 
 class IndependentReviewVersionConflict(RuntimeError):
+    """中文：定义“independent·复核·version·conflict”类，封装该职责相关的数据与行为。
+    English: Defines the independent review version conflict class and encapsulates data and behavior for that responsibility.
+    """
     pass
 
 
 @dataclass(frozen=True)
 class IndependentReviewAgentContext:
+    """中文：定义“independent·复核·智能体·context”类，封装该职责相关的数据与行为。
+    English: Defines the independent review agent context class and encapsulates data and behavior for that responsibility.
+    """
     review_context: IndependentReviewContext
     model_version_id: str
     prompt_version_id: str
+    provider_id: str
     model_name: str
     versioned_prompt: str
 
 
 class IndependentReviewRepository:
-    """Build a fixed evidence projection and persist a model review audit record."""
+    """中文：定义“independent·复核·仓储”类，封装该职责相关的数据与行为。
+    English: Defines the independent review repository class and encapsulates data and behavior for that responsibility.
+
+    原有说明 / Existing notes:
+    Build a fixed evidence projection and persist a model review audit record.
+    """
 
     REQUIRED_TOOL_EVIDENCE = (
         "symbolic_verification",
@@ -60,6 +75,9 @@ class IndependentReviewRepository:
         model_version_id: str,
         prompt_version_id: str,
     ) -> IndependentReviewAgentContext:
+        """中文：处理“加载·智能体·context”相关操作。
+        English: Handles the load agent context operation.
+        """
         model, prompt = self._require_versions(
             session, model_version_id, prompt_version_id
         )
@@ -71,6 +89,7 @@ class IndependentReviewRepository:
             review_context=self._build_context(session, problem, solution),
             model_version_id=model.id,
             prompt_version_id=prompt.id,
+            provider_id=model.provider,
             model_name=model.model_name,
             versioned_prompt=prompt.template_text,
         )
@@ -82,6 +101,9 @@ class IndependentReviewRepository:
         context: IndependentReviewAgentContext,
         report: IndependentReviewReport,
     ) -> DomainAdmissionEvidence:
+        """中文：处理“persist·报告”相关操作。
+        English: Handles the persist report operation.
+        """
         model, prompt = self._require_versions(
             session, context.model_version_id, context.prompt_version_id
         )
@@ -178,6 +200,9 @@ class IndependentReviewRepository:
         problem: KnowledgeProblem,
         solution: KnowledgeSolution,
     ) -> IndependentReviewContext:
+        """中文：处理“构建·context”相关操作。
+        English: Handles the build context operation.
+        """
         self._require_scope(problem, solution)
         independence = self._latest_evidence(
             session, problem.id, solution.id, "solution_independence"
@@ -269,6 +294,9 @@ class IndependentReviewRepository:
 
     @staticmethod
     def _require_scope(problem: KnowledgeProblem, solution: KnowledgeSolution) -> None:
+        """中文：处理“require·范围”相关操作。
+        English: Handles the require scope operation.
+        """
         if problem.generation_batch_id is None:
             raise IndependentReviewReferenceInvalid("generated candidate batch is required")
         if problem.content_status not in {"candidate", "validating", "revision_required"}:
@@ -297,6 +325,9 @@ class IndependentReviewRepository:
         solution_id: str,
         evidence_type: str,
     ) -> AdmissionEvidence | None:
+        """中文：处理“latest·evidence”相关操作。
+        English: Handles the latest evidence operation.
+        """
         return session.scalar(
             select(AdmissionEvidence)
             .where(
@@ -314,6 +345,9 @@ class IndependentReviewRepository:
         problem: KnowledgeProblem,
         solution: KnowledgeSolution,
     ) -> None:
+        """中文：处理“require·fresh·工具·evidence”相关操作。
+        English: Handles the require fresh tool evidence operation.
+        """
         if (
             evidence.producer_type != "verifier"
             or evidence.verifier_version_id is None
@@ -330,6 +364,9 @@ class IndependentReviewRepository:
         problem: KnowledgeProblem,
         evidence: AdmissionEvidence,
     ) -> bool:
+        """中文：处理“predates·revalidation”相关操作。
+        English: Handles the predates revalidation operation.
+        """
         required = (problem.metadata_json or {}).get(
             "revalidation_started_status_version"
         )
@@ -344,6 +381,9 @@ class IndependentReviewRepository:
         model_version_id: str,
         prompt_version_id: str,
     ) -> tuple[ModelVersion, PromptVersion]:
+        """中文：处理“require·versions”相关操作。
+        English: Handles the require versions operation.
+        """
         model = session.get(ModelVersion, model_version_id)
         prompt = session.get(PromptVersion, prompt_version_id)
         if model is None or not model.active:
@@ -366,6 +406,9 @@ class IndependentReviewRepository:
         report: IndependentReviewReport,
         context: IndependentReviewContext,
     ) -> None:
+        """中文：处理“验证·报告”相关操作。
+        English: Handles the validate report operation.
+        """
         if (
             report.problem_id != context.problem_id
             or report.solution_id != context.candidate_answer.solution_id
@@ -411,6 +454,9 @@ class IndependentReviewRepository:
 
     @staticmethod
     def _summary(report: IndependentReviewReport) -> str:
+        """中文：处理“summary”相关操作。
+        English: Handles the summary operation.
+        """
         if report.decision == ReviewDecision.PASSED:
             return "候选答案、独立答案、工具证据和教学标签经独立 AI 复核一致。"
         if report.decision == ReviewDecision.FAILED:
@@ -419,6 +465,9 @@ class IndependentReviewRepository:
 
     @staticmethod
     def _hash_json(payload: dict) -> str:
+        """中文：处理“hash·json”相关操作。
+        English: Handles the hash json operation.
+        """
         serialized = json.dumps(
             payload,
             ensure_ascii=False,
@@ -429,6 +478,9 @@ class IndependentReviewRepository:
 
     @staticmethod
     def _to_domain(entity: AdmissionEvidence) -> DomainAdmissionEvidence:
+        """中文：处理“to·domain”相关操作。
+        English: Handles the to domain operation.
+        """
         return DomainAdmissionEvidence(
             id=entity.id,
             generation_batch_id=entity.generation_batch_id,

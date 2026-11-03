@@ -14,17 +14,31 @@ from app.models.learning import KnowledgePoint
 
 
 class IngestionSourceNotFound(LookupError):
+    """中文：定义“ingestion·source·not·found”类，封装该职责相关的数据与行为。
+    English: Defines the ingestion source not found class and encapsulates data and behavior for that responsibility.
+    """
     pass
 
 
 class DocumentVersionConflict(RuntimeError):
+    """中文：定义“文档·version·conflict”类，封装该职责相关的数据与行为。
+    English: Defines the document version conflict class and encapsulates data and behavior for that responsibility.
+    """
     pass
 
 
 class DocumentIngestionRepository:
-    """Persist one prepared document inside the caller's database transaction."""
+    """中文：定义“文档·ingestion·仓储”类，封装该职责相关的数据与行为。
+    English: Defines the document ingestion repository class and encapsulates data and behavior for that responsibility.
+
+    原有说明 / Existing notes:
+    Persist one prepared document inside the caller's database transaction.
+    """
 
     def persist(self, session: Session, prepared: PreparedDocument) -> IngestionResult:
+        """中文：处理“persist”相关操作。
+        English: Handles the persist operation.
+        """
         manifest = prepared.manifest
         source = self._resolve_source(session, prepared)
         self._validate_references(session, prepared)
@@ -168,6 +182,9 @@ class DocumentIngestionRepository:
 
     @staticmethod
     def _resolve_source(session: Session, prepared: PreparedDocument) -> SourceReference:
+        """中文：处理“解析·source”相关操作。
+        English: Handles the resolve source operation.
+        """
         manifest = prepared.manifest
         if manifest.source_reference_id:
             clause = SourceReference.id == manifest.source_reference_id
@@ -186,6 +203,9 @@ class DocumentIngestionRepository:
 
     @staticmethod
     def _validate_references(session: Session, prepared: PreparedDocument) -> None:
+        """中文：处理“验证·references”相关操作。
+        English: Handles the validate references operation.
+        """
         manifest = prepared.manifest
         if manifest.curriculum_version_id:
             curriculum = session.get(CurriculumVersion, manifest.curriculum_version_id)
@@ -217,6 +237,9 @@ class DocumentIngestionRepository:
     def _duplicate_result(
         outcome: str, document: KnowledgeDocument
     ) -> IngestionResult:
+        """中文：处理“重复项·结果”相关操作。
+        English: Handles the duplicate result operation.
+        """
         return IngestionResult(
             outcome=outcome,
             document_id=document.id,

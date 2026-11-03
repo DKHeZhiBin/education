@@ -6,6 +6,9 @@ from app.core.redis import get_redis_client
 
 
 def build_runtime_cache() -> RuntimeCache:
+    """中文：处理“构建·runtime·缓存”相关操作。
+    English: Handles the build runtime cache operation.
+    """
     if not settings.redis_enabled:
         return NoOpRuntimeCache()
 

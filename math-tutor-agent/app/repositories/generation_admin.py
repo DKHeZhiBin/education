@@ -40,22 +40,37 @@ from app.repositories.question_generation import QuestionGenerationJobRepository
 
 
 class GenerationBatchNotFound(LookupError):
+    """中文：定义“生成·批次·not·found”类，封装该职责相关的数据与行为。
+    English: Defines the generation batch not found class and encapsulates data and behavior for that responsibility.
+    """
     pass
 
 
 class GenerationBatchActionConflict(RuntimeError):
+    """中文：定义“生成·批次·action·conflict”类，封装该职责相关的数据与行为。
+    English: Defines the generation batch action conflict class and encapsulates data and behavior for that responsibility.
+    """
     def __init__(self, code: str, message: str) -> None:
+        """中文：初始化当前对象及其依赖。
+        English: Initializes the current object and its dependencies.
+        """
         self.code = code
         super().__init__(message)
 
 
 class GenerationBatchAdminRepository:
+    """中文：定义“生成·批次·admin·仓储”类，封装该职责相关的数据与行为。
+    English: Defines the generation batch admin repository class and encapsulates data and behavior for that responsibility.
+    """
     def __init__(
         self,
         session_factory: sessionmaker[Session] | None = None,
         state_machine: ProblemContentStateMachine | None = None,
         job_repository: QuestionGenerationJobRepository | None = None,
     ) -> None:
+        """中文：初始化当前对象及其依赖。
+        English: Initializes the current object and its dependencies.
+        """
         self.session_factory = session_factory or create_session_factory(create_mysql_engine())
         self.problem_state_machine = state_machine or ProblemContentStateMachine()
         self.job_repository = job_repository or QuestionGenerationJobRepository()
@@ -67,6 +82,9 @@ class GenerationBatchAdminRepository:
         limit: int = 50,
         offset: int = 0,
     ) -> GenerationBatchAdminPage:
+        """中文：处理“列出·batches”相关操作。
+        English: Handles the list batches operation.
+        """
         filters = []
         if statuses:
             filters.append(GenerationBatch.status.in_([item.value for item in statuses]))
@@ -84,11 +102,17 @@ class GenerationBatchAdminRepository:
         return GenerationBatchAdminPage(items=items, total=total, limit=limit, offset=offset)
 
     def get_batch(self, batch_id: str) -> GenerationBatchAdminDetail | None:
+        """中文：处理“获取·批次”相关操作。
+        English: Handles the get batch operation.
+        """
         with self.session_factory() as session:
             entity = session.scalar(self._detail_query().where(GenerationBatch.id == batch_id))
             return self._detail(entity) if entity is not None else None
 
     def pause(self, batch_id: str, *, reason: str, actor_id: str) -> GenerationBatchActionResult:
+        """中文：处理“pause”相关操作。
+        English: Handles the pause operation.
+        """
         return self._change_status(
             batch_id,
             target=GenerationBatchStatus.PAUSED,
@@ -98,6 +122,9 @@ class GenerationBatchAdminRepository:
         )
 
     def resume(self, batch_id: str, *, reason: str, actor_id: str) -> GenerationBatchActionResult:
+        """中文：处理“resume”相关操作。
+        English: Handles the resume operation.
+        """
         with self.session_factory() as session, session.begin():
             batch, job = self._locked_batch_and_job(session, batch_id)
             previous = GenerationBatchStatus(batch.status)
@@ -143,6 +170,9 @@ class GenerationBatchAdminRepository:
         return result
 
     def cancel(self, batch_id: str, *, reason: str, actor_id: str) -> GenerationBatchActionResult:
+        """中文：处理“cancel”相关操作。
+        English: Handles the cancel operation.
+        """
         with self.session_factory() as session, session.begin():
             batch, job = self._locked_batch_and_job(session, batch_id)
             previous = GenerationBatchStatus(batch.status)
@@ -185,6 +215,9 @@ class GenerationBatchAdminRepository:
         reason: str,
         actor_id: str,
     ) -> GenerationBatchRetryResult:
+        """中文：处理“重试”相关操作。
+        English: Handles the retry operation.
+        """
         with self.session_factory() as session, session.begin():
             source, source_job = self._locked_batch_and_job(session, batch_id)
             source_status = GenerationBatchStatus(source.status)
@@ -265,6 +298,9 @@ class GenerationBatchAdminRepository:
         indexed_content_removed: bool,
         actor_id: str,
     ) -> BatchWithdrawalResult:
+        """中文：处理“withdraw·approved”相关操作。
+        English: Handles the withdraw approved operation.
+        """
         with self.session_factory() as session, session.begin():
             batch, _ = self._locked_batch_and_job(session, batch_id)
             statuses = ["approved", "indexed"] if include_indexed else ["approved"]
@@ -339,6 +375,9 @@ class GenerationBatchAdminRepository:
         reason: str,
         actor_id: str,
     ) -> GenerationBatchActionResult:
+        """中文：处理“change·状态”相关操作。
+        English: Handles the change status operation.
+        """
         with self.session_factory() as session, session.begin():
             batch, job = self._locked_batch_and_job(session, batch_id)
             previous = GenerationBatchStatus(batch.status)
@@ -374,6 +413,9 @@ class GenerationBatchAdminRepository:
     def _locked_batch_and_job(
         session: Session, batch_id: str
     ) -> tuple[GenerationBatch, QuestionGenerationJob | None]:
+        """中文：处理“locked·批次·and·任务”相关操作。
+        English: Handles the locked batch and job operation.
+        """
         batch = session.scalar(
             select(GenerationBatch).where(GenerationBatch.id == batch_id).with_for_update()
         )
@@ -388,6 +430,9 @@ class GenerationBatchAdminRepository:
 
     @staticmethod
     def _ensure_budget_available(job: QuestionGenerationJob) -> None:
+        """中文：处理“ensure·budget·available”相关操作。
+        English: Handles the ensure budget available operation.
+        """
         budget = job.budget_json
         usage = job.usage_json
         limits = {
@@ -418,6 +463,9 @@ class GenerationBatchAdminRepository:
         batch: GenerationBatch,
         status: GenerationBatchStatus,
     ) -> None:
+        """中文：处理“更新·nonterminal·output”相关操作。
+        English: Handles the update nonterminal output operation.
+        """
         if job.output_json is None:
             return
         output = dict(job.output_json)
@@ -433,6 +481,9 @@ class GenerationBatchAdminRepository:
         job: QuestionGenerationJob,
         reason: str,
     ) -> None:
+        """中文：处理“写入·cancelled·output”相关操作。
+        English: Handles the write cancelled output operation.
+        """
         existing = dict(job.output_json or {})
         candidates_by_ordinal = {
             int(item["ordinal"]): item
@@ -517,6 +568,9 @@ class GenerationBatchAdminRepository:
 
     @staticmethod
     def _problem_evidence(session: Session, problem_id: str) -> list[DomainAdmissionEvidence]:
+        """中文：处理“题目·evidence”相关操作。
+        English: Handles the problem evidence operation.
+        """
         entities = session.scalars(
             select(AdmissionEvidence)
             .where(AdmissionEvidence.problem_id == problem_id)
@@ -547,6 +601,9 @@ class GenerationBatchAdminRepository:
     def _persist_problem_transition(
         session: Session, *, problem: KnowledgeProblem, transition, actor_id: str
     ) -> None:
+        """中文：处理“persist·题目·transition”相关操作。
+        English: Handles the persist problem transition operation.
+        """
         changed_at = GenerationBatchAdminRepository._now()
         next_version = problem.status_version + 1
         session.add(ProblemStatusTransition(
@@ -572,6 +629,9 @@ class GenerationBatchAdminRepository:
 
     @staticmethod
     def _refresh_counts(session: Session, batch: GenerationBatch) -> None:
+        """中文：处理“刷新·counts”相关操作。
+        English: Handles the refresh counts operation.
+        """
         batch.approved_count = session.scalar(
             select(func.count(KnowledgeProblem.id)).where(
                 KnowledgeProblem.generation_batch_id == batch.id,
@@ -598,6 +658,9 @@ class GenerationBatchAdminRepository:
         payload: dict,
         related_batch_id: str | None = None,
     ) -> None:
+        """中文：处理“新增·事件”相关操作。
+        English: Handles the add event operation.
+        """
         session.add(GenerationBatchManagementEvent(
             generation_batch_id=batch.id,
             related_batch_id=related_batch_id,
@@ -612,12 +675,18 @@ class GenerationBatchAdminRepository:
 
     @staticmethod
     def _detail_query():
+        """中文：处理“detail·query”相关操作。
+        English: Handles the detail query operation.
+        """
         return select(GenerationBatch).options(
             selectinload(GenerationBatch.question_generation_job),
             selectinload(GenerationBatch.management_events),
         )
 
     def _reload_detail(self, session: Session, batch_id: str) -> GenerationBatchAdminDetail:
+        """中文：处理“reload·detail”相关操作。
+        English: Handles the reload detail operation.
+        """
         session.flush()
         entity = session.scalar(self._detail_query().where(GenerationBatch.id == batch_id))
         if entity is None:
@@ -626,6 +695,9 @@ class GenerationBatchAdminRepository:
 
     @classmethod
     def _item(cls, entity: GenerationBatch) -> GenerationBatchAdminItem:
+        """中文：处理“item”相关操作。
+        English: Handles the item operation.
+        """
         job = entity.question_generation_job
         return GenerationBatchAdminItem(
             id=entity.id,
@@ -653,6 +725,9 @@ class GenerationBatchAdminRepository:
 
     @classmethod
     def _detail(cls, entity: GenerationBatch) -> GenerationBatchAdminDetail:
+        """中文：处理“detail”相关操作。
+        English: Handles the detail operation.
+        """
         base = cls._item(entity).model_dump()
         job = entity.question_generation_job
         return GenerationBatchAdminDetail(
@@ -680,12 +755,21 @@ class GenerationBatchAdminRepository:
 
     @staticmethod
     def _now() -> datetime:
+        """中文：处理“now”相关操作。
+        English: Handles the now operation.
+        """
         return datetime.now(timezone.utc).replace(tzinfo=None)
 
     @staticmethod
     def _utc(value: datetime) -> datetime:
+        """中文：处理“utc”相关操作。
+        English: Handles the utc operation.
+        """
         return value.replace(tzinfo=timezone.utc) if value.tzinfo is None else value
 
     @staticmethod
     def _optional_utc(value: datetime | None) -> datetime | None:
+        """中文：处理“optional·utc”相关操作。
+        English: Handles the optional utc operation.
+        """
         return GenerationBatchAdminRepository._utc(value) if value else None

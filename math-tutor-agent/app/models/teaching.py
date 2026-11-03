@@ -10,7 +10,12 @@ from app.models.base import Base, TimestampMixin, UuidPrimaryKeyMixin
 
 
 class KnowledgeSolutionStep(UuidPrimaryKeyMixin, TimestampMixin, Base):
-    """Relational projection of one stable step in KnowledgeSolution.steps_json."""
+    """中文：定义“知识·解答·step”类，封装该职责相关的数据与行为。
+    English: Defines the knowledge solution step class and encapsulates data and behavior for that responsibility.
+
+    原有说明 / Existing notes:
+    Relational projection of one stable step in KnowledgeSolution.steps_json.
+    """
 
     __tablename__ = "knowledge_solution_steps"
     __table_args__ = (
@@ -58,7 +63,12 @@ class KnowledgeSolutionStep(UuidPrimaryKeyMixin, TimestampMixin, Base):
 
 
 class ErrorPattern(UuidPrimaryKeyMixin, TimestampMixin, Base):
-    """Reusable evidence pattern describing an observable mistake, never a learner label."""
+    """中文：定义“error·pattern”类，封装该职责相关的数据与行为。
+    English: Defines the error pattern class and encapsulates data and behavior for that responsibility.
+
+    原有说明 / Existing notes:
+    Reusable evidence pattern describing an observable mistake, never a learner label.
+    """
 
     __tablename__ = "error_patterns"
     __table_args__ = (
@@ -83,7 +93,12 @@ class ErrorPattern(UuidPrimaryKeyMixin, TimestampMixin, Base):
 
 
 class ProblemErrorPattern(UuidPrimaryKeyMixin, TimestampMixin, Base):
-    """Binds an observable mistake to one indexed step of one solution."""
+    """中文：定义“题目·error·pattern”类，封装该职责相关的数据与行为。
+    English: Defines the problem error pattern class and encapsulates data and behavior for that responsibility.
+
+    原有说明 / Existing notes:
+    Binds an observable mistake to one indexed step of one solution.
+    """
 
     __tablename__ = "problem_error_patterns"
     __table_args__ = (
@@ -133,7 +148,12 @@ class ProblemErrorPattern(UuidPrimaryKeyMixin, TimestampMixin, Base):
 
 
 class HintBlueprint(UuidPrimaryKeyMixin, TimestampMixin, Base):
-    """Hint scaffold with an explicit review state and disclosure boundary."""
+    """中文：定义“提示·blueprint”类，封装该职责相关的数据与行为。
+    English: Defines the hint blueprint class and encapsulates data and behavior for that responsibility.
+
+    原有说明 / Existing notes:
+    Hint scaffold with an explicit review state and disclosure boundary.
+    """
 
     __tablename__ = "hint_blueprints"
     __table_args__ = (

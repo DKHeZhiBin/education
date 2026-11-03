@@ -8,6 +8,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload, sessionmaker
 
 from app.core.config import settings
+from app.core.product_scope import MVP_GRADE_BAND, MVP_SUBJECT_CODE
 from app.core.database import create_mysql_engine, create_session_factory
 from app.domain.admission_gate import PersistedAdmissionGateResult
 from app.domain.generation import (
@@ -44,11 +45,20 @@ from app.repositories.admission_gate import AdmissionGateRepository
 
 
 class KnowledgeProblemNotFound(LookupError):
+    """中文：定义“知识·题目·not·found”类，封装该职责相关的数据与行为。
+    English: Defines the knowledge problem not found class and encapsulates data and behavior for that responsibility.
+    """
     pass
 
 
 class KnowledgeProblemVersionConflict(RuntimeError):
+    """中文：定义“知识·题目·version·conflict”类，封装该职责相关的数据与行为。
+    English: Defines the knowledge problem version conflict class and encapsulates data and behavior for that responsibility.
+    """
     def __init__(self, problem_id: str, expected: int, actual: int) -> None:
+        """中文：初始化当前对象及其依赖。
+        English: Initializes the current object and its dependencies.
+        """
         self.problem_id = problem_id
         self.expected = expected
         self.actual = actual
@@ -58,12 +68,18 @@ class KnowledgeProblemVersionConflict(RuntimeError):
 
 
 class KnowledgeRepository:
+    """中文：定义“知识·仓储”类，封装该职责相关的数据与行为。
+    English: Defines the knowledge repository class and encapsulates data and behavior for that responsibility.
+    """
     def __init__(
         self,
         session_factory: sessionmaker[Session] | None = None,
         state_machine: ProblemContentStateMachine | None = None,
         admission_gate_repository: AdmissionGateRepository | None = None,
     ) -> None:
+        """中文：初始化当前对象及其依赖。
+        English: Initializes the current object and its dependencies.
+        """
         self.session_factory = session_factory or create_session_factory(create_mysql_engine())
         self.state_machine = state_machine or ProblemContentStateMachine()
         self.admission_gate_repository = (
@@ -72,9 +88,16 @@ class KnowledgeRepository:
         )
 
     def status_summary(self) -> list[ProblemStatusCount]:
+        """中文：处理“状态·summary”相关操作。
+        English: Handles the status summary operation.
+        """
         with self.session_factory() as db:
             rows = db.execute(
                 select(KnowledgeProblem.content_status, func.count(KnowledgeProblem.id))
+                .where(
+                    KnowledgeProblem.subject == MVP_SUBJECT_CODE,
+                    KnowledgeProblem.grade_band == MVP_GRADE_BAND,
+                )
                 .group_by(KnowledgeProblem.content_status)
                 .order_by(KnowledgeProblem.content_status)
             ).all()
@@ -101,6 +124,9 @@ class KnowledgeRepository:
         limit: int = 50,
         offset: int = 0,
     ) -> ProblemAdminPage:
+        """中文：处理“列出·problems”相关操作。
+        English: Handles the list problems operation.
+        """
         filters = []
         if statuses:
             filters.append(KnowledgeProblem.content_status.in_([item.value for item in statuses]))
@@ -155,6 +181,9 @@ class KnowledgeRepository:
         return ProblemAdminPage(items=items, total=total, limit=limit, offset=offset)
 
     def get_problem(self, problem_id: str) -> ProblemAdminDetail | None:
+        """中文：处理“获取·题目”相关操作。
+        English: Handles the get problem operation.
+        """
         with self.session_factory() as db:
             entity = db.scalar(self._detail_query().where(KnowledgeProblem.id == problem_id))
             return self._detail(entity) if entity is not None else None
@@ -166,6 +195,9 @@ class KnowledgeRepository:
         expected_status_version: int,
         actor_id: str | None = "admission-gate",
     ) -> PersistedAdmissionGateResult:
+        """中文：处理“评估·automatic·admission”相关操作。
+        English: Handles the evaluate automatic admission operation.
+        """
         with self.session_factory() as db, db.begin():
             return self.admission_gate_repository.evaluate_and_persist(
                 db,
@@ -185,6 +217,9 @@ class KnowledgeRepository:
         reason: str | None = None,
         index_is_active: bool = False,
     ) -> PersistedProblemTransition:
+        """中文：处理“transition·题目”相关操作。
+        English: Handles the transition problem operation.
+        """
         if actor_type not in {"admin", "agent", "job", "system"}:
             raise ValueError(f"unsupported lifecycle actor type: {actor_type}")
         with self.session_factory() as db, db.begin():
@@ -319,6 +354,9 @@ class KnowledgeRepository:
 
     @staticmethod
     def _detail_query():
+        """中文：处理“detail·query”相关操作。
+        English: Handles the detail query operation.
+        """
         return select(KnowledgeProblem).options(
             selectinload(KnowledgeProblem.source_reference),
             selectinload(KnowledgeProblem.generation_batch),
@@ -329,6 +367,9 @@ class KnowledgeRepository:
 
     @classmethod
     def _list_item(cls, entity: KnowledgeProblem) -> ProblemAdminListItem:
+        """中文：处理“列出·item”相关操作。
+        English: Handles the list item operation.
+        """
         return ProblemAdminListItem(
             id=entity.id,
             statement=entity.statement,
@@ -361,6 +402,9 @@ class KnowledgeRepository:
 
     @classmethod
     def _detail(cls, entity: KnowledgeProblem) -> ProblemAdminDetail:
+        """中文：处理“detail”相关操作。
+        English: Handles the detail operation.
+        """
         base = cls._list_item(entity).model_dump()
         return ProblemAdminDetail(
             **base,
@@ -418,6 +462,9 @@ class KnowledgeRepository:
         cls,
         entity: KnowledgeProblem,
     ) -> list[GenerationAuditRecordView]:
+        """中文：处理“audit·timeline”相关操作。
+        English: Handles the audit timeline operation.
+        """
         records: list[GenerationAuditRecordView] = []
         for item in entity.admission_evidence:
             payload = item.payload_json or {}
@@ -478,6 +525,9 @@ class KnowledgeRepository:
 
     @staticmethod
     def _audit_stage(evidence_type: str) -> str:
+        """中文：处理“audit·stage”相关操作。
+        English: Handles the audit stage operation.
+        """
         stage_by_type = {
             "candidate_generation": "generation",
             "condition_completeness": "condition_check",
@@ -501,6 +551,9 @@ class KnowledgeRepository:
 
     @staticmethod
     def _domain_evidence(entity: AdmissionEvidence) -> DomainAdmissionEvidence:
+        """中文：处理“domain·evidence”相关操作。
+        English: Handles the domain evidence operation.
+        """
         return DomainAdmissionEvidence(
             id=entity.id,
             generation_batch_id=entity.generation_batch_id,
@@ -523,6 +576,9 @@ class KnowledgeRepository:
     def _latest_evidence_passed(
         evidence: list[DomainAdmissionEvidence], evidence_type: str
     ) -> bool:
+        """中文：处理“latest·evidence·passed”相关操作。
+        English: Handles the latest evidence passed operation.
+        """
         matches = [item for item in evidence if item.evidence_type == evidence_type]
         if not matches:
             return False
@@ -531,12 +587,15 @@ class KnowledgeRepository:
 
     @staticmethod
     def _structured_problem_complete(entity: KnowledgeProblem) -> bool:
+        """中文：处理“structured·题目·complete”相关操作。
+        English: Handles the structured problem complete operation.
+        """
         return bool(
             entity.statement.strip()
             and entity.problem_type.strip()
             and entity.content_type.strip()
             and entity.grade_band
-            and entity.grade_codes_json
+            and (entity.grade_band == MVP_GRADE_BAND or entity.grade_codes_json)
             and entity.knowledge_point_codes_json
             and entity.difficulty_factors_json
             and entity.target_json
@@ -545,6 +604,9 @@ class KnowledgeRepository:
 
     @staticmethod
     def _is_fully_verified(solution: KnowledgeSolution) -> bool:
+        """中文：处理“is·fully·verified”相关操作。
+        English: Handles the is fully verified operation.
+        """
         coverage = solution.verification_coverage_json or {}
         return bool(
             solution.verification_status == "verified"
@@ -555,6 +617,9 @@ class KnowledgeRepository:
 
     @staticmethod
     def _utc(value: datetime) -> datetime:
+        """中文：处理“utc”相关操作。
+        English: Handles the utc operation.
+        """
         return (
             value.replace(tzinfo=timezone.utc)
             if value.tzinfo is None

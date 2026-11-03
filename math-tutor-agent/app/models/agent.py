@@ -15,6 +15,9 @@ if TYPE_CHECKING:
 
 
 class AgentRun(UuidPrimaryKeyMixin, Base):
+    """中文：定义“智能体·执行”类，封装该职责相关的数据与行为。
+    English: Defines the agent run class and encapsulates data and behavior for that responsibility.
+    """
     __tablename__ = "agent_runs"
     __table_args__ = (
         Index("idx_runs_session_started", "session_id", "started_at"),
@@ -40,6 +43,9 @@ class AgentRun(UuidPrimaryKeyMixin, Base):
 
 
 class AgentRunStep(Base):
+    """中文：定义“智能体·执行·step”类，封装该职责相关的数据与行为。
+    English: Defines the agent run step class and encapsulates data and behavior for that responsibility.
+    """
     __tablename__ = "agent_run_steps"
     __table_args__ = (
         UniqueConstraint("run_id", "step_no", name="run_step"),
@@ -71,6 +77,9 @@ class AgentRunStep(Base):
 
 
 class AgentArtifact(Base):
+    """中文：定义“智能体·artifact”类，封装该职责相关的数据与行为。
+    English: Defines the agent artifact class and encapsulates data and behavior for that responsibility.
+    """
     __tablename__ = "agent_artifacts"
     __table_args__ = (
         Index("idx_artifacts_session_kind", "session_id", "kind", "created_at"),

@@ -3,6 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, HTTPException, Query, status
 
 from app.api.dependencies.auth import AdminUser
+from app.core.product_scope import MVP_GRADE_BAND, MVP_SUBJECT_CODE
 from app.domain.knowledge import ProblemContentStatus
 from app.domain.knowledge_admin import (
     PersistedProblemTransition,
@@ -10,6 +11,8 @@ from app.domain.knowledge_admin import (
     ProblemAdminPage,
     ProblemStatusChangeRequest,
     ProblemStatusCount,
+    ProblemRetirementRequest,
+    ProblemRetirementResult,
 )
 from app.domain.problem_lifecycle import InvalidProblemTransition
 from app.domain.teaching_content import (
@@ -25,6 +28,8 @@ from app.repositories.knowledge import (
     KnowledgeProblemVersionConflict,
 )
 from app.services.knowledge_admin import knowledge_admin_service
+from app.services.knowledge_admin import ProblemRetirementFailed
+from app.search_index.lifecycle_repository import IndexMaintenanceVersionConflict
 from app.repositories.teaching_content import (
     TeachingContentConflict,
     TeachingContentNotFound,
@@ -36,6 +41,9 @@ router = APIRouter(prefix="/admin/knowledge", tags=["admin-knowledge"])
 
 @router.get("/problems/status-summary", response_model=list[ProblemStatusCount])
 def problem_status_summary(_: AdminUser) -> list[ProblemStatusCount]:
+    """中文：处理“题目·状态·summary”相关操作。
+    English: Handles the problem status summary operation.
+    """
     return knowledge_admin_service.status_summary()
 
 
@@ -43,9 +51,6 @@ def problem_status_summary(_: AdminUser) -> list[ProblemStatusCount]:
 def list_problems(
     _: AdminUser,
     statuses: Annotated[list[ProblemContentStatus] | None, Query()] = None,
-    subject: str | None = None,
-    grade_band: str | None = None,
-    grade_code: str | None = None,
     problem_type: str | None = None,
     content_type: str | None = None,
     curriculum_version_id: str | None = None,
@@ -56,11 +61,14 @@ def list_problems(
     limit: Annotated[int, Query(ge=1, le=200)] = 50,
     offset: Annotated[int, Query(ge=0)] = 0,
 ) -> ProblemAdminPage:
+    """中文：处理“列出·problems”相关操作。
+    English: Handles the list problems operation.
+    """
     return knowledge_admin_service.list_problems(
         statuses=statuses,
-        subject=subject,
-        grade_band=grade_band,
-        grade_code=grade_code,
+        subject=MVP_SUBJECT_CODE,
+        grade_band=MVP_GRADE_BAND,
+        grade_code=None,
         problem_type=problem_type,
         content_type=content_type,
         curriculum_version_id=curriculum_version_id,
@@ -75,6 +83,9 @@ def list_problems(
 
 @router.get("/problems/{problem_id}", response_model=ProblemAdminDetail)
 def get_problem(problem_id: str, _: AdminUser) -> ProblemAdminDetail:
+    """中文：处理“获取·题目”相关操作。
+    English: Handles the get problem operation.
+    """
     problem = knowledge_admin_service.get_problem(problem_id)
     if problem is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="题目不存在")
@@ -90,6 +101,9 @@ def transition_problem(
     payload: ProblemStatusChangeRequest,
     actor: AdminUser,
 ) -> PersistedProblemTransition:
+    """中文：处理“transition·题目”相关操作。
+    English: Handles the transition problem operation.
+    """
     try:
         return knowledge_admin_service.transition_problem(problem_id, payload, actor)
     except KnowledgeProblemNotFound as error:
@@ -120,6 +134,49 @@ def transition_problem(
 
 
 @router.post(
+    "/problems/{problem_id}/retire",
+    response_model=ProblemRetirementResult,
+)
+def retire_problem(
+    problem_id: str,
+    payload: ProblemRetirementRequest,
+    actor: AdminUser,
+) -> ProblemRetirementResult:
+    """中文：处理“退役·题目”相关操作。
+    English: Handles the retire problem operation.
+    """
+    try:
+        return knowledge_admin_service.retire_problem(problem_id, payload, actor)
+    except KnowledgeProblemNotFound as error:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="题目不存在"
+        ) from error
+    except IndexMaintenanceVersionConflict as error:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail={
+                "code": "status_version_conflict",
+                "expected_status_version": error.expected,
+                "actual_status_version": error.actual,
+            },
+        ) from error
+    except ProblemRetirementFailed as error:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail={
+                "code": "retirement_incomplete",
+                "message": str(error),
+                "maintenance_job": error.job.model_dump(mode="json"),
+            },
+        ) from error
+    except ValueError as error:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail={"code": "retirement_precondition_failed", "message": str(error)},
+        ) from error
+
+
+@router.post(
     "/problems/{problem_id}/solutions/{solution_id}/steps/sync",
     response_model=list[SolutionStepView],
 )
@@ -128,6 +185,9 @@ def sync_solution_steps(
     solution_id: str,
     _: AdminUser,
 ) -> list[SolutionStepView]:
+    """中文：处理“同步·解答·steps”相关操作。
+    English: Handles the sync solution steps operation.
+    """
     try:
         return knowledge_admin_service.sync_solution_steps(problem_id, solution_id)
     except TeachingContentNotFound as error:
@@ -145,6 +205,9 @@ def upsert_error_pattern_link(
     payload: ProblemErrorPatternUpsert,
     _: AdminUser,
 ) -> ErrorPatternLinkView:
+    """中文：处理“upsert·error·pattern·link”相关操作。
+    English: Handles the upsert error pattern link operation.
+    """
     try:
         return knowledge_admin_service.upsert_error_pattern_link(problem_id, payload)
     except TeachingContentNotFound as error:
@@ -162,6 +225,9 @@ def upsert_hint(
     payload: HintBlueprintUpsert,
     _: AdminUser,
 ) -> HintBlueprintView:
+    """中文：处理“upsert·提示”相关操作。
+    English: Handles the upsert hint operation.
+    """
     try:
         return knowledge_admin_service.upsert_hint(problem_id, payload)
     except TeachingContentNotFound as error:
@@ -178,6 +244,9 @@ def get_problem_teaching_map(
     problem_id: str,
     _: AdminUser,
 ) -> ProblemTeachingMap:
+    """中文：处理“获取·题目·教学·map”相关操作。
+    English: Handles the get problem teaching map operation.
+    """
     try:
         return knowledge_admin_service.get_problem_teaching_map(problem_id)
     except TeachingContentNotFound as error:

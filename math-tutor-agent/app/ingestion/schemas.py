@@ -23,12 +23,18 @@ SupportedDocumentType = Literal[
 
 
 class ChunkingConfig(BaseModel):
+    """中文：定义“chunking·配置”类，封装该职责相关的数据与行为。
+    English: Defines the chunking config class and encapsulates data and behavior for that responsibility.
+    """
     target_tokens: int = Field(default=420, ge=100, le=1200)
     max_tokens: int = Field(default=560, ge=150, le=1600)
     overlap_tokens: int = Field(default=60, ge=0, le=240)
 
     @model_validator(mode="after")
     def validate_limits(self) -> ChunkingConfig:
+        """中文：处理“验证·limits”相关操作。
+        English: Handles the validate limits operation.
+        """
         if self.target_tokens > self.max_tokens:
             raise ValueError("target_tokens cannot exceed max_tokens")
         if self.overlap_tokens >= self.target_tokens:
@@ -37,6 +43,9 @@ class ChunkingConfig(BaseModel):
 
 
 class DocumentIngestionManifest(BaseModel):
+    """中文：定义“文档·ingestion·manifest”类，封装该职责相关的数据与行为。
+    English: Defines the document ingestion manifest class and encapsulates data and behavior for that responsibility.
+    """
     schema_version: Literal["1.0"] = "1.0"
     input_path: str = Field(min_length=1)
     source_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
@@ -61,6 +70,9 @@ class DocumentIngestionManifest(BaseModel):
 
     @model_validator(mode="after")
     def validate_source_locator(self) -> DocumentIngestionManifest:
+        """中文：处理“验证·source·locator”相关操作。
+        English: Handles the validate source locator operation.
+        """
         locators = (
             self.source_reference_id,
             self.source_fingerprint,
@@ -95,6 +107,9 @@ class DocumentIngestionManifest(BaseModel):
         return self
 
     def resolve_input_path(self, manifest_path: str | Path) -> Path:
+        """中文：处理“解析·input·path”相关操作。
+        English: Handles the resolve input path operation.
+        """
         candidate = Path(self.input_path)
         if candidate.is_absolute():
             return candidate
@@ -102,6 +117,9 @@ class DocumentIngestionManifest(BaseModel):
 
 
 class ParsedBlock(BaseModel):
+    """中文：定义“parsed·block”类，封装该职责相关的数据与行为。
+    English: Defines the parsed block class and encapsulates data and behavior for that responsibility.
+    """
     text: str = Field(min_length=1)
     heading_path: list[str] = Field(default_factory=list)
     locator: str | None = Field(default=None, max_length=255)
@@ -109,17 +127,26 @@ class ParsedBlock(BaseModel):
 
 
 class FormulaRecord(BaseModel):
+    """中文：定义“formula·记录”类，封装该职责相关的数据与行为。
+    English: Defines the formula record class and encapsulates data and behavior for that responsibility.
+    """
     original: str
     normalized: str
     block_ordinal: int = Field(ge=0)
 
 
 class ChunkFormula(BaseModel):
+    """中文：定义“切片·formula”类，封装该职责相关的数据与行为。
+    English: Defines the chunk formula class and encapsulates data and behavior for that responsibility.
+    """
     normalized: str
     originals: list[str] = Field(default_factory=list)
 
 
 class PreparedChunk(BaseModel):
+    """中文：定义“prepared·切片”类，封装该职责相关的数据与行为。
+    English: Defines the prepared chunk class and encapsulates data and behavior for that responsibility.
+    """
     ordinal: int = Field(ge=0)
     content: str = Field(min_length=1)
     content_hash: str = Field(pattern=r"^[0-9a-f]{64}$")
@@ -132,6 +159,9 @@ class PreparedChunk(BaseModel):
 
 
 class PreparedDocument(BaseModel):
+    """中文：定义“prepared·文档”类，封装该职责相关的数据与行为。
+    English: Defines the prepared document class and encapsulates data and behavior for that responsibility.
+    """
     manifest: DocumentIngestionManifest
     parser_name: str
     pipeline_version: str
@@ -147,6 +177,9 @@ class PreparedDocument(BaseModel):
 
 
 class IngestionResult(BaseModel):
+    """中文：定义“ingestion·结果”类，封装该职责相关的数据与行为。
+    English: Defines the ingestion result class and encapsulates data and behavior for that responsibility.
+    """
     outcome: Literal["created", "created_duplicate_content", "duplicate_version"]
     document_id: str
     version_label: str

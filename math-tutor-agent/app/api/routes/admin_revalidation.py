@@ -21,6 +21,9 @@ def configure_policy(
     payload: RevalidationPolicyInput,
     _: AdminUser,
 ) -> RevalidationPolicyView:
+    """中文：处理“configure·策略”相关操作。
+    English: Handles the configure policy operation.
+    """
     if payload.policy_key != policy_key:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -37,6 +40,9 @@ def configure_policy(
 
 @router.post("/runs/run-due", response_model=RevalidationDueRunSummary)
 def run_due(payload: RevalidationScope, _: AdminUser) -> RevalidationDueRunSummary:
+    """中文：处理“执行·due”相关操作。
+    English: Handles the run due operation.
+    """
     try:
         return periodic_revalidation_service.run_due(payload)
     except LookupError as error:
@@ -47,6 +53,9 @@ def run_due(payload: RevalidationScope, _: AdminUser) -> RevalidationDueRunSumma
 
 @router.post("/runs/{run_id}/process", response_model=RevalidationRunView)
 def process_run(run_id: str, _: AdminUser) -> RevalidationRunView:
+    """中文：处理“处理·执行”相关操作。
+    English: Handles the process run operation.
+    """
     try:
         return periodic_revalidation_service.process_run(run_id)
     except LookupError as error:
@@ -57,6 +66,9 @@ def process_run(run_id: str, _: AdminUser) -> RevalidationRunView:
 
 @router.get("/runs/{run_id}", response_model=RevalidationRunView)
 def get_run(run_id: str, _: AdminUser) -> RevalidationRunView:
+    """中文：处理“获取·执行”相关操作。
+    English: Handles the get run operation.
+    """
     result = periodic_revalidation_service.get_run(run_id)
     if result is None:
         raise HTTPException(

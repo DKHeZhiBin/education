@@ -11,6 +11,9 @@ from app.domain.generation import (
 
 
 class ProblemVerificationScope(StrEnum):
+    """中文：定义“题目·校验·范围”类，封装该职责相关的数据与行为。
+    English: Defines the problem verification scope class and encapsulates data and behavior for that responsibility.
+    """
     PROGRAMMATIC = "programmatic"
     PROOF = "proof"
     OPEN_ENDED = "open_ended"
@@ -53,6 +56,9 @@ def classify_problem_verification_scope(
     target: dict[str, Any] | None,
     metadata: dict[str, Any] | None = None,
 ) -> ProblemVerificationScope:
+    """中文：处理“classify·题目·校验·范围”相关操作。
+    English: Handles the classify problem verification scope operation.
+    """
     normalized_type = problem_type.strip().casefold()
     normalized_answer = answer_type.strip().casefold()
     target = target or {}
@@ -86,6 +92,9 @@ def has_authoritative_full_coverage(
     solution_content_hash: str | None,
     evidence: Iterable[AdmissionEvidence],
 ) -> bool:
+    """中文：处理“has·authoritative·full·coverage”相关操作。
+    English: Handles the has authoritative full coverage operation.
+    """
     if scope == ProblemVerificationScope.PROGRAMMATIC:
         return True
     if solution_id is None or solution_content_hash is None:
@@ -119,6 +128,9 @@ def has_authoritative_full_coverage(
 
 
 def restricted_coverage_reason(scope: ProblemVerificationScope) -> str:
+    """中文：处理“restricted·coverage·reason”相关操作。
+    English: Handles the restricted coverage reason operation.
+    """
     if scope == ProblemVerificationScope.PROOF:
         return (
             "证明题缺少形式化证明器或具有身份记录的合格人工完整复核，"

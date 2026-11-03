@@ -14,12 +14,18 @@ RetrievalPurpose = Literal[
 
 @dataclass(frozen=True)
 class RetrievalDecision:
+    """中文：定义“retrieval·decision”类，封装该职责相关的数据与行为。
+    English: Defines the retrieval decision class and encapsulates data and behavior for that responsibility.
+    """
     should_retrieve: bool
     purpose: RetrievalPurpose
     reason_code: str
     explanation: str
 
     def as_payload(self) -> dict[str, object]:
+        """中文：处理“as·payload”相关操作。
+        English: Handles the as payload operation.
+        """
         return {
             "should_retrieve": self.should_retrieve,
             "purpose": self.purpose,
@@ -29,7 +35,12 @@ class RetrievalDecision:
 
 
 class OnDemandRetrievalPolicy:
-    """Deterministic gate that keeps RAG optional and auditable."""
+    """中文：定义“on·demand·retrieval·策略”类，封装该职责相关的数据与行为。
+    English: Defines the on demand retrieval policy class and encapsulates data and behavior for that responsibility.
+
+    原有说明 / Existing notes:
+    Deterministic gate that keeps RAG optional and auditable.
+    """
 
     _SOURCE_TERMS = (
         "出处",
@@ -83,6 +94,9 @@ class OnDemandRetrievalPolicy:
         *,
         retriever_available: bool,
     ) -> RetrievalDecision:
+        """中文：处理“decide·题目·understanding”相关操作。
+        English: Handles the decide problem understanding operation.
+        """
         unavailable = self._unavailable("problem_understanding", retriever_available)
         if unavailable:
             return unavailable
@@ -108,6 +122,9 @@ class OnDemandRetrievalPolicy:
         retriever_available: bool,
         retrieval_already_used: bool = False,
     ) -> RetrievalDecision:
+        """中文：处理“decide·解答·analysis”相关操作。
+        English: Handles the decide solution analysis operation.
+        """
         unavailable = self._unavailable("solution_analysis", retriever_available)
         if unavailable:
             return unavailable
@@ -169,6 +186,9 @@ class OnDemandRetrievalPolicy:
         retriever_available: bool,
         has_verified_solution: bool,
     ) -> RetrievalDecision:
+        """中文：处理“decide·提示·教学”相关操作。
+        English: Handles the decide hint teaching operation.
+        """
         unavailable = self._unavailable("hint_teaching", retriever_available)
         if unavailable:
             return unavailable
@@ -216,11 +236,17 @@ class OnDemandRetrievalPolicy:
 
     @staticmethod
     def _contains(text: str, terms: tuple[str, ...]) -> bool:
+        """中文：处理“contains”相关操作。
+        English: Handles the contains operation.
+        """
         normalized = str(text or "").lower()
         return any(term.lower() in normalized for term in terms)
 
     @staticmethod
     def _number(value: object, default: float) -> float:
+        """中文：处理“number”相关操作。
+        English: Handles the number operation.
+        """
         try:
             return float(value)
         except (TypeError, ValueError):
@@ -231,6 +257,9 @@ class OnDemandRetrievalPolicy:
         purpose: RetrievalPurpose,
         retriever_available: bool,
     ) -> RetrievalDecision | None:
+        """中文：处理“unavailable”相关操作。
+        English: Handles the unavailable operation.
+        """
         if retriever_available:
             return None
         return RetrievalDecision(

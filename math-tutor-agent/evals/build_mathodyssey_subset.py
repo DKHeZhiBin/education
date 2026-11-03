@@ -47,6 +47,9 @@ EXCLUDED_AFTER_INTEGRITY_SCREENING = {
 
 
 def parse_args() -> argparse.Namespace:
+    """中文：处理“解析·args”相关操作。
+    English: Handles the parse args operation.
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument("--source", type=Path, required=True)
     parser.add_argument(
@@ -63,6 +66,9 @@ def parse_args() -> argparse.Namespace:
 
 
 def load_source(path: Path) -> dict[str, dict]:
+    """中文：处理“加载·source”相关操作。
+    English: Handles the load source operation.
+    """
     records: dict[str, dict] = {}
     with path.open(encoding="utf-8") as source:
         for line in source:
@@ -73,6 +79,9 @@ def load_source(path: Path) -> dict[str, dict]:
 
 
 def build_case(source_id: str, payload: dict) -> dict:
+    """中文：处理“构建·case”相关操作。
+    English: Handles the build case operation.
+    """
     if payload.get("level") != "high school competition":
         raise ValueError(f"{source_id} is not a high school competition item")
     for field in ("question", "answer", "reasoning", "label"):
@@ -130,6 +139,9 @@ def build_case(source_id: str, payload: dict) -> dict:
 
 
 def main() -> None:
+    """中文：处理“main”相关操作。
+    English: Handles the main operation.
+    """
     args = parse_args()
     source_records = load_source(args.source)
     missing = [source_id for source_id in SELECTED_IDS if source_id not in source_records]

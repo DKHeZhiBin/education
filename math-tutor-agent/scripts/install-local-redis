@@ -1,0 +1,27 @@
+#!/bin/bash
+set -euo pipefail
+
+project_dir="$(cd "$(dirname "$0")/.." && pwd)"
+service_dir="$project_dir/.local-services"
+redis_version="${REDIS_VERSION:-7.4.2}"
+archive="$service_dir/downloads/redis-$redis_version.tar.gz"
+source_dir="$service_dir/runtime/redis-$redis_version"
+install_dir="$service_dir/runtime/redis"
+
+mkdir -p "$service_dir/downloads" "$service_dir/runtime" "$install_dir/bin"
+
+if [ ! -f "$archive" ]; then
+  /usr/bin/curl -fL "https://download.redis.io/releases/redis-$redis_version.tar.gz" -o "$archive"
+fi
+
+if [ ! -d "$source_dir" ]; then
+  /usr/bin/tar -xzf "$archive" -C "$service_dir/runtime"
+fi
+
+/usr/bin/make -C "$source_dir" -j"$(/usr/sbin/sysctl -n hw.ncpu)" BUILD_TLS=no MALLOC=libc
+cp "$source_dir/src/redis-server" "$install_dir/bin/redis-server"
+cp "$source_dir/src/redis-cli" "$install_dir/bin/redis-cli"
+chmod 755 "$install_dir/bin/redis-server" "$install_dir/bin/redis-cli"
+
+echo "Redis $redis_version installed in $install_dir"
+echo "Start it with ./scripts/local-services start"

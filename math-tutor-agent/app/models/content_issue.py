@@ -10,7 +10,12 @@ from app.models.base import Base, TimestampMixin, UuidPrimaryKeyMixin
 
 
 class ContentIssueReport(UuidPrimaryKeyMixin, TimestampMixin, Base):
-    """Auditable signal that removes questionable teaching content from production."""
+    """中文：定义“内容·issue·报告”类，封装该职责相关的数据与行为。
+    English: Defines the content issue report class and encapsulates data and behavior for that responsibility.
+
+    原有说明 / Existing notes:
+    Auditable signal that removes questionable teaching content from production.
+    """
 
     __tablename__ = "content_issue_reports"
     __table_args__ = (

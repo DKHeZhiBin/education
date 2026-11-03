@@ -22,7 +22,12 @@ from app.mcp_tools.safe_math import (
 
 
 def simplify_expression(expression: str) -> ExpressionResult:
-    """Safely simplify an arithmetic or algebraic expression."""
+    """中文：处理“simplify·expression”相关操作。
+    English: Handles the simplify expression operation.
+
+    原有说明 / Existing notes:
+    Safely simplify an arithmetic or algebraic expression.
+    """
     try:
         parsed = parse_expression(expression)
         return ExpressionResult(
@@ -36,7 +41,12 @@ def simplify_expression(expression: str) -> ExpressionResult:
 
 
 def solve_equation(equation: str, variable: str = "x") -> EquationSolutionResult:
-    """Solve one real-valued algebraic equation and verify each returned solution."""
+    """中文：处理“solve·equation”相关操作。
+    English: Handles the solve equation operation.
+
+    原有说明 / Existing notes:
+    Solve one real-valued algebraic equation and verify each returned solution.
+    """
     try:
         variable = validate_variable(variable)
         parsed = parse_equation(equation)
@@ -87,7 +97,12 @@ def verify_candidate_answer(
     candidate: str,
     variable: str = "x",
 ) -> CandidateVerificationResult:
-    """Substitute a candidate into an equation and report whether the residual is zero."""
+    """中文：处理“校验·候选内容·答案”相关操作。
+    English: Handles the verify candidate answer operation.
+
+    原有说明 / Existing notes:
+    Substitute a candidate into an equation and report whether the residual is zero.
+    """
     try:
         variable = validate_variable(variable)
         parsed = parse_equation(equation)
@@ -117,7 +132,12 @@ def verify_candidate_answer(
 
 
 def compare_math_steps(before: str, after: str, variable: str = "x") -> StepComparisonResult:
-    """Check whether two expressions or two equations are mathematically equivalent over the reals."""
+    """中文：处理“compare·math·steps”相关操作。
+    English: Handles the compare math steps operation.
+
+    原有说明 / Existing notes:
+    Check whether two expressions or two equations are mathematically equivalent over the reals.
+    """
     try:
         variable = validate_variable(variable)
         if "=" in before or "=" in after:
@@ -170,7 +190,12 @@ def generate_similar_linear_problem(
     difficulty: int = 1,
     seed: int = 0,
 ) -> SimilarProblemResult:
-    """Generate a deterministic one-variable linear equation with a known integer answer."""
+    """中文：处理“生成·similar·linear·题目”相关操作。
+    English: Handles the generate similar linear problem operation.
+
+    原有说明 / Existing notes:
+    Generate a deterministic one-variable linear equation with a known integer answer.
+    """
     if difficulty not in {1, 2, 3}:
         return SimilarProblemResult(ok=False, difficulty=1, error="difficulty 必须是 1、2、3")
     if abs(target_answer) > 10_000:

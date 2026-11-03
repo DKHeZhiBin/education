@@ -5,6 +5,7 @@ from hashlib import sha256
 from typing import Any, Iterable
 from uuid import NAMESPACE_URL, uuid5
 
+from app.core.product_scope import MVP_GRADE_BAND, MVP_SUBJECT_CODE
 from app.domain.knowledge import (
     KnowledgeCitation,
     RetrievedErrorPattern,
@@ -22,18 +23,30 @@ from app.models.knowledge import (
     KnowledgeProblem,
     KnowledgeSolution,
 )
+from app.search_index.eligibility import solution_has_full_coverage
 
 
 class ProductionIndexProjector:
-    """Builds validated, disclosure-aware search projections from approved ORM rows."""
+    """中文：定义“production·索引·projector”类，封装该职责相关的数据与行为。
+    English: Defines the production index projector class and encapsulates data and behavior for that responsibility.
+
+    原有说明 / Existing notes:
+    Builds validated, disclosure-aware search projections from approved ORM rows.
+    """
 
     def __init__(self, *, embedding_model: str, index_version: str) -> None:
+        """中文：初始化当前对象及其依赖。
+        English: Initializes the current object and its dependencies.
+        """
         if not embedding_model.strip():
             raise ValueError("EMBEDDING_MODEL is required for production indexing")
         self.embedding_model = embedding_model
         self.index_version = index_version
 
     def project_problem(self, problem: KnowledgeProblem) -> list[SearchProjection]:
+        """中文：处理“project·题目”相关操作。
+        English: Handles the project problem operation.
+        """
         if problem.content_status != "approved":
             raise ValueError("only approved problems can be projected")
         citation = self._problem_citation(problem)
@@ -41,22 +54,35 @@ class ProductionIndexProjector:
         projections.extend(
             self._solution_outline(problem, solution, citation)
             for solution in problem.solutions
-            if solution.review_status == "approved"
-            and solution.verification_status in {"partial", "verified"}
+            if solution_has_full_coverage(solution)
         )
         projections.extend(
             self._error_pattern(problem, link, citation)
             for link in problem.error_pattern_links
-            if link.active and link.error_pattern.active and link.solution_step.active
+            if link.active
+            and link.error_pattern.active
+            and link.solution_step.active
+            and solution_has_full_coverage(
+                self._solution(problem, link.solution_id)
+            )
         )
         projections.extend(
             self._hint(problem, hint, citation)
             for hint in problem.hint_blueprints
-            if hint.active and hint.review_status == "approved"
+            if hint.active
+            and hint.review_status == "approved"
+            and solution_has_full_coverage(
+                self._solution(problem, hint.solution_id)
+            )
         )
         return projections
 
     def project_document(self, document: KnowledgeDocument) -> list[SearchProjection]:
+        """中文：处理“project·文档”相关操作。
+        English: Handles the project document operation.
+        """
+        if document.subject != MVP_SUBJECT_CODE or document.grade_band != MVP_GRADE_BAND:
+            raise ValueError("document is outside the university-calculus product scope")
         if document.review_status != "approved" or document.lifecycle_status != "active":
             raise ValueError("only approved active documents can be projected")
         return [
@@ -70,6 +96,9 @@ class ProductionIndexProjector:
         problem: KnowledgeProblem,
         citation: KnowledgeCitation,
     ) -> SearchProjection:
+        """中文：处理“题目·pattern”相关操作。
+        English: Handles the problem pattern operation.
+        """
         conditions = [
             self._clip(str(item.get("statement", "")), 300)
             for item in [
@@ -86,8 +115,7 @@ class ProductionIndexProjector:
         methods = [
             solution.method_name
             for solution in problem.solutions
-            if solution.review_status == "approved"
-            and solution.verification_status in {"partial", "verified"}
+            if solution_has_full_coverage(solution)
         ][:5]
         difficulty_sources = self._difficulty_sources(problem.difficulty_factors_json)
         teaching = RetrievedProblemPattern(
@@ -131,6 +159,9 @@ class ProductionIndexProjector:
         solution: Any,
         citation: KnowledgeCitation,
     ) -> SearchProjection:
+        """中文：处理“解答·outline”相关操作。
+        English: Handles the solution outline operation.
+        """
         coverage = solution.verification_coverage_json or {}
         verification_level = (
             "full"
@@ -201,6 +232,9 @@ class ProductionIndexProjector:
         link: Any,
         citation: KnowledgeCitation,
     ) -> SearchProjection:
+        """中文：处理“error·pattern”相关操作。
+        English: Handles the error pattern operation.
+        """
         pattern = link.error_pattern
         signals = self._flatten_values(link.trigger_evidence_json)[:8]
         if not signals:
@@ -249,6 +283,9 @@ class ProductionIndexProjector:
         hint: Any,
         citation: KnowledgeCitation,
     ) -> SearchProjection:
+        """中文：处理“提示”相关操作。
+        English: Handles the hint operation.
+        """
         teaching = RetrievedHint(
             hint_blueprint_id=hint.id,
             solution_id=hint.solution_id,
@@ -290,6 +327,9 @@ class ProductionIndexProjector:
         document: KnowledgeDocument,
         chunk: DocumentChunk,
     ) -> SearchProjection:
+        """中文：处理“source·fact”相关操作。
+        English: Handles the source fact operation.
+        """
         citation = KnowledgeCitation(
             source_reference_id=document.source_reference_id,
             document_id=document.id,
@@ -373,6 +413,9 @@ class ProductionIndexProjector:
         content_types: list[str] | None = None,
         solution: KnowledgeSolution | None = None,
     ) -> SearchProjection:
+        """中文：处理“projection”相关操作。
+        English: Handles the projection operation.
+        """
         difficulty_sources = self._difficulty_sources(problem.difficulty_factors_json)
         coverage = (
             dict(solution.verification_coverage_json or {}) if solution else None
@@ -427,6 +470,9 @@ class ProductionIndexProjector:
 
     @staticmethod
     def _problem_citation(problem: KnowledgeProblem) -> KnowledgeCitation:
+        """中文：处理“题目·citation”相关操作。
+        English: Handles the problem citation operation.
+        """
         document = problem.document
         source = problem.source_reference
         return KnowledgeCitation(
@@ -441,15 +487,24 @@ class ProductionIndexProjector:
 
     @staticmethod
     def _point_id(entity_type: str, entity_id: str):
+        """中文：处理“point·id”相关操作。
+        English: Handles the point id operation.
+        """
         return uuid5(NAMESPACE_URL, f"math-tutor:{entity_type}:{entity_id}")
 
     @staticmethod
     def _hash(value: Any) -> str:
+        """中文：处理“hash”相关操作。
+        English: Handles the hash operation.
+        """
         serialized = json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
         return sha256(serialized.encode("utf-8")).hexdigest()
 
     @classmethod
     def _join_text(cls, values: Iterable[Any], limit: int = 4000) -> str:
+        """中文：处理“join·text”相关操作。
+        English: Handles the join text operation.
+        """
         text = "\n".join(
             str(value).strip() for value in values if value is not None and str(value).strip()
         )
@@ -457,10 +512,16 @@ class ProductionIndexProjector:
 
     @staticmethod
     def _clip(value: str, limit: int) -> str:
+        """中文：处理“clip”相关操作。
+        English: Handles the clip operation.
+        """
         return value.strip()[:limit]
 
     @classmethod
     def _flatten_values(cls, value: Any) -> list[str]:
+        """中文：处理“flatten·values”相关操作。
+        English: Handles the flatten values operation.
+        """
         if isinstance(value, dict):
             result = []
             for nested in value.values():
@@ -478,6 +539,9 @@ class ProductionIndexProjector:
 
     @classmethod
     def _difficulty_sources(cls, factors: list[dict[str, Any]] | None) -> list[str]:
+        """中文：处理“difficulty·sources”相关操作。
+        English: Handles the difficulty sources operation.
+        """
         return [
             cls._clip(str(item.get("factor_type", "other")), 120)
             for item in (factors or [])
@@ -488,6 +552,9 @@ class ProductionIndexProjector:
         problem: KnowledgeProblem,
         solution_id: str,
     ) -> KnowledgeSolution:
+        """中文：处理“解答”相关操作。
+        English: Handles the solution operation.
+        """
         solution = next(
             (item for item in problem.solutions if item.id == solution_id),
             None,
@@ -503,6 +570,9 @@ class ProductionIndexProjector:
         problem: KnowledgeProblem,
         solution: KnowledgeSolution | None,
     ) -> list[VerifierVersionPayload]:
+        """中文：处理“verifier·versions”相关操作。
+        English: Handles the verifier versions operation.
+        """
         versions: dict[str, VerifierVersionPayload] = {}
         for evidence in problem.admission_evidence:
             if evidence.verifier_version is None:

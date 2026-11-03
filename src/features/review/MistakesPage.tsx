@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Card, Chip, PageTitle, ProgressBar } from '../../components/ui'
+import { MathMarkdown } from '../../components/MathMarkdown'
 import type { Mistake, MistakeStatus } from './data'
 import { listLearningRecords, type LearningRecord } from '../../services/tutoring'
 
@@ -45,7 +46,7 @@ function MistakeCard({ item, index }: { item: Mistake; index: number }) {
     '待巩固': 'amber', '复习中': 'blue', '已掌握': 'green',
   }
   return <Card className="mistake-item">
-    <div className="mistake-title"><div><span className="item-number">{String(index + 1).padStart(2, '0')}</span><strong>{item.question}</strong></div><Chip tone={statusTone[item.status]}>{item.status}</Chip></div>
+    <div className="mistake-title"><div><span className="item-number">{String(index + 1).padStart(2, '0')}</span><MathMarkdown className="mistake-question" source={item.question} /></div><Chip tone={statusTone[item.status]}>{item.status}</Chip></div>
     <div className="mistake-meta"><span>{item.topic}</span><span>上次练习 · {item.lastPracticed}</span></div>
     <div className="mastery-row"><span>掌握度</span><strong>{item.mastery}%</strong></div>
     <ProgressBar value={item.mastery} tone={item.mastery > 80 ? 'teal' : 'blue'} label={`${item.topic}掌握度`} />

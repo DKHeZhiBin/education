@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 
+from app.core.logging import configure_cli_logging
 from app.core.config import settings
 from app.core.database import create_mysql_engine, create_session_factory
 from app.domain.index_lifecycle import IndexMaintenanceRequest
@@ -12,6 +13,10 @@ from app.search_index.service import ProductionIndexService
 
 
 def main() -> None:
+    """中文：处理“main”相关操作。
+    English: Handles the main operation.
+    """
+    configure_cli_logging()
     parser = argparse.ArgumentParser(
         description="Manage the MySQL keyword and Qdrant production indexes"
     )
@@ -81,7 +86,10 @@ def main() -> None:
                     trigger_type=trigger,
                     reason=args.reason,
                 )
-                result = service.enqueue(request).model_dump(mode="json")
+                job = service.enqueue(request)
+                if args.action == "retire":
+                    job = service.run_job(job.id)
+                result = job.model_dump(mode="json")
         finally:
             service.close()
     print(json.dumps(result, ensure_ascii=False, indent=2))

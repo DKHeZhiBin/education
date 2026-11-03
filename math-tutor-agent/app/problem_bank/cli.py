@@ -1,6 +1,7 @@
 import argparse
 import json
 
+from app.core.logging import configure_cli_logging
 from app.core.database import create_mysql_engine, create_session_factory
 from app.problem_bank.loader import (
     DEFAULT_SEED_PATH,
@@ -11,6 +12,10 @@ from app.problem_bank.loader import (
 
 
 def main() -> None:
+    """中文：处理“main”相关操作。
+    English: Handles the main operation.
+    """
+    configure_cli_logging()
     parser = argparse.ArgumentParser(
         description="Validate or import trusted quadratic mother problems"
     )

@@ -1,0 +1,1248 @@
+{
+  "seed_code": "UNIVERSITY.CALCULUS",
+  "version": "2026.1",
+  "subject": "math",
+  "grade_band": "university",
+  "catalogs": [
+    {
+      "code": "UC.C1",
+      "title": "函数、极限与连续",
+      "topic": "函数、极限与连续",
+      "status": "published",
+      "points": [
+        {
+          "code": "UC.C1",
+          "name": "函数、极限与连续",
+          "description": "大学高等数学第一版目录：函数、极限与连续。",
+          "category": "core",
+          "parent_code": null,
+          "sort_order": 0
+        },
+        {
+          "code": "UC.C1.FUNC",
+          "name": "函数及其性质",
+          "description": "函数概念、定义域、值域、复合与反函数，以及有界性、单调性、奇偶性和周期性。",
+          "category": "foundation",
+          "parent_code": "UC.C1",
+          "sort_order": 10
+        },
+        {
+          "code": "UC.C1.ELEM",
+          "name": "初等函数",
+          "description": "幂函数、指数函数、对数函数、三角函数、反三角函数及其复合。",
+          "category": "foundation",
+          "parent_code": "UC.C1",
+          "sort_order": 20
+        },
+        {
+          "code": "UC.C1.SEQ_LIMIT",
+          "name": "数列极限",
+          "description": "数列极限的定义、收敛性质与常见求法。",
+          "category": "core",
+          "parent_code": "UC.C1",
+          "sort_order": 30
+        },
+        {
+          "code": "UC.C1.FUNC_LIMIT",
+          "name": "函数极限",
+          "description": "自变量趋于有限点或无穷时的函数极限及单侧极限。",
+          "category": "core",
+          "parent_code": "UC.C1",
+          "sort_order": 40
+        },
+        {
+          "code": "UC.C1.INFINITESIMAL",
+          "name": "无穷小与无穷大",
+          "description": "无穷小的比较、等价无穷小和无穷大量的关系。",
+          "category": "core",
+          "parent_code": "UC.C1",
+          "sort_order": 50
+        },
+        {
+          "code": "UC.C1.LIMIT_RULES",
+          "name": "极限运算法则",
+          "description": "极限的四则运算、复合运算以及夹逼准则。",
+          "category": "core",
+          "parent_code": "UC.C1",
+          "sort_order": 60
+        },
+        {
+          "code": "UC.C1.IMPORTANT_LIMITS",
+          "name": "两个重要极限",
+          "description": "三角型与指数型重要极限及其等价变形。",
+          "category": "core",
+          "parent_code": "UC.C1",
+          "sort_order": 70
+        },
+        {
+          "code": "UC.C1.CONTINUITY",
+          "name": "函数的连续性",
+          "description": "连续、左右连续、间断点及其分类。",
+          "category": "core",
+          "parent_code": "UC.C1",
+          "sort_order": 80
+        },
+        {
+          "code": "UC.C1.CLOSED_INTERVAL",
+          "name": "闭区间上连续函数的性质",
+          "description": "有界性、最值定理、零点定理和介值定理。",
+          "category": "core",
+          "parent_code": "UC.C1",
+          "sort_order": 90
+        }
+      ],
+      "sort_order": 10
+    },
+    {
+      "code": "UC.C2",
+      "title": "一元函数微分学",
+      "topic": "一元函数微分学",
+      "status": "published",
+      "points": [
+        {
+          "code": "UC.C2",
+          "name": "一元函数微分学",
+          "description": "大学高等数学第一版目录：一元函数微分学。",
+          "category": "core",
+          "parent_code": null,
+          "sort_order": 0
+        },
+        {
+          "code": "UC.C2.DERIVATIVE",
+          "name": "导数的概念",
+          "description": "导数定义、几何意义、单侧导数及可导与连续的关系。",
+          "category": "foundation",
+          "parent_code": "UC.C2",
+          "sort_order": 10
+        },
+        {
+          "code": "UC.C2.RULES",
+          "name": "求导法则",
+          "description": "和、差、积、商及复合函数的求导法则。",
+          "category": "core",
+          "parent_code": "UC.C2",
+          "sort_order": 20
+        },
+        {
+          "code": "UC.C2.ELEM_DERIV",
+          "name": "基本初等函数的导数",
+          "description": "常见初等函数导数公式及其组合使用。",
+          "category": "core",
+          "parent_code": "UC.C2",
+          "sort_order": 30
+        },
+        {
+          "code": "UC.C2.IMPLICIT_PARAM",
+          "name": "隐函数与参数方程求导",
+          "description": "隐函数、参数方程以及相关变化率问题的求导。",
+          "category": "core",
+          "parent_code": "UC.C2",
+          "sort_order": 40
+        },
+        {
+          "code": "UC.C2.HIGHER",
+          "name": "高阶导数",
+          "description": "二阶及高阶导数的计算与含义。",
+          "category": "core",
+          "parent_code": "UC.C2",
+          "sort_order": 50
+        },
+        {
+          "code": "UC.C2.DIFFERENTIAL",
+          "name": "函数的微分",
+          "description": "微分定义、线性近似以及微分运算法则。",
+          "category": "core",
+          "parent_code": "UC.C2",
+          "sort_order": 60
+        },
+        {
+          "code": "UC.C2.MVT",
+          "name": "微分中值定理",
+          "description": "罗尔定理、拉格朗日中值定理和柯西中值定理。",
+          "category": "core",
+          "parent_code": "UC.C2",
+          "sort_order": 70
+        },
+        {
+          "code": "UC.C2.LHOPITAL",
+          "name": "洛必达法则",
+          "description": "未定式极限的识别、适用条件和求解。",
+          "category": "core",
+          "parent_code": "UC.C2",
+          "sort_order": 80
+        },
+        {
+          "code": "UC.C2.TAYLOR",
+          "name": "泰勒公式",
+          "description": "带余项的泰勒公式、麦克劳林展开及近似计算。",
+          "category": "core",
+          "parent_code": "UC.C2",
+          "sort_order": 90
+        },
+        {
+          "code": "UC.C2.MONOTONIC_EXTREMA",
+          "name": "单调性与极值",
+          "description": "利用一阶导数判断单调区间、极值和最值。",
+          "category": "core",
+          "parent_code": "UC.C2",
+          "sort_order": 100
+        },
+        {
+          "code": "UC.C2.CONCAVITY",
+          "name": "曲线凹凸性与拐点",
+          "description": "利用二阶导数判断凹凸区间和拐点。",
+          "category": "core",
+          "parent_code": "UC.C2",
+          "sort_order": 110
+        },
+        {
+          "code": "UC.C2.ASYMPTOTE_GRAPH",
+          "name": "渐近线与函数作图",
+          "description": "水平、铅直、斜渐近线以及函数图形的综合描绘。",
+          "category": "extension",
+          "parent_code": "UC.C2",
+          "sort_order": 120
+        }
+      ],
+      "sort_order": 20
+    },
+    {
+      "code": "UC.C3",
+      "title": "一元函数积分学",
+      "topic": "一元函数积分学",
+      "status": "published",
+      "points": [
+        {
+          "code": "UC.C3",
+          "name": "一元函数积分学",
+          "description": "大学高等数学第一版目录：一元函数积分学。",
+          "category": "core",
+          "parent_code": null,
+          "sort_order": 0
+        },
+        {
+          "code": "UC.C3.ANTIDERIVATIVE",
+          "name": "原函数与不定积分",
+          "description": "原函数概念、不定积分性质和基本积分公式。",
+          "category": "foundation",
+          "parent_code": "UC.C3",
+          "sort_order": 10
+        },
+        {
+          "code": "UC.C3.SUBSTITUTION",
+          "name": "换元积分法",
+          "description": "第一类与第二类换元法及变量替换策略。",
+          "category": "core",
+          "parent_code": "UC.C3",
+          "sort_order": 20
+        },
+        {
+          "code": "UC.C3.BY_PARTS",
+          "name": "分部积分法",
+          "description": "分部积分公式与被积函数拆分选择。",
+          "category": "core",
+          "parent_code": "UC.C3",
+          "sort_order": 30
+        },
+        {
+          "code": "UC.C3.SPECIAL",
+          "name": "有理式与三角函数积分",
+          "description": "有理函数、三角有理式和简单无理式的积分方法。",
+          "category": "core",
+          "parent_code": "UC.C3",
+          "sort_order": 40
+        },
+        {
+          "code": "UC.C3.DEFINITE",
+          "name": "定积分的概念与性质",
+          "description": "黎曼和思想、定积分定义、性质和积分中值定理。",
+          "category": "core",
+          "parent_code": "UC.C3",
+          "sort_order": 50
+        },
+        {
+          "code": "UC.C3.FTC",
+          "name": "微积分基本定理",
+          "description": "变上限积分函数、牛顿—莱布尼茨公式及其应用。",
+          "category": "core",
+          "parent_code": "UC.C3",
+          "sort_order": 60
+        },
+        {
+          "code": "UC.C3.DEFINITE_METHODS",
+          "name": "定积分的换元与分部积分",
+          "description": "定积分中换元、对称性和分部积分技巧。",
+          "category": "core",
+          "parent_code": "UC.C3",
+          "sort_order": 70
+        },
+        {
+          "code": "UC.C3.IMPROPER",
+          "name": "反常积分",
+          "description": "无穷区间与无界函数反常积分的收敛性。",
+          "category": "core",
+          "parent_code": "UC.C3",
+          "sort_order": 80
+        },
+        {
+          "code": "UC.C3.AREA",
+          "name": "平面图形面积",
+          "description": "直角坐标和极坐标下的面积计算。",
+          "category": "core",
+          "parent_code": "UC.C3",
+          "sort_order": 90
+        },
+        {
+          "code": "UC.C3.VOLUME_LENGTH",
+          "name": "体积与弧长",
+          "description": "旋转体体积、平行截面体积和曲线弧长。",
+          "category": "core",
+          "parent_code": "UC.C3",
+          "sort_order": 100
+        },
+        {
+          "code": "UC.C3.PHYSICAL",
+          "name": "定积分的物理应用",
+          "description": "功、液体压力、质心等连续量的积分建模。",
+          "category": "extension",
+          "parent_code": "UC.C3",
+          "sort_order": 110
+        }
+      ],
+      "sort_order": 30
+    },
+    {
+      "code": "UC.C4",
+      "title": "向量代数和空间解析几何",
+      "topic": "向量代数和空间解析几何",
+      "status": "published",
+      "points": [
+        {
+          "code": "UC.C4",
+          "name": "向量代数和空间解析几何",
+          "description": "大学高等数学第一版目录：向量代数和空间解析几何。",
+          "category": "core",
+          "parent_code": null,
+          "sort_order": 0
+        },
+        {
+          "code": "UC.C4.VECTOR",
+          "name": "空间向量及其线性运算",
+          "description": "空间直角坐标、向量表示、模、方向角与线性运算。",
+          "category": "foundation",
+          "parent_code": "UC.C4",
+          "sort_order": 10
+        },
+        {
+          "code": "UC.C4.DOT",
+          "name": "数量积",
+          "description": "数量积、夹角、投影和垂直判定。",
+          "category": "core",
+          "parent_code": "UC.C4",
+          "sort_order": 20
+        },
+        {
+          "code": "UC.C4.CROSS",
+          "name": "向量积",
+          "description": "向量积的方向、大小及面积应用。",
+          "category": "core",
+          "parent_code": "UC.C4",
+          "sort_order": 30
+        },
+        {
+          "code": "UC.C4.MIXED",
+          "name": "混合积",
+          "description": "混合积、空间体积和共面判定。",
+          "category": "extension",
+          "parent_code": "UC.C4",
+          "sort_order": 40
+        },
+        {
+          "code": "UC.C4.PLANE",
+          "name": "平面及其方程",
+          "description": "点法式、一般式、截距式以及平面间位置关系。",
+          "category": "core",
+          "parent_code": "UC.C4",
+          "sort_order": 50
+        },
+        {
+          "code": "UC.C4.LINE",
+          "name": "空间直线及其方程",
+          "description": "对称式、参数式、一般式和直线间位置关系。",
+          "category": "core",
+          "parent_code": "UC.C4",
+          "sort_order": 60
+        },
+        {
+          "code": "UC.C4.LINE_PLANE",
+          "name": "直线与平面的位置关系",
+          "description": "平行、垂直、交点、夹角与距离问题。",
+          "category": "core",
+          "parent_code": "UC.C4",
+          "sort_order": 70
+        },
+        {
+          "code": "UC.C4.SURFACE",
+          "name": "曲面及其方程",
+          "description": "旋转曲面、柱面及常见曲面的建模。",
+          "category": "core",
+          "parent_code": "UC.C4",
+          "sort_order": 80
+        },
+        {
+          "code": "UC.C4.SPACE_CURVE",
+          "name": "空间曲线及其方程",
+          "description": "空间曲线参数方程、一般方程和投影。",
+          "category": "core",
+          "parent_code": "UC.C4",
+          "sort_order": 90
+        },
+        {
+          "code": "UC.C4.QUADRIC",
+          "name": "二次曲面",
+          "description": "椭球面、抛物面、双曲面和锥面的识别。",
+          "category": "extension",
+          "parent_code": "UC.C4",
+          "sort_order": 100
+        }
+      ],
+      "sort_order": 40
+    },
+    {
+      "code": "UC.C5",
+      "title": "多元函数微分学",
+      "topic": "多元函数微分学",
+      "status": "published",
+      "points": [
+        {
+          "code": "UC.C5",
+          "name": "多元函数微分学",
+          "description": "大学高等数学第一版目录：多元函数微分学。",
+          "category": "core",
+          "parent_code": null,
+          "sort_order": 0
+        },
+        {
+          "code": "UC.C5.MULTIVAR_FUNC",
+          "name": "多元函数与定义域",
+          "description": "多元函数、定义域、等值线与空间图形。",
+          "category": "foundation",
+          "parent_code": "UC.C5",
+          "sort_order": 10
+        },
+        {
+          "code": "UC.C5.LIMIT_CONT",
+          "name": "多元函数的极限与连续",
+          "description": "二重极限、路径判别和多元连续性。",
+          "category": "core",
+          "parent_code": "UC.C5",
+          "sort_order": 20
+        },
+        {
+          "code": "UC.C5.PARTIAL",
+          "name": "偏导数",
+          "description": "一阶、高阶偏导数及混合偏导。",
+          "category": "core",
+          "parent_code": "UC.C5",
+          "sort_order": 30
+        },
+        {
+          "code": "UC.C5.TOTAL_DIFF",
+          "name": "全微分",
+          "description": "全微分、可微条件和多元线性近似。",
+          "category": "core",
+          "parent_code": "UC.C5",
+          "sort_order": 40
+        },
+        {
+          "code": "UC.C5.CHAIN",
+          "name": "多元复合函数求导",
+          "description": "多元链式法则和全导数。",
+          "category": "core",
+          "parent_code": "UC.C5",
+          "sort_order": 50
+        },
+        {
+          "code": "UC.C5.IMPLICIT",
+          "name": "隐函数求导",
+          "description": "一个或多个方程确定的隐函数求导。",
+          "category": "core",
+          "parent_code": "UC.C5",
+          "sort_order": 60
+        },
+        {
+          "code": "UC.C5.DIRECTIONAL",
+          "name": "方向导数与梯度",
+          "description": "方向导数、梯度及最速变化方向。",
+          "category": "core",
+          "parent_code": "UC.C5",
+          "sort_order": 70
+        },
+        {
+          "code": "UC.C5.TANGENT",
+          "name": "切平面与法线",
+          "description": "空间曲面切平面、法线和空间曲线切线。",
+          "category": "core",
+          "parent_code": "UC.C5",
+          "sort_order": 80
+        },
+        {
+          "code": "UC.C5.EXTREMA",
+          "name": "多元函数极值",
+          "description": "无条件极值、最值和二阶判别。",
+          "category": "core",
+          "parent_code": "UC.C5",
+          "sort_order": 90
+        },
+        {
+          "code": "UC.C5.LAGRANGE",
+          "name": "条件极值",
+          "description": "拉格朗日乘数法及约束优化。",
+          "category": "core",
+          "parent_code": "UC.C5",
+          "sort_order": 100
+        },
+        {
+          "code": "UC.C5.TAYLOR",
+          "name": "多元泰勒公式",
+          "description": "二元函数泰勒展开与局部近似。",
+          "category": "extension",
+          "parent_code": "UC.C5",
+          "sort_order": 110
+        }
+      ],
+      "sort_order": 50
+    },
+    {
+      "code": "UC.C6",
+      "title": "多元函数积分学",
+      "topic": "多元函数积分学",
+      "status": "published",
+      "points": [
+        {
+          "code": "UC.C6",
+          "name": "多元函数积分学",
+          "description": "大学高等数学第一版目录：多元函数积分学。",
+          "category": "core",
+          "parent_code": null,
+          "sort_order": 0
+        },
+        {
+          "code": "UC.C6.DOUBLE",
+          "name": "二重积分的概念与性质",
+          "description": "二重积分定义、性质和几何意义。",
+          "category": "foundation",
+          "parent_code": "UC.C6",
+          "sort_order": 10
+        },
+        {
+          "code": "UC.C6.DOUBLE_CART",
+          "name": "直角坐标下的二重积分",
+          "description": "X 型、Y 型区域与累次积分。",
+          "category": "core",
+          "parent_code": "UC.C6",
+          "sort_order": 20
+        },
+        {
+          "code": "UC.C6.POLAR",
+          "name": "极坐标下的二重积分",
+          "description": "极坐标变换、雅可比因子和区域描述。",
+          "category": "core",
+          "parent_code": "UC.C6",
+          "sort_order": 30
+        },
+        {
+          "code": "UC.C6.TRIPLE",
+          "name": "三重积分",
+          "description": "直角坐标下三重积分的区域划分与计算。",
+          "category": "core",
+          "parent_code": "UC.C6",
+          "sort_order": 40
+        },
+        {
+          "code": "UC.C6.CYL_SPH",
+          "name": "柱面与球面坐标积分",
+          "description": "柱面坐标、球面坐标变换和雅可比因子。",
+          "category": "core",
+          "parent_code": "UC.C6",
+          "sort_order": 50
+        },
+        {
+          "code": "UC.C6.APPLICATIONS",
+          "name": "重积分的应用",
+          "description": "体积、曲面面积、质量、质心与转动惯量。",
+          "category": "core",
+          "parent_code": "UC.C6",
+          "sort_order": 60
+        },
+        {
+          "code": "UC.C6.LINE_I",
+          "name": "第一类曲线积分",
+          "description": "对弧长的曲线积分及物理意义。",
+          "category": "core",
+          "parent_code": "UC.C6",
+          "sort_order": 70
+        },
+        {
+          "code": "UC.C6.LINE_II",
+          "name": "第二类曲线积分",
+          "description": "对坐标的曲线积分、方向性和做功。",
+          "category": "core",
+          "parent_code": "UC.C6",
+          "sort_order": 80
+        },
+        {
+          "code": "UC.C6.GREEN",
+          "name": "格林公式",
+          "description": "平面曲线积分与二重积分的联系、路径无关条件。",
+          "category": "core",
+          "parent_code": "UC.C6",
+          "sort_order": 90
+        },
+        {
+          "code": "UC.C6.SURFACE_I",
+          "name": "第一类曲面积分",
+          "description": "对面积的曲面积分及其计算。",
+          "category": "core",
+          "parent_code": "UC.C6",
+          "sort_order": 100
+        },
+        {
+          "code": "UC.C6.SURFACE_II",
+          "name": "第二类曲面积分",
+          "description": "对坐标的曲面积分、侧的选择和通量。",
+          "category": "core",
+          "parent_code": "UC.C6",
+          "sort_order": 110
+        },
+        {
+          "code": "UC.C6.GAUSS",
+          "name": "高斯公式",
+          "description": "闭曲面通量与三重积分的联系。",
+          "category": "core",
+          "parent_code": "UC.C6",
+          "sort_order": 120
+        },
+        {
+          "code": "UC.C6.STOKES",
+          "name": "斯托克斯公式",
+          "description": "空间曲线积分与曲面积分的联系。",
+          "category": "extension",
+          "parent_code": "UC.C6",
+          "sort_order": 130
+        }
+      ],
+      "sort_order": 60
+    },
+    {
+      "code": "UC.C7",
+      "title": "无穷级数",
+      "topic": "无穷级数",
+      "status": "published",
+      "points": [
+        {
+          "code": "UC.C7",
+          "name": "无穷级数",
+          "description": "大学高等数学第一版目录：无穷级数。",
+          "category": "core",
+          "parent_code": null,
+          "sort_order": 0
+        },
+        {
+          "code": "UC.C7.SERIES",
+          "name": "常数项级数",
+          "description": "无穷级数、部分和、收敛与发散的基本概念。",
+          "category": "foundation",
+          "parent_code": "UC.C7",
+          "sort_order": 10
+        },
+        {
+          "code": "UC.C7.BASIC",
+          "name": "级数的基本性质",
+          "description": "线性性质、必要条件和柯西收敛准则。",
+          "category": "core",
+          "parent_code": "UC.C7",
+          "sort_order": 20
+        },
+        {
+          "code": "UC.C7.POSITIVE",
+          "name": "正项级数审敛法",
+          "description": "比较、比值、根值和积分判别法。",
+          "category": "core",
+          "parent_code": "UC.C7",
+          "sort_order": 30
+        },
+        {
+          "code": "UC.C7.ALTERNATING",
+          "name": "交错级数",
+          "description": "莱布尼茨判别法及余项估计。",
+          "category": "core",
+          "parent_code": "UC.C7",
+          "sort_order": 40
+        },
+        {
+          "code": "UC.C7.ABSOLUTE",
+          "name": "绝对收敛与条件收敛",
+          "description": "绝对收敛、条件收敛及相关性质。",
+          "category": "core",
+          "parent_code": "UC.C7",
+          "sort_order": 50
+        },
+        {
+          "code": "UC.C7.POWER",
+          "name": "幂级数与收敛域",
+          "description": "收敛半径、收敛区间和端点判别。",
+          "category": "core",
+          "parent_code": "UC.C7",
+          "sort_order": 60
+        },
+        {
+          "code": "UC.C7.POWER_OPS",
+          "name": "幂级数的运算",
+          "description": "逐项求导、逐项积分及和函数。",
+          "category": "core",
+          "parent_code": "UC.C7",
+          "sort_order": 70
+        },
+        {
+          "code": "UC.C7.TAYLOR_SERIES",
+          "name": "函数展开成幂级数",
+          "description": "泰勒级数、麦克劳林级数及常见函数展开。",
+          "category": "core",
+          "parent_code": "UC.C7",
+          "sort_order": 80
+        },
+        {
+          "code": "UC.C7.SERIES_APPLICATION",
+          "name": "幂级数的应用",
+          "description": "近似计算、数值积分和微分方程级数解。",
+          "category": "extension",
+          "parent_code": "UC.C7",
+          "sort_order": 90
+        },
+        {
+          "code": "UC.C7.FOURIER",
+          "name": "傅里叶级数",
+          "description": "周期函数的傅里叶展开、正弦级数和余弦级数。",
+          "category": "extension",
+          "parent_code": "UC.C7",
+          "sort_order": 100
+        }
+      ],
+      "sort_order": 70
+    }
+  ],
+  "prerequisites": [
+    {
+      "knowledge_code": "UC.C1.ELEM",
+      "prerequisite_code": "UC.C1.FUNC",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "理解函数概念和性质后才能系统掌握初等函数。"
+    },
+    {
+      "knowledge_code": "UC.C1.FUNC_LIMIT",
+      "prerequisite_code": "UC.C1.FUNC",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "函数极限以函数及其定义域为基础。"
+    },
+    {
+      "knowledge_code": "UC.C1.LIMIT_RULES",
+      "prerequisite_code": "UC.C1.FUNC_LIMIT",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "极限运算法则建立在函数极限概念上。"
+    },
+    {
+      "knowledge_code": "UC.C1.IMPORTANT_LIMITS",
+      "prerequisite_code": "UC.C1.LIMIT_RULES",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "重要极限的变形需要熟悉极限运算。"
+    },
+    {
+      "knowledge_code": "UC.C1.INFINITESIMAL",
+      "prerequisite_code": "UC.C1.FUNC_LIMIT",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "无穷小与无穷大的判断依赖极限概念。"
+    },
+    {
+      "knowledge_code": "UC.C1.CONTINUITY",
+      "prerequisite_code": "UC.C1.FUNC_LIMIT",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "连续性由函数在点处的极限定义。"
+    },
+    {
+      "knowledge_code": "UC.C1.CLOSED_INTERVAL",
+      "prerequisite_code": "UC.C1.CONTINUITY",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "闭区间连续函数性质以连续性为前提。"
+    },
+    {
+      "knowledge_code": "UC.C2.DERIVATIVE",
+      "prerequisite_code": "UC.C1.CONTINUITY",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "导数由差商极限定义，并需要理解可导与连续的关系。"
+    },
+    {
+      "knowledge_code": "UC.C2.RULES",
+      "prerequisite_code": "UC.C2.DERIVATIVE",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "求导法则建立在导数定义上。"
+    },
+    {
+      "knowledge_code": "UC.C2.ELEM_DERIV",
+      "prerequisite_code": "UC.C2.RULES",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "初等函数求导需要使用基本求导法则。"
+    },
+    {
+      "knowledge_code": "UC.C2.IMPLICIT_PARAM",
+      "prerequisite_code": "UC.C2.RULES",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "隐函数和参数方程求导依赖复合函数求导。"
+    },
+    {
+      "knowledge_code": "UC.C2.HIGHER",
+      "prerequisite_code": "UC.C2.RULES",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "高阶导数是连续多次应用求导法则。"
+    },
+    {
+      "knowledge_code": "UC.C2.DIFFERENTIAL",
+      "prerequisite_code": "UC.C2.DERIVATIVE",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "微分是函数增量的线性主部，与导数直接关联。"
+    },
+    {
+      "knowledge_code": "UC.C2.MVT",
+      "prerequisite_code": "UC.C2.DERIVATIVE",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "中值定理需要函数连续与可导的基础。"
+    },
+    {
+      "knowledge_code": "UC.C2.LHOPITAL",
+      "prerequisite_code": "UC.C2.MVT",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "洛必达法则以柯西中值定理为理论基础。"
+    },
+    {
+      "knowledge_code": "UC.C2.TAYLOR",
+      "prerequisite_code": "UC.C2.HIGHER",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "泰勒公式需要高阶导数。"
+    },
+    {
+      "knowledge_code": "UC.C2.MONOTONIC_EXTREMA",
+      "prerequisite_code": "UC.C2.MVT",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "单调性与极值判定使用中值定理和导数符号。"
+    },
+    {
+      "knowledge_code": "UC.C2.CONCAVITY",
+      "prerequisite_code": "UC.C2.HIGHER",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "凹凸性和拐点主要由二阶导数判断。"
+    },
+    {
+      "knowledge_code": "UC.C2.ASYMPTOTE_GRAPH",
+      "prerequisite_code": "UC.C2.MONOTONIC_EXTREMA",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "综合作图需要单调性、极值和极限分析。"
+    },
+    {
+      "knowledge_code": "UC.C3.ANTIDERIVATIVE",
+      "prerequisite_code": "UC.C2.ELEM_DERIV",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "原函数与不定积分是求导的逆运算。"
+    },
+    {
+      "knowledge_code": "UC.C3.SUBSTITUTION",
+      "prerequisite_code": "UC.C3.ANTIDERIVATIVE",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "换元积分法以基本不定积分为基础。"
+    },
+    {
+      "knowledge_code": "UC.C3.BY_PARTS",
+      "prerequisite_code": "UC.C3.ANTIDERIVATIVE",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "分部积分由乘积求导法则逆用得到。"
+    },
+    {
+      "knowledge_code": "UC.C3.SPECIAL",
+      "prerequisite_code": "UC.C3.SUBSTITUTION",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "特殊类型积分通常组合使用换元和代数分解。"
+    },
+    {
+      "knowledge_code": "UC.C3.FTC",
+      "prerequisite_code": "UC.C3.DEFINITE",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "微积分基本定理连接定积分与原函数。"
+    },
+    {
+      "knowledge_code": "UC.C3.FTC",
+      "prerequisite_code": "UC.C3.ANTIDERIVATIVE",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "应用牛顿—莱布尼茨公式需要掌握原函数。"
+    },
+    {
+      "knowledge_code": "UC.C3.DEFINITE_METHODS",
+      "prerequisite_code": "UC.C3.FTC",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "定积分计算以基本定理为基础。"
+    },
+    {
+      "knowledge_code": "UC.C3.IMPROPER",
+      "prerequisite_code": "UC.C3.DEFINITE",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "反常积分通过极限扩展定积分。"
+    },
+    {
+      "knowledge_code": "UC.C3.AREA",
+      "prerequisite_code": "UC.C3.FTC",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "面积计算需要能够建立并计算定积分。"
+    },
+    {
+      "knowledge_code": "UC.C3.VOLUME_LENGTH",
+      "prerequisite_code": "UC.C3.AREA",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "体积和弧长是定积分几何应用的进一步拓展。"
+    },
+    {
+      "knowledge_code": "UC.C4.DOT",
+      "prerequisite_code": "UC.C4.VECTOR",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "数量积建立在空间向量表示与运算上。"
+    },
+    {
+      "knowledge_code": "UC.C4.CROSS",
+      "prerequisite_code": "UC.C4.VECTOR",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "向量积需要掌握向量坐标运算。"
+    },
+    {
+      "knowledge_code": "UC.C4.MIXED",
+      "prerequisite_code": "UC.C4.CROSS",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "混合积组合使用数量积与向量积。"
+    },
+    {
+      "knowledge_code": "UC.C4.PLANE",
+      "prerequisite_code": "UC.C4.DOT",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "平面法向量及平面夹角需要数量积。"
+    },
+    {
+      "knowledge_code": "UC.C4.LINE",
+      "prerequisite_code": "UC.C4.VECTOR",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "空间直线方程以方向向量为基础。"
+    },
+    {
+      "knowledge_code": "UC.C4.LINE_PLANE",
+      "prerequisite_code": "UC.C4.PLANE",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "直线和平面位置关系需要先掌握平面方程。"
+    },
+    {
+      "knowledge_code": "UC.C4.LINE_PLANE",
+      "prerequisite_code": "UC.C4.LINE",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "直线和平面位置关系需要先掌握直线方程。"
+    },
+    {
+      "knowledge_code": "UC.C4.SPACE_CURVE",
+      "prerequisite_code": "UC.C4.SURFACE",
+      "strength": "recommended",
+      "required_level": "familiar",
+      "rationale": "空间曲线常由曲面交线表示。"
+    },
+    {
+      "knowledge_code": "UC.C4.QUADRIC",
+      "prerequisite_code": "UC.C4.SURFACE",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "二次曲面是常见曲面的系统分类。"
+    },
+    {
+      "knowledge_code": "UC.C5.LIMIT_CONT",
+      "prerequisite_code": "UC.C5.MULTIVAR_FUNC",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "多元极限与连续需要先理解多元函数和定义域。"
+    },
+    {
+      "knowledge_code": "UC.C5.PARTIAL",
+      "prerequisite_code": "UC.C2.DERIVATIVE",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "偏导数是固定其余变量后的一元导数。"
+    },
+    {
+      "knowledge_code": "UC.C5.PARTIAL",
+      "prerequisite_code": "UC.C5.LIMIT_CONT",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "偏导与可微性的讨论需要多元极限基础。"
+    },
+    {
+      "knowledge_code": "UC.C5.TOTAL_DIFF",
+      "prerequisite_code": "UC.C5.PARTIAL",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "全微分使用各偏导数组成线性主部。"
+    },
+    {
+      "knowledge_code": "UC.C5.CHAIN",
+      "prerequisite_code": "UC.C5.TOTAL_DIFF",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "多元链式法则建立在全微分上。"
+    },
+    {
+      "knowledge_code": "UC.C5.IMPLICIT",
+      "prerequisite_code": "UC.C5.CHAIN",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "隐函数求导需要多元复合函数求导。"
+    },
+    {
+      "knowledge_code": "UC.C5.DIRECTIONAL",
+      "prerequisite_code": "UC.C5.PARTIAL",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "方向导数和梯度由偏导数组成。"
+    },
+    {
+      "knowledge_code": "UC.C5.TANGENT",
+      "prerequisite_code": "UC.C5.DIRECTIONAL",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "曲面的法向量可由梯度给出。"
+    },
+    {
+      "knowledge_code": "UC.C5.EXTREMA",
+      "prerequisite_code": "UC.C5.PARTIAL",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "多元极值判定需要一阶和二阶偏导。"
+    },
+    {
+      "knowledge_code": "UC.C5.LAGRANGE",
+      "prerequisite_code": "UC.C5.EXTREMA",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "条件极值是多元极值在约束下的拓展。"
+    },
+    {
+      "knowledge_code": "UC.C5.TAYLOR",
+      "prerequisite_code": "UC.C2.TAYLOR",
+      "strength": "recommended",
+      "required_level": "familiar",
+      "rationale": "多元泰勒公式由一元泰勒思想推广。"
+    },
+    {
+      "knowledge_code": "UC.C6.DOUBLE",
+      "prerequisite_code": "UC.C3.DEFINITE",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "二重积分由一元定积分思想推广。"
+    },
+    {
+      "knowledge_code": "UC.C6.DOUBLE_CART",
+      "prerequisite_code": "UC.C6.DOUBLE",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "累次积分计算以二重积分定义和性质为基础。"
+    },
+    {
+      "knowledge_code": "UC.C6.POLAR",
+      "prerequisite_code": "UC.C6.DOUBLE_CART",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "极坐标积分是二重积分变量变换。"
+    },
+    {
+      "knowledge_code": "UC.C6.TRIPLE",
+      "prerequisite_code": "UC.C6.DOUBLE",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "三重积分由二重积分进一步推广。"
+    },
+    {
+      "knowledge_code": "UC.C6.CYL_SPH",
+      "prerequisite_code": "UC.C6.TRIPLE",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "柱面和球面坐标用于三重积分变量变换。"
+    },
+    {
+      "knowledge_code": "UC.C6.APPLICATIONS",
+      "prerequisite_code": "UC.C6.TRIPLE",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "重积分应用需要建立并计算二重或三重积分。"
+    },
+    {
+      "knowledge_code": "UC.C6.LINE_I",
+      "prerequisite_code": "UC.C3.DEFINITE",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "第一类曲线积分以定积分和弧长为基础。"
+    },
+    {
+      "knowledge_code": "UC.C6.LINE_II",
+      "prerequisite_code": "UC.C4.VECTOR",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "第二类曲线积分涉及方向和向量场。"
+    },
+    {
+      "knowledge_code": "UC.C6.GREEN",
+      "prerequisite_code": "UC.C6.LINE_II",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "格林公式连接平面第二类曲线积分与二重积分。"
+    },
+    {
+      "knowledge_code": "UC.C6.SURFACE_I",
+      "prerequisite_code": "UC.C6.DOUBLE",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "第一类曲面积分通常化为二重积分。"
+    },
+    {
+      "knowledge_code": "UC.C6.SURFACE_II",
+      "prerequisite_code": "UC.C4.CROSS",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "有向曲面的法向量与向量积相关。"
+    },
+    {
+      "knowledge_code": "UC.C6.GAUSS",
+      "prerequisite_code": "UC.C6.SURFACE_II",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "高斯公式连接闭曲面通量与三重积分。"
+    },
+    {
+      "knowledge_code": "UC.C6.STOKES",
+      "prerequisite_code": "UC.C6.SURFACE_II",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "斯托克斯公式需要掌握有向曲面积分。"
+    },
+    {
+      "knowledge_code": "UC.C6.STOKES",
+      "prerequisite_code": "UC.C6.LINE_II",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "斯托克斯公式把空间曲线积分与曲面积分联系起来。"
+    },
+    {
+      "knowledge_code": "UC.C7.BASIC",
+      "prerequisite_code": "UC.C7.SERIES",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "级数基本性质建立在部分和与收敛定义上。"
+    },
+    {
+      "knowledge_code": "UC.C7.POSITIVE",
+      "prerequisite_code": "UC.C7.BASIC",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "正项级数判别需要级数收敛的基本性质。"
+    },
+    {
+      "knowledge_code": "UC.C7.ALTERNATING",
+      "prerequisite_code": "UC.C7.BASIC",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "交错级数以一般级数收敛概念为基础。"
+    },
+    {
+      "knowledge_code": "UC.C7.ABSOLUTE",
+      "prerequisite_code": "UC.C7.POSITIVE",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "绝对收敛判断常转化为正项级数。"
+    },
+    {
+      "knowledge_code": "UC.C7.POWER",
+      "prerequisite_code": "UC.C7.BASIC",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "幂级数的每一点收敛性属于常数项级数问题。"
+    },
+    {
+      "knowledge_code": "UC.C7.POWER_OPS",
+      "prerequisite_code": "UC.C7.POWER",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "逐项运算需要先确定幂级数收敛域。"
+    },
+    {
+      "knowledge_code": "UC.C7.TAYLOR_SERIES",
+      "prerequisite_code": "UC.C7.POWER_OPS",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "函数展开依赖幂级数求导与积分性质。"
+    },
+    {
+      "knowledge_code": "UC.C7.TAYLOR_SERIES",
+      "prerequisite_code": "UC.C2.TAYLOR",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "泰勒级数以有限阶泰勒公式为基础。"
+    },
+    {
+      "knowledge_code": "UC.C7.SERIES_APPLICATION",
+      "prerequisite_code": "UC.C7.TAYLOR_SERIES",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "级数应用需要掌握常见函数的幂级数展开。"
+    },
+    {
+      "knowledge_code": "UC.C7.FOURIER",
+      "prerequisite_code": "UC.C3.DEFINITE",
+      "strength": "required",
+      "required_level": "familiar",
+      "rationale": "傅里叶系数通过定积分计算。"
+    }
+  ]
+}

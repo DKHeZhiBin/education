@@ -9,6 +9,7 @@ from sqlalchemy.dialects.mysql import match
 from sqlalchemy.orm import Session, selectinload
 from pydantic import ValidationError
 
+from app.core.product_scope import MVP_GRADE_BAND, MVP_SUBJECT_CODE
 from app.domain.generation import (
     AdmissionEvidence as DomainAdmissionEvidence,
     AdmissionEvidenceStatus,
@@ -31,10 +32,17 @@ from app.models.knowledge import (
 )
 from app.models.search_index import KnowledgeSearchDocument
 from app.models.teaching import HintBlueprint, ProblemErrorPattern
+from app.search_index.eligibility import require_problem_index_eligibility
 
 
 class ProductionIndexRepository:
+    """中文：定义“production·索引·仓储”类，封装该职责相关的数据与行为。
+    English: Defines the production index repository class and encapsulates data and behavior for that responsibility.
+    """
     def __init__(self) -> None:
+        """中文：初始化当前对象及其依赖。
+        English: Initializes the current object and its dependencies.
+        """
         self.state_machine = ProblemContentStateMachine()
 
     @staticmethod
@@ -42,6 +50,9 @@ class ProductionIndexRepository:
         session: Session,
         identities: list[tuple[str, str]],
     ) -> set[tuple[str, str]]:
+        """中文：处理“active·候选内容·identities”相关操作。
+        English: Handles the active candidate identities operation.
+        """
         if not identities:
             return set()
         entity_types = {item[0] for item in identities}
@@ -62,9 +73,16 @@ class ProductionIndexRepository:
 
     @staticmethod
     def approved_problem_ids(session: Session, limit: int) -> list[str]:
+        """中文：处理“approved·题目·ids”相关操作。
+        English: Handles the approved problem ids operation.
+        """
         return list(session.scalars(
             select(KnowledgeProblem.id)
-            .where(KnowledgeProblem.content_status == "approved")
+            .where(
+                KnowledgeProblem.content_status == "approved",
+                KnowledgeProblem.subject == MVP_SUBJECT_CODE,
+                KnowledgeProblem.grade_band == MVP_GRADE_BAND,
+            )
             .order_by(KnowledgeProblem.status_changed_at, KnowledgeProblem.id)
             .limit(limit)
         ))
@@ -77,6 +95,9 @@ class ProductionIndexRepository:
         index_version: str,
         embedding_model: str,
     ) -> list[str]:
+        """中文：处理“approved·文档·ids”相关操作。
+        English: Handles the approved document ids operation.
+        """
         active_projection_exists = exists(
             select(KnowledgeSearchDocument.id).where(
                 KnowledgeSearchDocument.document_id == KnowledgeDocument.id,
@@ -91,6 +112,8 @@ class ProductionIndexRepository:
             .where(
                 KnowledgeDocument.review_status == "approved",
                 KnowledgeDocument.lifecycle_status == "active",
+                KnowledgeDocument.subject == MVP_SUBJECT_CODE,
+                KnowledgeDocument.grade_band == MVP_GRADE_BAND,
                 ~active_projection_exists,
             )
             .order_by(KnowledgeDocument.updated_at, KnowledgeDocument.id)
@@ -99,6 +122,9 @@ class ProductionIndexRepository:
 
     @staticmethod
     def load_problem(session: Session, problem_id: str) -> KnowledgeProblem:
+        """中文：处理“加载·题目”相关操作。
+        English: Handles the load problem operation.
+        """
         problem = session.scalar(
             select(KnowledgeProblem)
             .where(KnowledgeProblem.id == problem_id)
@@ -124,10 +150,14 @@ class ProductionIndexRepository:
         )
         if problem is None or problem.content_status != "approved":
             raise LookupError("approved problem is no longer available")
+        require_problem_index_eligibility(problem)
         return problem
 
     @staticmethod
     def load_document(session: Session, document_id: str) -> KnowledgeDocument:
+        """中文：处理“加载·文档”相关操作。
+        English: Handles the load document operation.
+        """
         document = session.scalar(
             select(KnowledgeDocument)
             .where(KnowledgeDocument.id == document_id)
@@ -149,6 +179,9 @@ class ProductionIndexRepository:
 
     @staticmethod
     def stage(session: Session, projections: list[SearchProjection]) -> None:
+        """中文：处理“stage”相关操作。
+        English: Handles the stage operation.
+        """
         for projection in projections:
             payload = projection.payload
             row = session.scalar(
@@ -200,6 +233,9 @@ class ProductionIndexRepository:
 
     @staticmethod
     def mark_vector_staged(session: Session, point_ids: list[str]) -> None:
+        """中文：处理“mark·向量·staged”相关操作。
+        English: Handles the mark vector staged operation.
+        """
         rows = list(session.scalars(
             select(KnowledgeSearchDocument)
             .where(KnowledgeSearchDocument.point_id.in_(point_ids))
@@ -218,9 +254,13 @@ class ProductionIndexRepository:
         index_version: str,
         embedding_model: str,
     ) -> None:
+        """中文：处理“activate·题目”相关操作。
+        English: Handles the activate problem operation.
+        """
         problem = session.get(KnowledgeProblem, problem_id, with_for_update=True)
         if problem is None or problem.content_status != "approved":
             raise LookupError("problem changed before index activation")
+        require_problem_index_eligibility(problem)
         self._activate_rows(session, point_ids)
         evidence = self._index_evidence(
             session,
@@ -267,6 +307,9 @@ class ProductionIndexRepository:
         document_id: str,
         point_ids: list[str],
     ) -> None:
+        """中文：处理“activate·文档”相关操作。
+        English: Handles the activate document operation.
+        """
         document = session.get(KnowledgeDocument, document_id, with_for_update=True)
         if (
             document is None
@@ -285,6 +328,9 @@ class ProductionIndexRepository:
         document_id: str | None = None,
         error_code: str,
     ) -> None:
+        """中文：处理“mark·failed”相关操作。
+        English: Handles the mark failed operation.
+        """
         conditions = []
         if problem_id:
             conditions.append(KnowledgeSearchDocument.problem_id == problem_id)
@@ -308,6 +354,9 @@ class ProductionIndexRepository:
         session: Session,
         query: KeywordSearchQuery,
     ) -> list[KeywordSearchHit]:
+        """中文：处理“keyword·搜索”相关操作。
+        English: Handles the keyword search operation.
+        """
         score = match(KnowledgeSearchDocument.search_text, against=query.text).in_natural_language_mode()
         filters = [
             KnowledgeSearchDocument.index_status == "active",
@@ -403,6 +452,9 @@ class ProductionIndexRepository:
 
     @staticmethod
     def _json_contains_all(column, values: list[str]) -> list:
+        """中文：处理“json·contains·all”相关操作。
+        English: Handles the json contains all operation.
+        """
         return [
             func.json_contains(column, json.dumps(value, ensure_ascii=False)) == 1
             for value in values
@@ -410,6 +462,9 @@ class ProductionIndexRepository:
 
     @staticmethod
     def _json_contains_any(column, values: list[str]):
+        """中文：处理“json·contains·any”相关操作。
+        English: Handles the json contains any operation.
+        """
         if not values:
             return None
         return or_(*[
@@ -419,7 +474,13 @@ class ProductionIndexRepository:
 
     @staticmethod
     def status(session: Session) -> ProductionIndexStatus:
+        """中文：处理“状态”相关操作。
+        English: Handles the status operation.
+        """
         def count(model, *conditions) -> int:
+            """中文：处理“统计”相关操作。
+            English: Handles the count operation.
+            """
             return int(session.scalar(select(func.count(model.id)).where(*conditions)) or 0)
 
         return ProductionIndexStatus(
@@ -458,6 +519,9 @@ class ProductionIndexRepository:
 
     @staticmethod
     def _activate_rows(session: Session, point_ids: list[str]) -> None:
+        """中文：处理“activate·rows”相关操作。
+        English: Handles the activate rows operation.
+        """
         rows = list(session.scalars(
             select(KnowledgeSearchDocument)
             .where(KnowledgeSearchDocument.point_id.in_(point_ids))
@@ -486,6 +550,9 @@ class ProductionIndexRepository:
         index_version: str,
         embedding_model: str,
     ) -> DomainAdmissionEvidence:
+        """中文：处理“索引·evidence”相关操作。
+        English: Handles the index evidence operation.
+        """
         if problem.generation_batch_id is None:
             raise RuntimeError("approved problem is missing generation_batch_id")
         payload = {

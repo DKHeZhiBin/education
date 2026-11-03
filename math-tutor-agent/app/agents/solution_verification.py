@@ -20,7 +20,7 @@ from app.mcp_tools.math_tools import (
     verify_candidate_answer,
 )
 from app.prompts.policies import PROOF_VERIFICATION_PROMPT, SOLUTION_VERIFICATION_PROMPT
-from app.providers.llm import OpenAICompatibleProvider
+from app.providers.llm import LLMProvider
 
 
 EQUATION_TYPES = {
@@ -45,10 +45,16 @@ PROOF_MODEL_CONFIDENCE_CAP = 0.74
 
 
 def _clean_text(value: object) -> str:
+    """中文：处理“clean·text”相关操作。
+    English: Handles the clean text operation.
+    """
     return re.sub(r"\s+", " ", str(value or "")).strip()
 
 
 def _string_list(value: object, limit: int = 30) -> list[str]:
+    """中文：处理“string·列出”相关操作。
+    English: Handles the string list operation.
+    """
     if not isinstance(value, list):
         return []
     return list(dict.fromkeys(
@@ -57,12 +63,18 @@ def _string_list(value: object, limit: int = 30) -> list[str]:
 
 
 def _boolean(value: object) -> bool:
+    """中文：处理“boolean”相关操作。
+    English: Handles the boolean operation.
+    """
     if isinstance(value, bool):
         return value
     return str(value).strip().lower() in {"true", "1", "yes"}
 
 
 def _confidence(value: object, default: float) -> float:
+    """中文：处理“confidence”相关操作。
+    English: Handles the confidence operation.
+    """
     try:
         return max(0.0, min(float(value), 1.0))
     except (TypeError, ValueError):
@@ -70,14 +82,25 @@ def _confidence(value: object, default: float) -> float:
 
 
 class SolutionVerificationAgent:
-    """Uses safe SymPy tools first and model review only for uncovered reasoning."""
+    """中文：定义“解答·校验·智能体”类，封装该职责相关的数据与行为。
+    English: Defines the solution verification agent class and encapsulates data and behavior for that responsibility.
+
+    原有说明 / Existing notes:
+    Uses safe SymPy tools first and model review only for uncovered reasoning.
+    """
 
     name = "solution_verification"
 
-    def __init__(self, provider: OpenAICompatibleProvider) -> None:
+    def __init__(self, provider: LLMProvider) -> None:
+        """中文：初始化当前对象及其依赖。
+        English: Initializes the current object and its dependencies.
+        """
         self.provider = provider
 
     def run(self, problem: dict, solution: dict) -> dict[str, Any]:
+        """中文：处理“执行”相关操作。
+        English: Handles the run operation.
+        """
         if solution.get("answer_consistency") == "conflict":
             return VerificationReport(
                 passed=False,
@@ -152,6 +175,9 @@ class SolutionVerificationAgent:
         ).model_dump(mode="json")
 
     def _verify_proof(self, problem: dict, solution: dict) -> VerificationReport:
+        """中文：处理“校验·proof”相关操作。
+        English: Handles the verify proof operation.
+        """
         structural_issues = self._proof_structure_issues(problem, solution)
         if structural_issues:
             return VerificationReport(
@@ -280,6 +306,9 @@ class SolutionVerificationAgent:
         problem: dict,
         solution: dict,
     ) -> VerificationReport:
+        """中文：处理“校验·打开·ended”相关操作。
+        English: Handles the verify open ended operation.
+        """
         result = self.provider.complete_json(
             SOLUTION_VERIFICATION_PROMPT,
             json.dumps({
@@ -321,6 +350,9 @@ class SolutionVerificationAgent:
 
     @staticmethod
     def _is_proof_problem(problem: dict) -> bool:
+        """中文：处理“is·proof·题目”相关操作。
+        English: Handles the is proof problem operation.
+        """
         target = problem.get("target")
         return (
             _clean_text(problem.get("question_type")) == "proof"
@@ -335,6 +367,9 @@ class SolutionVerificationAgent:
 
     @staticmethod
     def _is_open_ended_problem(problem: dict) -> bool:
+        """中文：处理“is·打开·ended·题目”相关操作。
+        English: Handles the is open ended problem operation.
+        """
         return classify_problem_verification_scope(
             problem_type=_clean_text(problem.get("question_type")),
             answer_type=_clean_text(problem.get("answer_type")),
@@ -348,6 +383,9 @@ class SolutionVerificationAgent:
 
     @staticmethod
     def _proof_structure_issues(problem: dict, solution: dict) -> list[str]:
+        """中文：处理“proof·structure·issues”相关操作。
+        English: Handles the proof structure issues operation.
+        """
         issues: list[str] = []
         target = problem.get("target")
         if not isinstance(target, dict) or _clean_text(target.get("action")) != "prove":
@@ -378,6 +416,9 @@ class SolutionVerificationAgent:
 
     @staticmethod
     def _proof_criteria(value: object) -> list[ProofCriterionReview]:
+        """中文：处理“proof·criteria”相关操作。
+        English: Handles the proof criteria operation.
+        """
         if not isinstance(value, list):
             return []
         reviews: list[ProofCriterionReview] = []
@@ -415,6 +456,9 @@ class SolutionVerificationAgent:
         return reviews
 
     def _run_cas(self, problem: dict, solution: dict) -> VerificationReport:
+        """中文：处理“执行·cas”相关操作。
+        English: Handles the run cas operation.
+        """
         question_type = _clean_text(problem.get("question_type"))
         if question_type in EQUATION_TYPES:
             return self._verify_equation(problem, solution)
@@ -432,6 +476,9 @@ class SolutionVerificationAgent:
         )
 
     def _verify_equation(self, problem: dict, solution: dict) -> VerificationReport:
+        """中文：处理“校验·equation”相关操作。
+        English: Handles the verify equation operation.
+        """
         checks: list[VerificationCheck] = []
         issues: list[str] = []
         limitations: list[str] = []
@@ -593,6 +640,9 @@ class SolutionVerificationAgent:
         checks: list[VerificationCheck],
         issues: list[str],
     ) -> bool:
+        """中文：处理“校验·step·chain”相关操作。
+        English: Handles the verify step chain operation.
+        """
         method_id = _clean_text(method.get("id")) or None
         steps = method.get("steps") if isinstance(method.get("steps"), list) else []
         if not steps:
@@ -645,6 +695,9 @@ class SolutionVerificationAgent:
         return complete
 
     def _verify_expression(self, problem: dict, solution: dict) -> VerificationReport:
+        """中文：处理“校验·expression”相关操作。
+        English: Handles the verify expression operation.
+        """
         expression = self._problem_expression(problem)
         answer = _clean_text(solution.get("answer"))
         if not expression or not answer:
@@ -685,6 +738,9 @@ class SolutionVerificationAgent:
 
     @staticmethod
     def _problem_equation(problem: dict) -> str | None:
+        """中文：处理“题目·equation”相关操作。
+        English: Handles the problem equation operation.
+        """
         conditions = problem.get("known_conditions")
         if isinstance(conditions, list):
             for condition in conditions:
@@ -700,6 +756,9 @@ class SolutionVerificationAgent:
 
     @staticmethod
     def _extract_equation(text: str) -> str | None:
+        """中文：处理“extract·equation”相关操作。
+        English: Handles the extract equation operation.
+        """
         if text.count("=") != 1:
             return None
         matches = re.findall(
@@ -714,11 +773,17 @@ class SolutionVerificationAgent:
 
     @staticmethod
     def _single_variable(equation: str) -> str | None:
+        """中文：处理“single·variable”相关操作。
+        English: Handles the single variable operation.
+        """
         names = set(re.findall(r"[A-Za-z][A-Za-z0-9_]*", equation))
         return next(iter(names)) if len(names) == 1 else None
 
     @staticmethod
     def _candidate_values(answer: str, variable: str) -> list[str]:
+        """中文：处理“候选内容·values”相关操作。
+        English: Handles the candidate values operation.
+        """
         if not answer:
             return []
         normalized = answer.replace("−", "-")
@@ -741,6 +806,9 @@ class SolutionVerificationAgent:
 
     @staticmethod
     def _normalized_values(values: list[str]) -> set[str] | None:
+        """中文：处理“normalized·values”相关操作。
+        English: Handles the normalized values operation.
+        """
         normalized: set[str] = set()
         for value in values:
             result = simplify_expression(value)
@@ -751,6 +819,9 @@ class SolutionVerificationAgent:
 
     @staticmethod
     def _problem_expression(problem: dict) -> str | None:
+        """中文：处理“题目·expression”相关操作。
+        English: Handles the problem expression operation.
+        """
         text = _clean_text(problem.get("normalized_question"))
         text = re.sub(r"^(?:计算|化简|展开|因式分解)\s*", "", text)
         text = text.rstrip("？?。")
